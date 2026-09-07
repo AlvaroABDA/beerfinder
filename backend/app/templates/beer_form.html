@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>Añadir Cerveza</h2>
+    <form method="POST" action="{{ url_for('routes.beer_new') }}" enctype="multipart/form-data">
+        <label>Nombre</label>
+        <input type="text" name="name" required>
+        
+        <label>Fabricante (Cervecera)</label>
+        <input type="text" name="brewery" required>
+        
+        <label>Estilo</label>
+        <input type="text" name="style">
+        
+        <label>Graduación (ABV %)</label>
+        <input type="text" name="abv">
+        
+        <label>Descripción</label>
+        <textarea name="description" rows="4"></textarea>
+
+        <label>Foto de la Cerveza</label>
+        <input type="file" name="image" accept="image/*">
+        
+        <button type="submit" class="btn">Guardar Cerveza</button>
+    </form>
+</div>
+{% endblock %}

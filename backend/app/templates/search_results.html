@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="section-title">
+    <span>Buscando: "{{ query }}"</span>
+</div>
+
+<form action="{{ url_for('routes.search') }}" method="GET" class="search-bar">
+    <span style="font-size:1.2rem;">🔍</span>
+    <input type="text" name="q" value="{{ query }}" placeholder="Buscar cerveza, estilo..." required>
+</form>
+
+{% if results %}
+    {% for beer in results %}
+    <a href="{{ url_for('routes.beer_view', id=beer.id) }}" class="beer-card">
+        <div class="card-header">
+            <div class="card-img" {% if beer.image %}style="background-image: url('{{ url_for('static', filename='images/beers/' + beer.image) }}'); background-size: cover; background-position: center;"{% endif %}>
+            {% if not beer.image %}🍺{% endif %}
+        </div>
+            <div class="card-info">
+                <h3 class="card-title">{{ beer.name }}</h3>
+                <p class="card-subtitle">{{ beer.style }} · {{ beer.abv }}%</p>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+{% else %}
+    <p>No se encontraron resultados para "{{ query }}".</p>
+{% endif %}
+
+<div style="margin-top:2rem;">
+    <a href="{{ url_for('routes.index') }}" class="btn btn-outline">← Volver al Inicio</a>
+</div>
+{% endblock %}

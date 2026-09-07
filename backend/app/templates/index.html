@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if not session.get('user_id') %}
+<div class="card" style="background: #e8f5e9; border-color: #c8e6c9;">
+    <h3 style="margin-top:0;">👋 ¿Tienes cuenta?</h3>
+    <p style="font-size:0.9rem; color:#2e7d32;">Inicia sesión para guardar favoritas, valorar cervezas y aportar información.</p>
+    <a href="{{ url_for('routes.login') }}" class="btn" style="background:#4caf50;">Iniciar sesión</a>
+</div>
+{% endif %}
+
+<h2 style="margin-top:0; font-size:1.5rem;">¿Qué te apetece?</h2>
+
+<form action="{{ url_for('routes.search') }}" method="GET" class="search-bar">
+    <span style="font-size:1.2rem;">🔍</span>
+    <input type="text" name="q" placeholder="Buscar cerveza, estilo..." required>
+</form>
+
+<div style="display:flex; gap:1rem; margin-bottom:1.5rem;">
+    <a href="{{ url_for('routes.beers_list') }}" class="btn" style="flex:1;">🍺 Cervezas</a>
+    <a href="{{ url_for('routes.map_view') }}" class="btn btn-outline" style="flex:1;">📍 Cerca</a>
+</div>
+
+<div class="section-title">
+    <span>🍺 DESCUBRE</span>
+    <a href="{{ url_for('routes.beers_list') }}">Ver todas →</a>
+</div>
+
+{% for beer in beers %}
+<a href="{{ url_for('routes.beer_view', id=beer.id) }}" class="beer-card">
+    <div class="card-header">
+        <div class="card-img" {% if beer.image %}style="background-image: url('{{ url_for('static', filename='images/beers/' + beer.image) }}'); background-size: cover; background-position: center;"{% endif %}>
+            {% if not beer.image %}🍺{% endif %}
+        </div>
+        <div class="card-info">
+            <h3 class="card-title">{{ beer.name }}</h3>
+            <p class="card-subtitle">{{ beer.style }} · {{ beer.abv }}%</p>
+            <span class="badge badge-green">🟢 Disponible</span>
+        </div>
+    </div>
+</a>
+{% else %}
+<p>No hay cervezas disponibles para descubrir.</p>
+{% endfor %}
+
+<div class="section-title">
+    <span>📍 CERCA DE TI</span>
+    <a href="{{ url_for('routes.map_view') }}">Ver mapa →</a>
+</div>
+
+{% for venue in venues %}
+<a href="{{ url_for('routes.venue_view', id=venue.id) }}" class="venue-card">
+    <div class="card-header">
+        <div class="card-img">🏪</div>
+        <div class="card-info">
+            <h3 class="card-title">{{ venue.name }}</h3>
+            <p class="card-subtitle">📍 {{ venue.address }}, {{ venue.city }}</p>
+            <span class="badge badge-green">🟢 1 disponibles</span>
+        </div>
+    </div>
+</a>
+{% else %}
+<p>No hay establecimientos cercanos.</p>
+{% endfor %}
+
+{% endblock %}

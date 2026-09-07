@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>Registro</h2>
+    <form method="POST" action="{{ url_for('routes.register') }}">
+        <label>Usuario</label>
+        <input type="text" name="username" required>
+        
+        <label>Email</label>
+        <input type="email" name="email" required>
+        
+        <label>Contraseña</label>
+        <input type="password" name="password" required>
+        
+        <label>Tipo de Cuenta</label>
+        <select name="role">
+            <option value="USER">Usuario (aprobación automática)</option>
+            <option value="VENUE">Bar / Establecimiento (requiere aprobación)</option>
+            <option value="BREWERY">Proveedor / Cervecera (requiere aprobación)</option>
+        </select>
+        
+        <button type="submit" class="btn">Registrarse</button>
+    </form>
+</div>
+{% endblock %}

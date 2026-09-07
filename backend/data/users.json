@@ -1,0 +1,34 @@
+[
+    {
+        "id": 1,
+        "username": "admin",
+        "email": "admin@example.com",
+        "password": "admin",
+        "role": "ADMIN",
+        "status": "ACTIVE"
+    },
+    {
+        "id": 2,
+        "username": "usuario_sediento",
+        "email": "user@ejemplo.com",
+        "password": "123",
+        "role": "USER",
+        "status": "ACTIVE"
+    },
+    {
+        "id": 3,
+        "username": "bar_manolo",
+        "email": "manolo@bar.com",
+        "password": "123",
+        "role": "VENUE",
+        "status": "ACTIVE"
+    },
+    {
+        "id": 4,
+        "username": "cervezas_artesanales",
+        "email": "info@artesanales.com",
+        "password": "123",
+        "role": "BREWERY",
+        "status": "ACTIVE"
+    }
+]

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+        <div style="font-size: 3rem;">🏪</div>
+        <div>
+            <h2 style="margin: 0;">{{ venue.name }}</h2>
+            <p style="margin: 0; color: #86868b;">📍 {{ venue.address }}, {{ venue.city }}</p>
+        </div>
+    </div>
+    
+    <p>{{ venue.description }}</p>
+    
+    <div style="margin-top: 1rem;">
+        <a href="{{ url_for('routes.map_view') }}" class="btn btn-outline">Ver en Mapa</a>
+    </div>
+</div>
+
+<div class="section-title">
+    <span>🍺 Cervezas Disponibles</span>
+</div>
+
+{% for beer in available_beers %}
+<a href="{{ url_for('routes.beer_view', id=beer.id) }}" class="beer-card" style="display: block; text-decoration: none; color: inherit;">
+    <div class="card-header" style="align-items: center;">
+        <div class="card-img" {% if beer.image %}style="width: 100px; height: 100px; background-image: url('{{ url_for('static', filename='images/beers/' + beer.image) }}'); background-size: cover; background-position: center; border-radius: 12px; flex-shrink: 0;"{% else %}style="width: 100px; height: 100px; flex-shrink: 0; font-size: 2.5rem;"{% endif %}>
+            {% if not beer.image %}🍺{% endif %}
+        </div>
+        <div class="card-info" style="flex: 1;">
+            <h3 class="card-title">{{ beer.name }}</h3>
+            <p class="card-subtitle">{{ beer.style }} · {{ beer.abv }}%</p>
+            
+            <div style="margin-bottom: 0.5rem;" onclick="toggleHistory(event, 'history-{{ beer.id }}')">
+                {% if beer.status == 'AVAILABLE' %}
+                    <span class="badge badge-green" style="cursor: pointer;">🟢 Disponible</span>
+                {% else %}
+                    <span class="badge" style="background:#ffebee; color:#f44336; cursor: pointer;">🔴 Agotada</span>
+                {% endif %}
+            </div>
+            
+            {% if session.get('user_id') %}
+            <div style="display: flex; gap: 0.3rem; margin-top: 0.5rem;" onclick="event.preventDefault();">
+                <form action="{{ url_for('routes.update_status', venue_id=venue.id, beer_id=beer.id) }}" method="POST" style="flex: 1;">
+                    <input type="hidden" name="status" value="AVAILABLE">
+                    <button type="submit" class="btn" style="padding: 0.2rem 0.4rem; font-size: 0.7rem; width: 100%; background: #4caf50;">✅ Disp.</button>
+                </form>
+                <form action="{{ url_for('routes.update_status', venue_id=venue.id, beer_id=beer.id) }}" method="POST" style="flex: 1;">
+                    <input type="hidden" name="status" value="SOLD_OUT">
+                    <button type="submit" class="btn" style="padding: 0.2rem 0.4rem; font-size: 0.7rem; width: 100%; background: #f44336;">❌ Agot.</button>
+                </form>
+            </div>
+            {% endif %}
+            
+            {% if beer.history %}
+            <div id="history-{{ beer.id }}" style="display: none; margin-top: 1rem; font-size: 0.75rem; color: #86868b; background: #f9f9f9; padding: 0.5rem; border-radius: 8px;" onclick="event.preventDefault();">
+                <strong>Últimas actualizaciones:</strong>
+                <ul style="margin: 0; padding-left: 1.2rem;">
+                {% for log in beer.history %}
+                    <li>{{ "Disponible" if log.status == 'AVAILABLE' else "Agotada" }} ({{ log.last_updated.split('T')[0] }})</li>
+                {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</a>
+{% else %}
+<p>Este establecimiento no ha añadido cervezas a su catálogo todavía.</p>
+{% endfor %}
+
+{% if session.get('user_id') %}
+<div class="card" style="margin-top: 1rem; background: #f9f9f9; border: 1px dashed #ccc;">
+    <h3 style="margin-top: 0;">Añadir cerveza a este bar</h3>
+    <form action="{{ url_for('routes.venue_add_beer', venue_id=venue.id) }}" method="POST" style="display: flex; gap: 0.5rem;">
+        <select name="beer_id" required style="flex: 1; margin: 0; padding: 0.5rem; border-radius: 8px;">
+            <option value="">Selecciona una cerveza...</option>
+            {% for b in all_beers %}
+            <option value="{{ b.id }}">{{ b.name }} ({{ b.brewery }})</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn" style="width: auto; padding: 0.5rem 1rem;">Añadir</button>
+    </form>
+    <p style="font-size: 0.8rem; margin-top: 0.5rem;">¿No está en la lista? <a href="{{ url_for('routes.beer_new') }}">Crea una nueva</a>.</p>
+</div>
+{% endif %}
+
+<div style="margin-top:2rem;">
+    <a href="{{ url_for('routes.index') }}" class="btn btn-outline">← Volver al Inicio</a>
+</div>
+
+<script>
+function toggleHistory(event, elementId) {
+    event.preventDefault();
+    var el = document.getElementById(elementId);
+    if (el) {
+        if (el.style.display === 'none') {
+            el.style.display = 'block';
+        } else {
+            el.style.display = 'none';
+        }
+    }
+}
+</script>
+{% endblock %}

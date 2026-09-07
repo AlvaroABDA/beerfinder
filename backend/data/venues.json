@@ -1,0 +1,22 @@
+[
+    {
+        "id": 1,
+        "name": "Bar de Manolo",
+        "description": "El mejor bar del barrio, tapas y buena cerveza.",
+        "address": "Calle Falsa 123",
+        "city": "Madrid",
+        "latitude": 40.416775,
+        "longitude": -3.70379,
+        "image": "",
+        "owner_user_id": 3
+    },
+    {
+        "id": 2,
+        "name": "Kukai Café",
+        "address": "Calle 8 de Marzo, 22",
+        "city": "Vitoria-Gasteiz",
+        "description": "El origen de toda esta fumada XD",
+        "latitude": 42.85414386231221,
+        "longitude": -2.651073530603388
+    }
+]

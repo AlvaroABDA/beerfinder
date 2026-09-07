@@ -1,0 +1,16 @@
+[
+    {
+        "id": 1,
+        "venue_id": 1,
+        "beer_id": 1,
+        "status": "AVAILABLE",
+        "last_updated": "2026-09-07T10:00:00Z"
+    },
+    {
+        "id": 2,
+        "venue_id": 1,
+        "beer_id": 2,
+        "status": "SOLD_OUT",
+        "last_updated": "2026-09-07T10:00:00Z"
+    }
+]

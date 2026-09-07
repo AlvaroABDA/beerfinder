@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{{ title|default('BeerMap MVP') }}</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f5f5f7; margin: 0; color: #1d1d1f; }
+        .app-container { max-width: 480px; margin: 0 auto; background: #fff; min-height: 100vh; position: relative; box-shadow: 0 0 10px rgba(0,0,0,0.05); overflow-x: hidden; }
+        header { background: #fff; color: #1d1d1f; padding: 1rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; font-size: 1.2rem; font-weight: bold; border-bottom: 1px solid #f2f2f2; }
+        .menu-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #1d1d1f; padding: 0; }
+        
+        /* Sidebar Menu */
+        .sidebar { position: fixed; top: 0; left: -250px; width: 250px; height: 100vh; background: #fff; z-index: 200; box-shadow: 2px 0 10px rgba(0,0,0,0.1); transition: left 0.3s ease; padding-top: 1rem; }
+        .sidebar.open { left: 0; }
+        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 150; display: none; }
+        .sidebar-overlay.open { display: block; }
+        .sidebar-close { text-align: right; padding: 0 1rem 1rem; }
+        .sidebar a { display: block; padding: 1rem 1.5rem; color: #1d1d1f; text-decoration: none; font-weight: 500; border-bottom: 1px solid #f2f2f2; }
+        .sidebar a:hover { background: #f9f9f9; }
+        
+        .content { padding: 1rem; }
+        .alert { padding: 1rem; margin-bottom: 1rem; border-radius: 8px; font-size: 0.9rem; }
+        .alert-success { background: #d4edda; color: #155724; }
+        .alert-danger { background: #f8d7da; color: #721c24; }
+        .alert-warning { background: #fff3cd; color: #856404; }
+        
+        .btn { display: inline-block; width: 100%; padding: 0.8rem; background: #007aff; color: white; text-align: center; text-decoration: none; border: none; border-radius: 20px; cursor: pointer; font-size: 1rem; font-weight: 500; box-sizing: border-box; }
+        .btn:hover { background: #0062cc; }
+        .btn-outline { background: transparent; color: #007aff; border: 1px solid #007aff; }
+        .btn-outline:hover { background: #f0f8ff; }
+        
+        input, select, textarea { width: 100%; padding: 0.8rem; margin: 0.5rem 0 1rem 0; border: 1px solid #d2d2d7; border-radius: 12px; box-sizing: border-box; font-size: 1rem; background: #f2f2f2; }
+        label { font-weight: 500; font-size: 0.9rem; color: #86868b; }
+        
+        /* Cards */
+        .section-title { font-size: 1.2rem; font-weight: bold; margin: 1.5rem 0 1rem; display: flex; justify-content: space-between; align-items: baseline; }
+        .section-title a { font-size: 0.9rem; color: #007aff; text-decoration: none; font-weight: normal; }
+        
+        .beer-card, .venue-card { background: white; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; border: 1px solid #d2d2d7; box-shadow: 0 2px 8px rgba(0,0,0,0.03); text-decoration: none; color: inherit; display: block; }
+        .beer-card:hover, .venue-card:hover { background: #f9f9f9; }
+        .card-header { display: flex; gap: 1rem; }
+        .card-img { width: 60px; height: 60px; background: #eee; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+        .card-info { flex: 1; }
+        .card-title { margin: 0 0 0.2rem 0; font-size: 1.1rem; font-weight: bold; }
+        .card-subtitle { margin: 0 0 0.5rem 0; font-size: 0.9rem; color: #86868b; }
+        .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.8rem; font-weight: 500; }
+        .badge-green { background: #e8f5e9; color: #34c759; }
+        
+        .search-bar { display: flex; background: #f2f2f2; border-radius: 12px; padding: 0.5rem 1rem; align-items: center; margin-bottom: 1.5rem; }
+        .search-bar input { margin: 0; border: none; padding: 0.5rem; flex: 1; outline: none; }
+    </style>
+</head>
+<body>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMenu()"></div>
+    <div class="sidebar" id="sidebarMenu">
+        <div class="sidebar-close">
+            <button class="menu-btn" onclick="toggleMenu()">✕</button>
+        </div>
+        <a href="{{ url_for('routes.index') }}">🏠 Inicio</a>
+        <a href="{{ url_for('routes.beers_list') }}">🍺 Explorar cervezas</a>
+        <a href="{{ url_for('routes.map_view') }}">📍 Mapa</a>
+        
+        {% if session.get('user_id') %}
+            <a href="{{ url_for('routes.beer_new') }}">➕ Añadir cerveza</a>
+            {% if session.get('role') == 'ADMIN' %}
+                <a href="{{ url_for('routes.admin') }}">⚙️ Administración</a>
+            {% endif %}
+            <a href="{{ url_for('routes.logout') }}" style="color: #ff3b30; margin-top: 1rem; border-top: 2px solid #f2f2f2;">🚪 Cerrar sesión</a>
+        {% else %}
+            <a href="{{ url_for('routes.login') }}" style="margin-top: 1rem; border-top: 2px solid #f2f2f2;">👤 Iniciar sesión</a>
+            <a href="{{ url_for('routes.register') }}">📝 Registro</a>
+        {% endif %}
+    </div>
+
+    <div class="app-container">
+        <header>
+            <span>🍺 BeerMap</span>
+            <button class="menu-btn" onclick="toggleMenu()">☰</button>
+        </header>
+
+        <div class="content">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+    
+    <script>
+        function toggleMenu() {
+            document.getElementById('sidebarMenu').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('open');
+        }
+    </script>
+</body>
+</html>

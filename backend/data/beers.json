@@ -1,0 +1,18 @@
+[
+    {
+        "id": 1,
+        "name": "Mahou 5 Estrellas",
+        "brewery": "Mahou San Miguel",
+        "style": "Lager",
+        "abv": "5.5",
+        "description": "Una cerveza dorada, con un sabor característico, moderado amargor."
+    },
+    {
+        "id": 2,
+        "name": "IPA Artesanal",
+        "brewery": "Cervezas Artesanales S.L.",
+        "style": "IPA",
+        "abv": "6.8",
+        "description": "Cerveza artesanal muy lupulada con toques cítricos."
+    }
+]

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="section-title">
+    <span>🍺 Todas las cervezas</span>
+</div>
+
+{% for beer in beers %}
+<a href="{{ url_for('routes.beer_view', id=beer.id) }}" class="beer-card">
+    <div class="card-header">
+        <div class="card-img" {% if beer.image %}style="background-image: url('{{ url_for('static', filename='images/beers/' + beer.image) }}'); background-size: cover; background-position: center;"{% endif %}>
+            {% if not beer.image %}🍺{% endif %}
+        </div>
+        <div class="card-info">
+            <h3 class="card-title">{{ beer.name }}</h3>
+            <p class="card-subtitle">{{ beer.style }} · {{ beer.abv }}%</p>
+        </div>
+    </div>
+</a>
+{% else %}
+    <p>No hay cervezas registradas.</p>
+{% endfor %}
+
+<div style="margin-top:2rem;">
+    <a href="{{ url_for('routes.index') }}" class="btn btn-outline">← Volver al Inicio</a>
+</div>
+{% endblock %}

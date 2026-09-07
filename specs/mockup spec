@@ -1,0 +1,1098 @@
+# SPEC — BEERMAP / BEERFINDER
+
+## Prototipo HTML navegable de aplicación móvil
+
+### 1. Objetivo
+
+Crear un **mockup navegable en un único archivo HTML**, inspirado en el patrón visual y de interacción del prototipo de referencia proporcionado.
+
+La aplicación es una especie de:
+
+> **"Google Maps + buscador especializado en cerveza"**
+
+o, informalmente:
+
+> **"Tinder de birra"**
+
+El objetivo principal de la aplicación es responder rápidamente a:
+
+> **"¿Qué cerveza me apetece y dónde puedo encontrarla cerca de mí?"**
+
+No debe parecer una red social compleja ni un clon de Untappd.
+
+La prioridad absoluta es:
+
+* rapidez
+* claridad
+* búsqueda
+* proximidad
+* disponibilidad
+* catálogo de cervezas
+* valoración
+* facilidad de uso
+
+El usuario debe poder entender la aplicación prácticamente sin explicación.
+
+---
+
+# 2. FORMATO DEL MOCKUP
+
+Crear:
+
+```text
+beermap_prototipo.html
+```
+
+Un único HTML autocontenido:
+
+* HTML
+* CSS
+* JavaScript
+* sin backend
+* sin dependencias externas obligatorias
+* datos ficticios
+* navegación simulada mediante JavaScript
+
+El diseño debe seguir el patrón del HTML de referencia:
+
+```text
+┌─────────────────────────────────────────────────────────┐
+│                                                         │
+│  BEERMAP — Prototipo                                    │
+│  Maqueta navegable                                      │
+│                                                         │
+│  ┌─────────────────────┐    ┌────────────────────────┐  │
+│  │                     │    │ Rol activo              │  │
+│  │      SMARTPHONE     │    │                          │  │
+│  │                     │    │ Qué puede hacer         │  │
+│  │                     │    │                          │  │
+│  │                     │    │ Decisiones de diseño    │  │
+│  │                     │    │                          │  │
+│  └─────────────────────┘    └────────────────────────┘  │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+El teléfono debe ser navegable.
+
+El panel lateral debe permitir cambiar entre los distintos roles y explicar las funcionalidades correspondientes.
+
+---
+
+# 3. ROLES
+
+Debe existir un selector de roles:
+
+### 👤 Usuario
+
+Usuario normal de la aplicación.
+
+Puede:
+
+* buscar cervezas
+* buscar estilos
+* buscar cerveceras
+* ver cervezas cercanas
+* ver bares
+* consultar disponibilidad
+* valorar cervezas
+* confirmar disponibilidad
+* marcar favoritas
+* consultar historial/favoritos
+
+### 🍻 Bar
+
+Puede:
+
+* gestionar su perfil
+* indicar su ubicación
+* añadir cervezas a su carta
+* indicar precio
+* indicar formato
+* marcar disponibilidad
+* marcar una cerveza como agotada
+* consultar su carta
+* consultar actividad básica
+
+### 🏭 Cervecera
+
+Este rol debe estar **verificado/autorizado por administración**.
+
+Puede:
+
+* gestionar su perfil
+* gestionar sus cervezas
+* crear nuevas cervezas
+* modificar información de sus cervezas
+* añadir fotografías
+* consultar dónde aparece su cerveza
+* consultar valoración agregada
+
+### 🛡️ Admin
+
+Puede:
+
+* verificar cerveceras
+* autorizar bares
+* moderar contenido
+* gestionar usuarios
+* corregir/eliminar información incorrecta
+* consultar actividad global
+
+---
+
+# 4. PRINCIPIO FUNDAMENTAL
+
+La aplicación debe distinguir claramente entre:
+
+## CERVEZA
+
+La entidad de catálogo.
+
+Ejemplo:
+
+```text
+Basqueland
+└── Imparable
+    IPA
+    6.5%
+    45 IBU
+```
+
+Y:
+
+## DISPONIBILIDAD
+
+La relación entre una cerveza y un establecimiento.
+
+Ejemplo:
+
+```text
+Imparable
+    ↓
+Bar A
+    🟢 Disponible
+    4,50 €
+    Confirmada hace 2 horas
+
+    ↓
+Bar B
+    🟡 Probablemente disponible
+    5,00 €
+    Confirmada ayer
+
+    ↓
+Bar C
+    🔴 Agotada
+    Confirmada hace 3 horas
+```
+
+Este concepto debe quedar muy claro visualmente.
+
+---
+
+# 5. HOME DEL USUARIO
+
+La pantalla principal debe ser extremadamente sencilla.
+
+Cabecera:
+
+```text
+BeerMap
+```
+
+Subtítulo:
+
+```text
+Encuentra tu cerveza.
+```
+
+Elemento principal:
+
+```text
+┌─────────────────────────────────┐
+│ 🔎 ¿Qué cerveza te apetece?     │
+└─────────────────────────────────┘
+```
+
+Debajo:
+
+```text
+Cerca de ti
+```
+
+Y accesos rápidos:
+
+```text
+IPA       NEIPA       STOUT
+LAGER     SOUR        0.0%
+```
+
+Después:
+
+```text
+🔥 Cerca de ti
+
+🍺 Basqueland Imparable
+   IPA · 6.5%
+   ⭐ 4.4
+   📍 650 m
+   🟢 Disponible
+
+🍺 La Salve Muniche
+   Lager · 5.0%
+   ⭐ 4.0
+   📍 900 m
+   🟢 Disponible
+
+🍺 La Pirata Hazy
+   NEIPA · 6.5%
+   ⭐ 4.3
+   📍 1.2 km
+   🟡 Confirmada ayer
+```
+
+Debe existir un botón:
+
+```text
+Ver mapa
+```
+
+---
+
+# 6. MAPA
+
+Crear una pantalla de mapa simulada.
+
+No es necesario utilizar un mapa real.
+
+Se puede crear un mapa visual ficticio con:
+
+* fondo gris claro
+* calles simuladas
+* marcadores
+* posición del usuario
+* bares
+
+Ejemplo:
+
+```text
+        🍺
+             🍺
+
+                  🍺
+
+             📍
+           Tú estás aquí
+
+     🍺
+
+              🍺
+```
+
+Cada marcador representa un establecimiento.
+
+Al pulsarlo debe abrirse una pequeña ficha:
+
+```text
+Bar Irlandés X
+
+⭐ 4.6
+
+3 cervezas que buscas
+
+📍 650 m
+
+🟢 12 cervezas disponibles
+
+[Ver bar]
+```
+
+---
+
+# 7. BUSCADOR
+
+La búsqueda debe permitir buscar:
+
+### Cervezas
+
+```text
+Imparable
+```
+
+### Estilos
+
+```text
+IPA
+NEIPA
+Stout
+Sour
+Lager
+```
+
+### Cerveceras
+
+```text
+Basqueland
+La Pirata
+Naparbier
+```
+
+Mostrar resultados agrupados.
+
+Ejemplo:
+
+```text
+RESULTADOS
+
+CERZECAS
+
+🍺 Imparable
+   Basqueland · IPA · 6.5%
+
+🍺 Hazy
+   La Pirata · NEIPA · 6.5%
+
+ESTILOS
+
+IPA
+NEIPA
+
+CERVECERAS
+
+Basqueland
+La Pirata
+```
+
+---
+
+# 8. FICHA DE CERVEZA
+
+Esta es una de las pantallas más importantes.
+
+Ejemplo:
+
+```text
+🍺
+
+Imparable
+
+Basqueland
+
+IPA
+6.5% ABV
+45 IBU
+
+⭐ 4.4
+128 valoraciones
+```
+
+Descripción breve.
+
+Después:
+
+```text
+¿Dónde encontrarla?
+
+📍 Cerca de ti
+
+🟢 Bar X
+   650 m
+   4,50 €
+   Confirmada hace 2 h
+
+🟢 Bar Y
+   1.1 km
+   5,00 €
+   Confirmada hace 5 h
+
+🟡 Bar Z
+   2.4 km
+   4,50 €
+   Confirmada hace 3 días
+```
+
+Botón:
+
+```text
+Ver todos en el mapa
+```
+
+Y:
+
+```text
+♡ Guardar
+```
+
+---
+
+# 9. DISPONIBILIDAD
+
+La disponibilidad debe tener un componente visual muy importante.
+
+Estados:
+
+### Verde
+
+```text
+🟢 Disponible
+Confirmada hace 2 h
+```
+
+### Amarillo
+
+```text
+🟡 Probablemente disponible
+Confirmada hace 3 días
+```
+
+### Rojo
+
+```text
+🔴 Agotada
+Confirmada hace 1 h
+```
+
+### Gris
+
+```text
+⚪ Sin información
+```
+
+La antigüedad de la confirmación debe ser visible.
+
+Ejemplo:
+
+```text
+🟢 Disponible
+✓ Confirmada hace 47 min
+por 2 usuarios
+```
+
+---
+
+# 10. CONFIRMAR DISPONIBILIDAD
+
+Desde la ficha del bar o de la cerveza, un usuario debe poder confirmar:
+
+```text
+¿Está disponible?
+
+[✓ Sí, la he visto]
+[✕ No, está agotada]
+```
+
+Después mostrar un toast:
+
+```text
+✓ Disponibilidad actualizada
+
+Gracias. Tu confirmación ayudará a otros usuarios.
+```
+
+No solicitar formularios largos.
+
+La interacción debe durar literalmente un toque.
+
+---
+
+# 11. VALORACIONES
+
+La valoración debe ser sencilla.
+
+```text
+⭐ 4.4
+
+★★★★★
+
+¿Qué te ha parecido?
+
+1   2   3   4   5
+```
+
+Opcionalmente:
+
+```text
+Sabor
+Amargor
+Cuerpo
+¿La volverías a pedir?
+```
+
+Pero no convertir esto en una ficha compleja.
+
+La valoración principal debe ser:
+
+```text
+⭐ 4.4
+```
+
+---
+
+# 12. FAVORITOS
+
+Pantalla:
+
+```text
+Mis cervezas
+
+♡ Imparable
+  Basqueland · IPA
+
+♡ Hazy
+  La Pirata · NEIPA
+
+♡ Black IPA
+  Naparbier
+```
+
+Debe existir también:
+
+```text
+Mis sitios
+```
+
+para guardar bares.
+
+---
+
+# 13. PERFIL DE BAR
+
+Ejemplo:
+
+```text
+🍻 The Beer Corner
+
+⭐ 4.6
+
+📍 650 m
+
+24 cervezas en carta
+
+🟢 18 disponibles
+```
+
+Después:
+
+```text
+Carta actual
+
+IPA
+🍺 Imparable          🟢
+🍺 West Coast IPA     🟢
+
+LAGER
+🍺 Lager X            🟢
+
+STOUT
+🍺 Imperial Stout     🟡
+```
+
+Cada cerveza debe poder abrir su ficha.
+
+---
+
+# 14. PANEL DEL BAR
+
+Cambiar al rol:
+
+```text
+Bar — The Beer Corner
+```
+
+Dashboard sencillo:
+
+```text
+24
+Cervezas en carta
+
+18
+Disponibles
+
+6
+Agotadas
+
+12
+Confirmaciones esta semana
+```
+
+Después:
+
+```text
+Carta
+
+🍺 Imparable
+   🟢 Disponible
+   4,50 €
+
+🍺 Hazy
+   🔴 Agotada
+   5,00 €
+
+🍺 Imperial Stout
+   🟢 Disponible
+   6,00 €
+```
+
+Acciones:
+
+```text
++ Añadir cerveza
+Actualizar disponibilidad
+Editar carta
+```
+
+---
+
+# 15. PANEL DE CERVECERA
+
+Ejemplo:
+
+```text
+Basqueland Brewing
+
+✓ Cervecera verificada
+
+42
+Cervezas
+
+31
+Actualmente disponibles
+
+4.3
+Valoración media
+```
+
+Lista:
+
+```text
+Imparable
+IPA · 6.5%
+⭐ 4.4
+
+Hazy
+NEIPA · 6.5%
+⭐ 4.3
+
+Black River
+Stout · 8%
+⭐ 4.1
+```
+
+Cada cerveza debe mostrar:
+
+```text
+Disponible en 37 establecimientos
+```
+
+Esto es una funcionalidad importante para las cerveceras.
+
+---
+
+# 16. ADMIN
+
+Pantalla sencilla:
+
+```text
+Administración
+
+12
+Cerveceras pendientes
+
+8
+Bares pendientes
+
+34
+Reportes
+
+1.284
+Usuarios
+```
+
+Lista:
+
+```text
+Solicitudes pendientes
+
+🏭 Basque Brewing Co.
+   Solicita verificación
+
+   [Revisar]
+
+🍻 Bar X
+   Solicita autorización
+
+   [Revisar]
+```
+
+No es necesario desarrollar un panel administrativo completo.
+
+Debe bastar con demostrar conceptualmente el flujo.
+
+---
+
+# 17. RECOMENDACIONES
+
+IMPORTANTE:
+
+El sistema de recomendaciones **NO forma parte del MVP funcional**.
+
+Sin embargo, debe dejarse preparado conceptualmente.
+
+En el panel lateral explicar:
+
+> "En una segunda fase, el sistema podrá aprender de las valoraciones, favoritos y búsquedas del usuario para recomendar cervezas similares."
+
+Ejemplo futuro:
+
+```text
+Te gusta:
+
+IPA
+NEIPA
+Basqueland
+Amargor alto
+
+↓
+
+Quizá te guste:
+
+🍺 X
+🍺 Y
+🍺 Z
+```
+
+Pero no desarrollar una IA ni un algoritmo real en el prototipo.
+
+---
+
+# 18. NAVEGACIÓN
+
+La navegación inferior del usuario debe ser:
+
+```text
+🏠 Inicio
+🗺️ Mapa
+🔎 Buscar
+♡ Favoritos
+👤 Perfil
+```
+
+Para bares:
+
+```text
+🏠 Inicio
+🍺 Carta
+📍 Local
+📊 Actividad
+👤 Perfil
+```
+
+Para cerveceras:
+
+```text
+🏠 Inicio
+🍺 Cervezas
+📍 Distribución
+📊 Estadísticas
+👤 Perfil
+```
+
+No es necesario que todas las pantallas sean diferentes; el prototipo debe demostrar el concepto.
+
+---
+
+# 19. DATOS FICTICIOS
+
+Utilizar cervezas y establecimientos ficticios o claramente demostrativos.
+
+Preferiblemente utilizar nombres plausibles para que la aplicación parezca real.
+
+Ejemplo:
+
+```text
+Cerveceras
+
+Basque North Brewing
+Northern Wave
+Bilbao Craft
+Old Town Brewing
+Atlantic Hops
+```
+
+Cervezas:
+
+```text
+Imparable
+Northern Haze
+Old Town IPA
+Atlantic Lager
+Black Harbor
+Red Machine
+```
+
+Estilos:
+
+```text
+IPA
+NEIPA
+West Coast IPA
+Lager
+Pilsner
+Stout
+Porter
+Sour
+Wheat
+0.0%
+```
+
+---
+
+# 20. ESTILO VISUAL
+
+Seguir la filosofía visual del HTML de referencia:
+
+* limpio
+* moderno
+* minimalista
+* profesional
+* mucho espacio blanco
+* tarjetas
+* bordes suaves
+* tipografía sans-serif
+* colores neutros
+* verde para disponible
+* amarillo para información antigua
+* rojo para agotado
+* azul para información/acciones secundarias
+
+Evitar:
+
+* estética de aplicación de alcohol excesivamente temática
+* fondos negros
+* neones
+* estética "hipster"
+* exceso de ilustraciones
+* interfaces recargadas
+* demasiados gradientes
+
+La aplicación debe parecer un producto tecnológico serio.
+
+---
+
+# 21. INTERACCIONES DEL MOCKUP
+
+El HTML debe ser realmente navegable.
+
+Como mínimo:
+
+### Usuario
+
+```text
+Inicio
+ ↓
+Buscar
+ ↓
+Resultado
+ ↓
+Ficha cerveza
+ ↓
+Dónde encontrarla
+ ↓
+Bar
+```
+
+Y:
+
+```text
+Ficha cerveza
+ ↓
+Confirmar disponibilidad
+ ↓
+Toast de confirmación
+```
+
+Y:
+
+```text
+Ficha cerveza
+ ↓
+Valorar
+ ↓
+Valoración registrada
+```
+
+### Bar
+
+```text
+Dashboard
+ ↓
+Carta
+ ↓
+Cerveza
+ ↓
+Cambiar disponibilidad
+```
+
+### Cervecera
+
+```text
+Dashboard
+ ↓
+Mis cervezas
+ ↓
+Ficha cerveza
+ ↓
+Dónde está disponible
+```
+
+### Admin
+
+```text
+Dashboard
+ ↓
+Solicitudes
+ ↓
+Revisar
+ ↓
+Autorizar
+```
+
+Los botones deben producir cambios visuales o toast aunque las acciones sean simuladas.
+
+---
+
+# 22. PANEL LATERAL DEL PROTOTIPO
+
+El panel lateral debe explicar:
+
+## Rol activo
+
+Selector:
+
+```text
+Usuario
+Bar
+Cervecera
+Admin
+```
+
+Debajo:
+
+### Qué puede hacer
+
+Lista de permisos.
+
+### Conceptos principales
+
+Explicar:
+
+* catálogo de cerveza
+* disponibilidad
+* confirmaciones de usuarios
+* valoración
+* geolocalización
+* verificación
+
+### Decisiones de producto
+
+Por ejemplo:
+
+> La aplicación prioriza "dónde encontrarla" sobre el componente social.
+
+> La disponibilidad tiene caducidad porque una carta no es un inventario fiable.
+
+> Los usuarios ayudan a mantener actualizada la disponibilidad.
+
+> Las cerveceras necesitan verificación para evitar suplantaciones.
+
+> El sistema de recomendaciones queda para una segunda fase.
+
+---
+
+# 23. FRASE PRINCIPAL DEL PRODUCTO
+
+La interfaz debe transmitir esta idea:
+
+> **Encuentra la cerveza que quieres. Cerca de ti. Ahora.**
+
+Y opcionalmente:
+
+> **BeerMap — Tu cerveza. Tu sitio.**
+
+---
+
+# 24. LO QUE NO HAY QUE HACER
+
+NO convertirlo en:
+
+* Untappd
+* Instagram de cerveza
+* red social
+* plataforma de delivery
+* ecommerce
+* sistema de reservas
+* ERP para bares
+* sistema avanzado de inventario
+* aplicación de recomendaciones basada en IA
+
+No añadir funcionalidades porque "quedarían bien".
+
+La pregunta que debe responder el MVP es únicamente:
+
+> **¿Qué cerveza quiero y dónde puedo encontrarla ahora?**
+
+---
+
+# 25. CRITERIO DE ÉXITO DEL MOCKUP
+
+Al abrir el HTML, una persona que no conozca el proyecto debe poder entender en menos de 30 segundos:
+
+1. Qué es BeerMap.
+2. Qué puede buscar.
+3. Que puede encontrar cervezas cerca.
+4. Que la disponibilidad está actualizada por bares y usuarios.
+5. Que puede valorar.
+6. Que bares y cerveceras tienen sus propios perfiles.
+
+El prototipo debe parecer suficientemente real como para poder enseñárselo a:
+
+* una cervecera
+* un dueño de bar
+* un usuario potencial
+* un desarrollador
+
+y preguntar:
+
+> **"¿Usarías esto?"**
+
+---
+
+# 26. RESULTADO ESPERADO
+
+Generar exclusivamente:
+
+```text
+beermap_prototipo.html
+```
+
+El archivo debe abrirse directamente en un navegador sin necesidad de servidor.
+
+Debe contener:
+
+* mockup móvil
+* navegación
+* datos ficticios
+* interacción
+* selector de roles
+* panel explicativo lateral
+* estados de disponibilidad
+* mapa simulado
+* fichas de cerveza
+* fichas de bares
+* panel de cervecera
+* panel de administración
+
+No implementar backend ni persistencia real.
+
+El objetivo es **validar el concepto y la experiencia de usuario**, no construir todavía la aplicación.

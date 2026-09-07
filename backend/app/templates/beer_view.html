@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1rem;">
+        <div class="card-img" style="width: 80px; height: 80px; flex-shrink: 0; {% if beer.image %}background-image: url('{{ url_for('static', filename='images/beers/' + beer.image) }}'); background-size: cover; background-position: center;{% endif %}">
+            {% if not beer.image %}🍺{% endif %}
+        </div>
+        <div>
+            <h2 style="margin: 0 0 0.5rem 0;">{{ beer.name }}</h2>
+            <p style="margin: 0;"><strong>Fabricante:</strong> {{ beer.brewery }}</p>
+            <p style="margin: 0;"><strong>Estilo:</strong> {{ beer.style }}</p>
+            <p style="margin: 0;"><strong>Graduación:</strong> {{ beer.abv }}%</p>
+        </div>
+    </div>
+    <p><strong>Descripción:</strong><br>{{ beer.description }}</p>
+    
+    <div style="margin-top: 1.5rem;">
+        <a href="{{ url_for('routes.map_view') }}" class="btn">¿Dónde encontrarla?</a>
+    </div>
+</div>
+{% endblock %}

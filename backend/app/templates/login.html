@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>Iniciar Sesión</h2>
+    <form method="POST" action="{{ url_for('routes.login') }}">
+        <label>Usuario</label>
+        <input type="text" name="username" required>
+        
+        <label>Contraseña</label>
+        <input type="password" name="password" required>
+        
+        <button type="submit" class="btn">Entrar</button>
+    </form>
+    <p style="margin-top: 1rem;"><a href="{{ url_for('routes.register') }}">¿No tienes cuenta? Regístrate</a></p>
+</div>
+{% endblock %}
