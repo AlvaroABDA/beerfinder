@@ -5,50 +5,78 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>{{ title|default('BeerMap MVP') }}</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f5f5f7; margin: 0; color: #1d1d1f; }
-        .app-container { max-width: 480px; margin: 0 auto; background: #fff; min-height: 100vh; position: relative; box-shadow: 0 0 10px rgba(0,0,0,0.05); overflow-x: hidden; }
-        header { background: #fff; color: #1d1d1f; padding: 1rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; font-size: 1.2rem; font-weight: bold; border-bottom: 1px solid #f2f2f2; }
-        .menu-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #1d1d1f; padding: 0; }
+        :root {
+            --bg-body: #1F1E1D; /* Slightly darker than the palette for true bg */
+            --bg-panel: #34312F;
+            --text-main: #FFFFFF;
+            --text-secondary: #CCAB6C;
+            --text-dark: #34312F;
+            --border-color: #4A4643;
+            --color-primary: #B38922; /* Darker gold */
+            --color-secondary: #FEDEA0; /* Light pale gold */
+            --color-tertiary: #4A4643;
+            --color-green: #34c759;
+            --color-red: #ff3b30;
+            --radius-card: 16px;
+            --radius-button: 24px;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body { font-family: var(--font-family); background: var(--bg-body); margin: 0; color: var(--text-main); }
+        a { color: inherit; text-decoration: none; }
+        a.text-primary { color: var(--color-primary); }
+        
+        .app-container { max-width: 480px; margin: 0 auto; background: var(--bg-body); min-height: 100vh; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.5); overflow-x: hidden; }
+        header { background: var(--bg-body); color: var(--text-main); padding: 1.5rem 1.2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; font-size: 1.4rem; font-weight: 700; border-bottom: 1px solid var(--border-color); }
+        .menu-btn { background: var(--text-main); color: var(--bg-body); border: none; font-size: 1.2rem; cursor: pointer; padding: 0.4rem 0.6rem; border-radius: 50%; font-weight: bold; }
         
         /* Sidebar Menu */
-        .sidebar { position: fixed; top: 0; left: -250px; width: 250px; height: 100vh; background: #fff; z-index: 200; box-shadow: 2px 0 10px rgba(0,0,0,0.1); transition: left 0.3s ease; padding-top: 1rem; }
+        .sidebar { position: fixed; top: 0; left: -250px; width: 250px; height: 100vh; background: var(--bg-panel); z-index: 200; box-shadow: 2px 0 10px rgba(0,0,0,0.5); transition: left 0.3s ease; padding-top: 1rem; border-right: 1px solid var(--border-color); }
         .sidebar.open { left: 0; }
-        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 150; display: none; }
+        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 150; display: none; }
         .sidebar-overlay.open { display: block; }
         .sidebar-close { text-align: right; padding: 0 1rem 1rem; }
-        .sidebar a { display: block; padding: 1rem 1.5rem; color: #1d1d1f; text-decoration: none; font-weight: 500; border-bottom: 1px solid #f2f2f2; }
-        .sidebar a:hover { background: #f9f9f9; }
+        .sidebar a { display: block; padding: 1rem 1.5rem; color: var(--text-main); text-decoration: none; font-weight: 500; border-bottom: 1px solid var(--border-color); transition: background 0.2s; }
+        .sidebar a:hover { background: var(--color-tertiary); }
         
-        .content { padding: 1rem; }
+        .content { padding: 1.2rem; }
         .alert { padding: 1rem; margin-bottom: 1rem; border-radius: 8px; font-size: 0.9rem; }
-        .alert-success { background: #d4edda; color: #155724; }
-        .alert-danger { background: #f8d7da; color: #721c24; }
-        .alert-warning { background: #fff3cd; color: #856404; }
+        .alert-success { background: #1b4332; color: #d8f3dc; border: 1px solid #2d6a4f; }
+        .alert-danger { background: #641220; color: #ffb3c1; border: 1px solid #a4161a; }
+        .alert-warning { background: #5A3908; color: #FFA800; border: 1px solid #9D5A0B; }
         
-        .btn { display: inline-block; width: 100%; padding: 0.8rem; background: #007aff; color: white; text-align: center; text-decoration: none; border: none; border-radius: 20px; cursor: pointer; font-size: 1rem; font-weight: 500; box-sizing: border-box; }
-        .btn:hover { background: #0062cc; }
-        .btn-outline { background: transparent; color: #007aff; border: 1px solid #007aff; }
-        .btn-outline:hover { background: #f0f8ff; }
+        .btn { display: inline-block; width: 100%; padding: 0.9rem; background: var(--color-primary); color: var(--text-dark); text-align: center; text-decoration: none; border: none; border-radius: var(--radius-button); cursor: pointer; font-size: 1rem; font-weight: 700; box-sizing: border-box; transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.9; }
+        .btn-outline { background: transparent; color: var(--color-primary); border: 2px solid var(--color-primary); }
+        .btn-outline:hover { background: rgba(255, 168, 0, 0.1); opacity: 1; }
         
-        input, select, textarea { width: 100%; padding: 0.8rem; margin: 0.5rem 0 1rem 0; border: 1px solid #d2d2d7; border-radius: 12px; box-sizing: border-box; font-size: 1rem; background: #f2f2f2; }
-        label { font-weight: 500; font-size: 0.9rem; color: #86868b; }
+        input, select, textarea { width: 100%; padding: 0.9rem; margin: 0.5rem 0 1rem 0; border: none; border-radius: var(--radius-card); box-sizing: border-box; font-size: 1rem; background: #fdfdfd; color: var(--text-dark); transition: box-shadow 0.2s; }
+        input:focus, select:focus, textarea:focus { outline: none; box-shadow: 0 0 0 3px var(--color-secondary); }
+        label { font-weight: 500; font-size: 0.9rem; color: var(--text-secondary); }
         
         /* Cards */
-        .section-title { font-size: 1.2rem; font-weight: bold; margin: 1.5rem 0 1rem; display: flex; justify-content: space-between; align-items: baseline; }
-        .section-title a { font-size: 0.9rem; color: #007aff; text-decoration: none; font-weight: normal; }
+        .section-title { font-size: 1.2rem; font-weight: 600; margin: 1.5rem 0 1rem; display: flex; justify-content: space-between; align-items: baseline; color: var(--text-main); }
+        .section-title a { font-size: 0.9rem; color: var(--color-primary); text-decoration: none; font-weight: 500; }
         
-        .beer-card, .venue-card { background: white; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; border: 1px solid #d2d2d7; box-shadow: 0 2px 8px rgba(0,0,0,0.03); text-decoration: none; color: inherit; display: block; }
-        .beer-card:hover, .venue-card:hover { background: #f9f9f9; }
-        .card-header { display: flex; gap: 1rem; }
-        .card-img { width: 60px; height: 60px; background: #eee; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+        .beer-card, .venue-card, .card { background: var(--bg-panel); border-radius: var(--radius-card); padding: 1.2rem; margin-bottom: 1rem; border: 1px solid var(--border-color); text-decoration: none; color: inherit; display: block; transition: transform 0.2s; }
+        .beer-card:hover, .venue-card:hover, .card:hover { transform: translateY(-2px); border-color: var(--color-secondary); }
+        .card-header { display: flex; gap: 1rem; margin-bottom: 0.5rem; justify-content: space-between; align-items: center; }
+        .card-img { width: 60px; height: 60px; background: var(--color-tertiary); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
         .card-info { flex: 1; }
-        .card-title { margin: 0 0 0.2rem 0; font-size: 1.1rem; font-weight: bold; }
-        .card-subtitle { margin: 0 0 0.5rem 0; font-size: 0.9rem; color: #86868b; }
-        .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.8rem; font-weight: 500; }
-        .badge-green { background: #e8f5e9; color: #34c759; }
+        .card-title { margin: 0 0 0.2rem 0; font-size: 1.1rem; font-weight: 600; color: var(--text-main); }
+        .card-subtitle { margin: 0 0 0.5rem 0; font-size: 0.9rem; color: var(--text-secondary); }
         
-        .search-bar { display: flex; background: #f2f2f2; border-radius: 12px; padding: 0.5rem 1rem; align-items: center; margin-bottom: 1.5rem; }
-        .search-bar input { margin: 0; border: none; padding: 0.5rem; flex: 1; outline: none; }
+        /* Pills & Status */
+        .pill { display: inline-block; background-color: var(--color-tertiary); color: var(--text-main); padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; margin-right: 4px; margin-bottom: 8px;}
+        .status { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--text-main); }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .status-green .status-dot { background-color: var(--color-green); }
+        .status-yellow .status-dot { background-color: var(--color-primary); }
+        .status-red .status-dot { background-color: var(--color-red); }
+        .status-text { color: var(--text-secondary); font-size: 12px; margin-top: 4px; }
+        
+        .search-bar { display: flex; background: #fdfdfd; border-radius: var(--radius-card); padding: 0.3rem 0.8rem; align-items: center; margin-bottom: 1.5rem; }
+        .search-bar input { margin: 0; border: none; padding: 0.5rem; flex: 1; outline: none; background: transparent; color: var(--text-dark); margin-bottom: 0; }
     </style>
 </head>
 <body>
@@ -62,6 +90,8 @@
         <a href="{{ url_for('routes.map_view') }}">📍 Mapa</a>
         
         {% if session.get('user_id') %}
+            <a href="{{ url_for('beermatch.swipe_view') }}" style="color: var(--color-primary); font-weight: bold;">❤️ BeerMatch</a>
+            <a href="{{ url_for('routes.profile') }}">👤 Mi Perfil</a>
             <a href="{{ url_for('routes.beer_new') }}">➕ Añadir cerveza</a>
             {% if session.get('role') == 'ADMIN' %}
                 <a href="{{ url_for('routes.admin') }}">⚙️ Administración</a>

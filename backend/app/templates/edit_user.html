@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>Editar Usuario: {{ user.username }}</h2>
+    
+    <form method="POST" action="{{ url_for('routes.edit_user', id=user.id) }}">
+        <label>Nombre de usuario</label>
+        <input type="text" name="username" value="{{ user.username }}" required>
+        
+        <label>Email</label>
+        <input type="email" name="email" value="{{ user.email }}" required>
+        
+        <label>Rol</label>
+        <select name="role">
+            <option value="USER" {% if user.role == 'USER' %}selected{% endif %}>Usuario (USER)</option>
+            <option value="ADMIN" {% if user.role == 'ADMIN' %}selected{% endif %}>Administrador (ADMIN)</option>
+        </select>
+
+        <label>Estado</label>
+        <select name="status">
+            <option value="ACTIVE" {% if user.status == 'ACTIVE' %}selected{% endif %}>Activo</option>
+            <option value="INACTIVE" {% if user.status == 'INACTIVE' %}selected{% endif %}>Inactivo</option>
+            <option value="PENDING" {% if user.status == 'PENDING' %}selected{% endif %}>Pendiente</option>
+        </select>
+        
+        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+            <button type="submit" class="btn">Guardar Cambios</button>
+            <a href="{{ url_for('routes.admin', type='users') }}" class="btn btn-outline">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

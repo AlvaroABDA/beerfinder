@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <h2 style="margin: 0; font-size: 1.5rem;">🍺 Historial BeerMatch</h2>
+    <a href="{{ url_for('beermatch.swipe_view') }}" class="btn btn-outline" style="width: auto; padding: 0.5rem 1rem; font-size: 0.9rem;">Volver a Swipe</a>
+</div>
+
+<div class="tabs" style="display: flex; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color);">
+    <button class="tab-btn active" id="tab-likes" onclick="switchTab('likes')" style="flex: 1; padding: 1rem; background: transparent; border: none; color: var(--text-main); font-weight: bold; border-bottom: 2px solid var(--color-primary); cursor: pointer;">❤️ ME GUSTAN</button>
+    <button class="tab-btn" id="tab-dislikes" onclick="switchTab('dislikes')" style="flex: 1; padding: 1rem; background: transparent; border: none; color: var(--text-secondary); font-weight: bold; border-bottom: 2px solid transparent; cursor: pointer;">❌ NO ME GUSTAN</button>
+</div>
+
+<div id="loading" style="text-align: center; color: var(--text-secondary); margin-top: 2rem;">
+    <p>Cargando historial...</p>
+</div>
+
+<div id="list-likes" style="display: none;"></div>
+<div id="list-dislikes" style="display: none;"></div>
+
+<script>
+    let historyData = [];
+
+    function switchTab(tab) {
+        document.getElementById('tab-likes').style.color = tab === 'likes' ? 'var(--text-main)' : 'var(--text-secondary)';
+        document.getElementById('tab-likes').style.borderBottomColor = tab === 'likes' ? 'var(--color-primary)' : 'transparent';
+        
+        document.getElementById('tab-dislikes').style.color = tab === 'dislikes' ? 'var(--text-main)' : 'var(--text-secondary)';
+        document.getElementById('tab-dislikes').style.borderBottomColor = tab === 'dislikes' ? 'var(--color-primary)' : 'transparent';
+        
+        document.getElementById('list-likes').style.display = tab === 'likes' ? 'block' : 'none';
+        document.getElementById('list-dislikes').style.display = tab === 'dislikes' ? 'block' : 'none';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        fetch('/beermatch/api/history')
+            .then(res => res.json())
+            .then(data => {
+                historyData = data;
+                document.getElementById('loading').style.display = 'none';
+                renderLists();
+                switchTab('likes');
+            })
+            .catch(err => {
+                document.getElementById('loading').innerHTML = '<p style="color:var(--color-red)">Error al cargar historial.</p>';
+            });
+    });
+
+    function renderLists() {
+        const listLikes = document.getElementById('list-likes');
+        const listDislikes = document.getElementById('list-dislikes');
+        
+        let likesHtml = '';
+        let dislikesHtml = '';
+        
+        historyData.forEach(item => {
+            const dateStr = item.updated_at ? new Date(item.updated_at).toLocaleDateString() : '';
+            const imgStyle = item.image && item.image !== 'default_beer.png' ? `background-image: url('/static/images/beers/${item.image}'); background-size: cover; background-position: center;` : '';
+            const emojiFallback = imgStyle ? '' : '🍺';
+            const feedbackText = item.preference === 'LIKE' ? '❤️ Te gustó' : '❌ No te gustó';
+            
+            const cardHtml = `
+            <a href="/beer/${item.beer_id}" class="beer-card" style="margin-bottom: 0.8rem;">
+                <div class="card-header">
+                    <div class="card-img" style="${imgStyle}">${emojiFallback}</div>
+                    <div class="card-info">
+                        <h3 class="card-title">${item.name}</h3>
+                        <p class="card-subtitle">${item.style} · ${item.abv}%</p>
+                        <p style="margin: 0; font-size: 0.85rem; color: ${item.preference === 'LIKE' ? 'var(--color-green)' : 'var(--color-red)'}; font-weight: bold;">
+                            ${feedbackText}
+                            <span style="color: var(--text-secondary); font-weight: normal; margin-left: 0.5rem;">📅 ${dateStr}</span>
+                        </p>
+                    </div>
+                </div>
+            </a>
+            `;
+            
+            if (item.preference === 'LIKE') {
+                likesHtml += cardHtml;
+            } else {
+                dislikesHtml += cardHtml;
+            }
+        });
+        
+        if (!likesHtml) likesHtml = '<p style="text-align:center; color:var(--text-secondary); margin-top:2rem;">Aún no tienes cervezas favoritas.</p>';
+        if (!dislikesHtml) dislikesHtml = '<p style="text-align:center; color:var(--text-secondary); margin-top:2rem;">No has rechazado ninguna cerveza.</p>';
+        
+        listLikes.innerHTML = likesHtml;
+        listDislikes.innerHTML = dislikesHtml;
+    }
+</script>
+
+{% endblock %}

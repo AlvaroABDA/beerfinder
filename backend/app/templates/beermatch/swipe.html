@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <h2 style="margin: 0; font-size: 1.5rem;">🍺 BeerMatch</h2>
+    <a href="{{ url_for('beermatch.history_view') }}" class="btn btn-outline" style="width: auto; padding: 0.5rem 1rem; font-size: 0.9rem;">Ver Historial</a>
+</div>
+
+<div id="beermatch-container" style="position: relative; width: 100%; height: 65vh; max-height: 500px; perspective: 1000px; display: flex; justify-content: center; align-items: center;">
+    
+    <div id="loading-indicator" style="text-align: center; color: var(--text-secondary);">
+        <p style="font-size: 2rem; margin: 0;">🍻</p>
+        <p>Buscando cervezas...</p>
+    </div>
+
+    <!-- Cards will be injected here via JS -->
+    <div id="card-stack" style="position: absolute; width: 100%; height: 100%; display: none; align-items: center; justify-content: center;">
+        <!-- Single Card Example Structure (handled by JS) -->
+    </div>
+
+    <div id="empty-state" style="display: none; text-align: center; color: var(--text-secondary); background: var(--bg-panel); padding: 2rem; border-radius: var(--radius-card); border: 1px solid var(--border-color); width: 100%; max-width: 320px;">
+        <p style="font-size: 3rem; margin: 0 0 1rem 0;">🎉</p>
+        <h3 style="margin-top: 0; color: var(--text-main);">¡Has visto todas!</h3>
+        <p>No nos quedan más cervezas por mostrarte en este momento. Vuelve más tarde.</p>
+        <a href="{{ url_for('routes.index') }}" class="btn" style="margin-top: 1rem;">Volver al inicio</a>
+    </div>
+
+</div>
+
+<!-- Botones fijos para cuando no se use swipe -->
+<div id="action-buttons" style="display: none; justify-content: center; gap: 2rem; margin-top: 1.5rem;">
+    <button id="btn-dislike" style="width: 70px; height: 70px; border-radius: 50%; background: var(--bg-panel); border: 2px solid var(--color-tertiary); font-size: 2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.1s;">
+        ❌
+    </button>
+    <button id="btn-like" style="width: 70px; height: 70px; border-radius: 50%; background: var(--bg-panel); border: 2px solid var(--color-primary); font-size: 2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.1s;">
+        ❤️
+    </button>
+</div>
+
+<!-- Feedback Overlay -->
+<div id="feedback-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; transition: opacity 0.2s;">
+    <div id="feedback-text" style="background: rgba(0,0,0,0.8); padding: 1rem 2rem; border-radius: 30px; font-size: 1.5rem; font-weight: bold; transform: scale(0.8); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+        ❤️ ¡Match!
+    </div>
+</div>
+
+<style>
+    .beermatch-card {
+        position: absolute;
+        width: 100%;
+        max-width: 340px;
+        height: 100%;
+        background: var(--bg-panel);
+        border-radius: 20px;
+        border: 1px solid var(--color-tertiary);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        transform-origin: 50% 100%;
+        will-change: transform;
+        touch-action: none; /* Previene scroll durante el swipe */
+    }
+
+    .beermatch-card-img {
+        flex: 1;
+        background-color: var(--color-tertiary);
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 4rem;
+        position: relative;
+    }
+
+    .beermatch-card-img::after {
+        content: '';
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: 50%;
+        background: linear-gradient(to top, var(--bg-panel), transparent);
+    }
+
+    .beermatch-card-content {
+        padding: 1.5rem;
+        position: relative;
+        z-index: 2;
+        margin-top: -3rem; /* Subimos el contenido sobre el gradiente */
+    }
+
+    .bm-title { margin: 0 0 0.2rem 0; font-size: 1.6rem; color: var(--text-main); font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+    .bm-brewery { margin: 0 0 0.8rem 0; font-size: 1.1rem; color: var(--color-primary); font-weight: 600; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+    .bm-info { margin: 0; font-size: 1rem; color: var(--text-secondary); display: flex; gap: 0.5rem; align-items: center; }
+
+    /* Efectos de Swipe */
+    .card-swipe-right { transform: translateX(100vw) rotate(30deg) !important; opacity: 0; }
+    .card-swipe-left { transform: translateX(-100vw) rotate(-30deg) !important; opacity: 0; }
+    
+    .badge-swipe {
+        position: absolute; top: 2rem;
+        padding: 0.5rem 1rem; border-radius: 10px; font-weight: 900; font-size: 2rem;
+        border: 4px solid; opacity: 0; z-index: 10; text-transform: uppercase;
+    }
+    .badge-like { right: 2rem; color: var(--color-green); border-color: var(--color-green); transform: rotate(15deg); }
+    .badge-dislike { left: 2rem; color: var(--color-red); border-color: var(--color-red); transform: rotate(-15deg); }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    let beers = [];
+    let currentIndex = 0;
+    
+    const stack = document.getElementById('card-stack');
+    const loading = document.getElementById('loading-indicator');
+    const emptyState = document.getElementById('empty-state');
+    const actionButtons = document.getElementById('action-buttons');
+    const btnLike = document.getElementById('btn-like');
+    const btnDislike = document.getElementById('btn-dislike');
+    const feedbackOverlay = document.getElementById('feedback-overlay');
+    const feedbackText = document.getElementById('feedback-text');
+
+    // Fetch beers
+    fetch('/beermatch/api/beers')
+        .then(res => res.json())
+        .then(data => {
+            beers = data;
+            loading.style.display = 'none';
+            if (beers.length > 0) {
+                renderCards();
+                stack.style.display = 'flex';
+                actionButtons.style.display = 'flex';
+                setupInteractions();
+            } else {
+                emptyState.style.display = 'block';
+            }
+        })
+        .catch(err => {
+            loading.innerHTML = '<p style="color:var(--color-red)">Error al cargar. Inténtalo de nuevo.</p>';
+        });
+
+    function renderCards() {
+        stack.innerHTML = '';
+        // Render in reverse order so the first is on top
+        for (let i = beers.length - 1; i >= currentIndex; i--) {
+            const b = beers[i];
+            const isTop = i === currentIndex;
+            
+            const card = document.createElement('div');
+            card.className = 'beermatch-card';
+            card.id = `card-${i}`;
+            card.style.zIndex = beers.length - i;
+            
+            // Efecto de profundidad visual para las tarjetas de atrás
+            if (!isTop) {
+                const offset = (i - currentIndex) * 10;
+                const scale = 1 - (i - currentIndex) * 0.05;
+                card.style.transform = `translateY(${offset}px) scale(${scale})`;
+                card.style.opacity = '0.9';
+            }
+
+            const imgUrl = b.image && b.image !== 'default_beer.png' ? `/static/images/beers/${b.image}` : null;
+            const bgStyle = imgUrl ? `background-image: url('${imgUrl}');` : '';
+            const fallbackEmoji = imgUrl ? '' : '🍺';
+
+            card.innerHTML = `
+                <div class="badge-swipe badge-like" id="badge-like-${i}">LIKE</div>
+                <div class="badge-swipe badge-dislike" id="badge-dislike-${i}">NOPE</div>
+                <div class="beermatch-card-img" style="${bgStyle}">${fallbackEmoji}</div>
+                <div class="beermatch-card-content">
+                    <h3 class="bm-title">${b.name}</h3>
+                    <p class="bm-brewery">${b.brewery}</p>
+                    <p class="bm-info"><span>${b.style}</span> &bull; <span>${b.abv}%</span></p>
+                </div>
+            `;
+            
+            stack.appendChild(card);
+        }
+    }
+
+    function showFeedback(type) {
+        if (type === 'LIKE') {
+            feedbackText.innerHTML = '❤️ ¡Match!';
+            feedbackText.style.color = 'var(--text-main)';
+        } else {
+            feedbackText.innerHTML = '❌ Pasamos de esta.';
+            feedbackText.style.color = '#ff9999';
+        }
+        
+        feedbackOverlay.style.opacity = '1';
+        feedbackText.style.transform = 'scale(1)';
+        
+        setTimeout(() => {
+            feedbackOverlay.style.opacity = '0';
+            feedbackText.style.transform = 'scale(0.8)';
+        }, 800);
+    }
+
+    function savePreference(beerId, preference) {
+        fetch('/beermatch/api/preferences', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ beer_id: beerId, preference: preference })
+        });
+    }
+
+    function handleAction(action) {
+        if (currentIndex >= beers.length) return;
+        
+        const currentCard = document.getElementById(`card-${currentIndex}`);
+        const beerId = beers[currentIndex].id;
+        
+        // Animación de salida
+        currentCard.style.transition = 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.5s';
+        if (action === 'LIKE') {
+            currentCard.classList.add('card-swipe-right');
+        } else {
+            currentCard.classList.add('card-swipe-left');
+        }
+
+        showFeedback(action);
+        savePreference(beerId, action);
+        
+        currentIndex++;
+        
+        // Actualizar visualmente la pila
+        setTimeout(() => {
+            if (currentCard) currentCard.remove();
+            if (currentIndex >= beers.length) {
+                stack.style.display = 'none';
+                actionButtons.style.display = 'none';
+                emptyState.style.display = 'block';
+            } else {
+                renderCards();
+                setupInteractions(); // Setup touch on new top card
+            }
+        }, 300); // Dar un poco de tiempo para que empiece la animación antes de repintar
+    }
+
+    btnLike.addEventListener('click', () => {
+        btnLike.style.transform = 'scale(0.9)';
+        setTimeout(() => btnLike.style.transform = 'scale(1)', 100);
+        handleAction('LIKE');
+    });
+    
+    btnDislike.addEventListener('click', () => {
+        btnDislike.style.transform = 'scale(0.9)';
+        setTimeout(() => btnDislike.style.transform = 'scale(1)', 100);
+        handleAction('DISLIKE');
+    });
+
+    // Touch logic
+    function setupInteractions() {
+        if (currentIndex >= beers.length) return;
+        
+        const card = document.getElementById(`card-${currentIndex}`);
+        if (!card) return;
+
+        let startX = 0, startY = 0, moveX = 0, moveY = 0;
+        let isDragging = false;
+        const threshold = 100; // px to trigger action
+
+        const badgeLike = document.getElementById(`badge-like-${currentIndex}`);
+        const badgeDislike = document.getElementById(`badge-dislike-${currentIndex}`);
+
+        card.addEventListener('touchstart', e => {
+            isDragging = true;
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+            card.style.transition = 'none'; // Disable transition while dragging
+        });
+
+        card.addEventListener('touchmove', e => {
+            if (!isDragging) return;
+            e.preventDefault(); // Prevent scrolling
+            
+            moveX = e.touches[0].clientX - startX;
+            moveY = e.touches[0].clientY - startY;
+            
+            // Rotation based on X movement
+            const rotate = moveX * 0.05;
+            
+            card.style.transform = `translate(${moveX}px, ${moveY}px) rotate(${rotate}deg)`;
+            
+            // Badges opacity
+            if (moveX > 0) {
+                badgeLike.style.opacity = Math.min(moveX / threshold, 1);
+                badgeDislike.style.opacity = 0;
+            } else {
+                badgeDislike.style.opacity = Math.min(Math.abs(moveX) / threshold, 1);
+                badgeLike.style.opacity = 0;
+            }
+        });
+
+        card.addEventListener('touchend', () => {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            if (moveX > threshold) {
+                handleAction('LIKE');
+            } else if (moveX < -threshold) {
+                handleAction('DISLIKE');
+            } else {
+                // Return to center
+                card.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+                card.style.transform = 'translate(0px, 0px) rotate(0deg)';
+                badgeLike.style.opacity = 0;
+                badgeDislike.style.opacity = 0;
+            }
+            
+            moveX = 0; moveY = 0;
+        });
+    }
+});
+</script>
+
+{% endblock %}

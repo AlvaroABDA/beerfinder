@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card" style="border-top: 4px solid var(--color-secondary);">
+    <div style="display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1.5rem;">
+        <div style="font-size: 3rem; line-height: 1; flex-shrink: 0;">
+            {% if fabricante.logo %}
+            <img src="{{ url_for('static', filename='images/fabricantes/' + fabricante.logo) }}" alt="Logo" style="max-height: 60px; border-radius: 8px;">
+            {% else %}
+            🏭
+            {% endif %}
+        </div>
+        <div>
+            <h2 style="margin: 0 0 0.2rem 0; color: var(--color-secondary);">{{ fabricante.name }}</h2>
+            <p style="margin: 0; color: var(--text-secondary);">
+                📍 {{ fabricante.country if fabricante.country else 'Origen desconocido' }}
+            </p>
+            {% if fabricante.website %}
+            <p style="margin: 0.2rem 0 0 0;"><a href="{{ fabricante.website }}" target="_blank" style="color:var(--color-primary); text-decoration:underline;">Visitar sitio web ↗</a></p>
+            {% endif %}
+        </div>
+    </div>
+    
+    {% if fabricante.description %}
+    <p><strong>Descripción:</strong><br>{{ fabricante.description }}</p>
+    {% endif %}
+    
+    <h3 style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-top: 2rem;">Cervezas de este fabricante</h3>
+    
+    {% if beers %}
+    <ul style="list-style: none; padding: 0;">
+        {% for b in beers %}
+        <li style="padding: 0.8rem 0; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 1rem;">
+            <div class="card-img" style="width: 40px; height: 40px; border-radius: 4px; {% if b.image %}background-image: url('{{ url_for('static', filename='images/beers/' + b.image) }}'); background-size: cover; background-position: center;{% endif %}">
+                {% if not b.image %}🍺{% endif %}
+            </div>
+            <div>
+                <a href="{{ url_for('routes.beer_view', id=b.id) }}" style="color: var(--text-main); text-decoration: none; font-weight: bold;">{{ b.name }}</a>
+                <br>
+                <span style="font-size: 0.8rem; color: var(--text-secondary);">{{ b.style }} - {{ b.abv }}% ABV</span>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p style="color: var(--text-secondary);">No hay cervezas registradas de este fabricante.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -12,5 +12,29 @@
         "beer_id": 2,
         "status": "SOLD_OUT",
         "last_updated": "2026-09-07T10:00:00Z"
+    },
+    {
+        "id": 3,
+        "venue_id": 3,
+        "beer_id": 3,
+        "user_id": 1,
+        "status": "AVAILABLE",
+        "last_updated": "2026-09-07T15:08:51Z"
+    },
+    {
+        "id": 4,
+        "venue_id": 3,
+        "beer_id": 4,
+        "user_id": 1,
+        "status": "AVAILABLE",
+        "last_updated": "2026-09-07T15:08:54Z"
+    },
+    {
+        "id": 5,
+        "venue_id": 2,
+        "beer_id": 4,
+        "user_id": 1,
+        "status": "AVAILABLE",
+        "last_updated": "2026-09-07T15:24:30Z"
     }
 ]

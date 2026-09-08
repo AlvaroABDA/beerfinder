@@ -1,27 +1,127 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="section-title">
-    <span>🍺 Todas las cervezas</span>
+<div class="search-bar" style="margin-bottom: 1rem;">
+    <span style="font-size: 1.2rem; color: var(--text-secondary);">🔍</span>
+    <input type="text" id="searchInput" list="beer-list" placeholder="Buscar por nombre, fabricante..." oninput="debounceExplore()">
+    <datalist id="beer-list">
+        {% for b in beers %}
+        <option value="{{ b.name }}"></option>
+        {% endfor %}
+    </datalist>
 </div>
 
-{% for beer in beers %}
-<a href="{{ url_for('routes.beer_view', id=beer.id) }}" class="beer-card">
-    <div class="card-header">
-        <div class="card-img" {% if beer.image %}style="background-image: url('{{ url_for('static', filename='images/beers/' + beer.image) }}'); background-size: cover; background-position: center;"{% endif %}>
-            {% if not beer.image %}🍺{% endif %}
+<div class="card" style="margin-bottom: 1.5rem;">
+    <h3 style="margin: 0 0 0.5rem 0; font-size: 1rem; color: var(--color-primary);">¿Qué te apetece?</h3>
+    
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
+        <div>
+            <label style="font-size: 0.85rem; color: var(--text-secondary);">Estilo de Cerveza</label>
+            <input type="text" id="styleInput" list="style-list" placeholder="Escribe un estilo (ej. IPA, Pilsner)..." oninput="debounceExplore()" style="margin: 0; padding: 0.5rem; width: 100%; border-radius: 8px;">
+            <datalist id="style-list">
+                {% for s in styles %}
+                <option value="{{ s.name }}"></option>
+                {% endfor %}
+            </datalist>
         </div>
-        <div class="card-info">
-            <h3 class="card-title">{{ beer.name }}</h3>
-            <p class="card-subtitle">{{ beer.style }} · {{ beer.abv }}%</p>
+        
+        <div>
+            <label style="font-size: 0.85rem; color: var(--text-secondary);">Característica (Tag)</label>
+            <input type="text" id="tagInput" list="tag-list" placeholder="Escribe un tag (ej. Lupulada)..." oninput="debounceExplore()" style="margin: 0; padding: 0.5rem; width: 100%; border-radius: 8px;">
+            <datalist id="tag-list">
+                {% for t in tags %}
+                <option value="{{ t.name }}"></option>
+                {% endfor %}
+            </datalist>
         </div>
     </div>
-</a>
-{% else %}
-    <p>No hay cervezas registradas.</p>
-{% endfor %}
-
-<div style="margin-top:2rem;">
-    <a href="{{ url_for('routes.index') }}" class="btn btn-outline">← Volver al Inicio</a>
 </div>
+
+<div id="resultsContainer">
+    <p style="text-align: center; color: var(--text-secondary);">Cargando cervezas...</p>
+</div>
+
+<script>
+    let currentLat = null;
+    let currentLon = null;
+
+    function exploreBeers() {
+        const q = document.getElementById('searchInput').value;
+        const style = document.getElementById('styleInput').value;
+        const tag = document.getElementById('tagInput').value;
+        
+        let url = `/api/explore?q=${encodeURIComponent(q)}&style=${encodeURIComponent(style)}&tag=${encodeURIComponent(tag)}`;
+        if (currentLat !== null && currentLon !== null) {
+            url += `&lat=${currentLat}&lon=${currentLon}`;
+        }
+        
+        document.getElementById('resultsContainer').innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Cargando cervezas...</p>';
+        
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById('resultsContainer');
+                container.innerHTML = '';
+                
+                if(data.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No se encontraron cervezas.</p>';
+                    return;
+                }
+                
+                data.forEach(beer => {
+                    const card = document.createElement('a');
+                    card.className = 'beer-card';
+                    card.href = beer.view_url;
+                    
+                    let imgHtml = '<div class="card-img">🍺</div>';
+                    if (beer.image_url) {
+                        imgHtml = `<div class="card-img" style="background-image: url('${beer.image_url}'); background-size: cover; background-position: center;"></div>`;
+                    }
+                    
+                    let distanceHtml = '';
+                    if (beer.distance !== 9999) {
+                        distanceHtml = `<span style="font-size: 0.8rem; color: var(--color-green); display: block; margin-top: 0.2rem;">📍 A ${beer.distance_str}</span>`;
+                    } else if (currentLat !== null) {
+                        distanceHtml = `<span style="font-size: 0.8rem; color: var(--color-red); display: block; margin-top: 0.2rem;">📍 No disponible cerca</span>`;
+                    }
+                    
+                    card.innerHTML = `
+                        <div class="card-header">
+                            ${imgHtml}
+                            <div class="card-info">
+                                <h3 class="card-title">${beer.name}</h3>
+                                <p class="card-subtitle">${beer.brewery} · ${beer.abv}% ABV</p>
+                                ${distanceHtml}
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            });
+    }
+
+    let timeout = null;
+    function debounceExplore() {
+        clearTimeout(timeout);
+        timeout = setTimeout(exploreBeers, 300);
+    }
+
+    // Initialize
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            pos => {
+                currentLat = pos.coords.latitude;
+                currentLon = pos.coords.longitude;
+                exploreBeers();
+            },
+            err => {
+                console.warn("Location denied or error:", err);
+                exploreBeers();
+            },
+            {timeout: 5000}
+        );
+    } else {
+        exploreBeers();
+    }
+</script>
 {% endblock %}

@@ -1,0 +1,117 @@
+[
+    {
+        "id": 1,
+        "name": "Hoppy",
+        "description": ""
+    },
+    {
+        "id": 2,
+        "name": "Hazy",
+        "description": ""
+    },
+    {
+        "id": 3,
+        "name": "Amarga",
+        "description": ""
+    },
+    {
+        "id": 4,
+        "name": "Dulce",
+        "description": ""
+    },
+    {
+        "id": 5,
+        "name": "Cítrica",
+        "description": ""
+    },
+    {
+        "id": 6,
+        "name": "Tropical",
+        "description": ""
+    },
+    {
+        "id": 7,
+        "name": "Frutal",
+        "description": ""
+    },
+    {
+        "id": 8,
+        "name": "Tostada",
+        "description": ""
+    },
+    {
+        "id": 9,
+        "name": "Malteada",
+        "description": ""
+    },
+    {
+        "id": 10,
+        "name": "Ácida",
+        "description": ""
+    },
+    {
+        "id": 11,
+        "name": "Suave",
+        "description": ""
+    },
+    {
+        "id": 12,
+        "name": "Intensa",
+        "description": ""
+    },
+    {
+        "id": 13,
+        "name": "Sin gluten",
+        "description": ""
+    },
+    {
+        "id": 14,
+        "name": "Ecológica",
+        "description": ""
+    },
+    {
+        "id": 15,
+        "name": "Artesanal",
+        "description": ""
+    },
+    {
+        "description": "",
+        "id": 16,
+        "name": "Chocolate"
+    },
+    {
+        "description": "",
+        "id": 17,
+        "name": "Café"
+    },
+    {
+        "description": "",
+        "id": 18,
+        "name": "Refrescante"
+    },
+    {
+        "description": "",
+        "id": 19,
+        "name": "Seca"
+    },
+    {
+        "description": "",
+        "id": 20,
+        "name": "Especiada"
+    },
+    {
+        "description": "",
+        "id": 21,
+        "name": "Herbal"
+    },
+    {
+        "description": "",
+        "id": 22,
+        "name": "Cremosa"
+    },
+    {
+        "description": "",
+        "id": 23,
+        "name": "Floral"
+    }
+]

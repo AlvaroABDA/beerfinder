@@ -70,7 +70,7 @@
 {% endfor %}
 
 {% if session.get('user_id') %}
-<div class="card" style="margin-top: 1rem; background: #f9f9f9; border: 1px dashed #ccc;">
+<div class="card" style="margin-top: 1rem; border: 1px dashed var(--border-color); background: transparent;">
     <h3 style="margin-top: 0;">Añadir cerveza a este bar</h3>
     <form action="{{ url_for('routes.venue_add_beer', venue_id=venue.id) }}" method="POST" style="display: flex; gap: 0.5rem;">
         <select name="beer_id" required style="flex: 1; margin: 0; padding: 0.5rem; border-radius: 8px;">
@@ -81,7 +81,7 @@
         </select>
         <button type="submit" class="btn" style="width: auto; padding: 0.5rem 1rem;">Añadir</button>
     </form>
-    <p style="font-size: 0.8rem; margin-top: 0.5rem;">¿No está en la lista? <a href="{{ url_for('routes.beer_new') }}">Crea una nueva</a>.</p>
+    <p style="font-size: 0.8rem; margin-top: 0.5rem;">¿No está en la lista? <a href="{{ url_for('routes.beer_new') }}" style="color: var(--color-primary); text-decoration: underline;">Crea una nueva</a>.</p>
 </div>
 {% endif %}
 

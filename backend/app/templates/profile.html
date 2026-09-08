@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>Mi Perfil Cervecero</h2>
+    <p>Marca las características de las cervezas que más disfrutas y las que prefieres evitar. Esto nos ayudará en el futuro a recomendarte las mejores cervezas para ti.</p>
+    
+    <form method="POST" action="{{ url_for('routes.profile') }}">
+        <div style="display:flex; gap: 2rem; margin-top:1.5rem;">
+            
+            <div style="flex:1; background:var(--bg-panel); padding:1.5rem; border-radius:8px; border:1px solid var(--border-color);">
+                <h3 style="color:var(--color-primary); margin-top:0;">👍 Me gusta</h3>
+                <div style="display:flex; flex-direction:column; gap:0.5rem;">
+                    {% for t in tags %}
+                    <label style="display:flex; align-items:center; gap:0.5rem;">
+                        <input type="checkbox" name="likes" value="{{ t.id }}" {% if t.id in likes %}checked{% endif %}> {{ t.name }}
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div style="flex:1; background:var(--bg-panel); padding:1.5rem; border-radius:8px; border:1px solid var(--border-color);">
+                <h3 style="color:#ff6b6b; margin-top:0;">👎 Prefiero evitar</h3>
+                <div style="display:flex; flex-direction:column; gap:0.5rem;">
+                    {% for t in tags %}
+                    <label style="display:flex; align-items:center; gap:0.5rem;">
+                        <input type="checkbox" name="dislikes" value="{{ t.id }}" {% if t.id in dislikes %}checked{% endif %}> {{ t.name }}
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            
+        </div>
+        
+        <div style="margin-top:2rem;">
+            <button type="submit" class="btn">Guardar Preferencias</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Pequeño script para evitar que se seleccione el mismo tag en ambas columnas a la vez
+    const likes = document.querySelectorAll('input[name="likes"]');
+    const dislikes = document.querySelectorAll('input[name="dislikes"]');
+    
+    likes.forEach(l => {
+        l.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                document.querySelector(`input[name="dislikes"][value="${e.target.value}"]`).checked = false;
+            }
+        });
+    });
+    
+    dislikes.forEach(d => {
+        d.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                document.querySelector(`input[name="likes"][value="${e.target.value}"]`).checked = false;
+            }
+        });
+    });
+</script>
+{% endblock %}

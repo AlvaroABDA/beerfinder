@@ -1,0 +1,37 @@
+[
+    {
+        "id": 1,
+        "name": "Lager",
+        "description": ""
+    },
+    {
+        "id": 2,
+        "name": "Ale",
+        "description": ""
+    },
+    {
+        "id": 3,
+        "name": "Wheat",
+        "description": ""
+    },
+    {
+        "id": 4,
+        "name": "Sour",
+        "description": ""
+    },
+    {
+        "id": 5,
+        "name": "Belgian",
+        "description": ""
+    },
+    {
+        "id": 6,
+        "name": "Specialty",
+        "description": ""
+    },
+    {
+        "id": 7,
+        "name": "Sin alcohol",
+        "description": ""
+    }
+]

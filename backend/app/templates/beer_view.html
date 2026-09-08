@@ -3,20 +3,170 @@
 {% block content %}
 <div class="card">
     <div style="display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1rem;">
-        <div class="card-img" style="width: 80px; height: 80px; flex-shrink: 0; {% if beer.image %}background-image: url('{{ url_for('static', filename='images/beers/' + beer.image) }}'); background-size: cover; background-position: center;{% endif %}">
+        <div class="card-img" onclick="openImageModal()" style="width: 80px; height: 80px; flex-shrink: 0; cursor: zoom-in; {% if beer.image %}background-image: url('{{ url_for('static', filename='images/beers/' + beer.image) }}'); background-size: cover; background-position: center;{% endif %}">
             {% if not beer.image %}🍺{% endif %}
         </div>
         <div>
             <h2 style="margin: 0 0 0.5rem 0;">{{ beer.name }}</h2>
-            <p style="margin: 0;"><strong>Fabricante:</strong> {{ beer.brewery }}</p>
-            <p style="margin: 0;"><strong>Estilo:</strong> {{ beer.style }}</p>
+            <p style="margin: 0; padding-bottom: 0.3rem;"><strong>Fabricante:</strong> 
+                {% if linked_fabricante %}
+                    <a href="{{ url_for('routes.fabricante_view', id=linked_fabricante.id) }}" style="color: var(--color-secondary); text-decoration: none; border-bottom: 1px dotted var(--color-secondary);">
+                        {{ beer.brewery }} <span style="font-size: 0.8em;">🏭</span>
+                    </a>
+                {% else %}
+                    {{ beer.brewery }}
+                {% endif %}
+            </p>
+            <p style="margin: 0;"><strong>Familia:</strong> {{ beer.family_name }}</p>
+            <p style="margin: 0;"><strong>Estilo:</strong> {{ beer.style_name }}</p>
             <p style="margin: 0;"><strong>Graduación:</strong> {{ beer.abv }}%</p>
         </div>
     </div>
+    
+    {% if session.get('user_id') %}
+    <div id="beermatch-status-container" style="background: var(--color-tertiary); padding: 0.8rem; border-radius: var(--radius-card); margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+        <div id="beermatch-status-text">
+            {% if user_preference == 'LIKE' %}
+                <span style="font-size: 1.1rem;">❤️ Te gustó</span>
+            {% elif user_preference == 'DISLIKE' %}
+                <span style="font-size: 1.1rem;">❌ No te gustó</span>
+            {% else %}
+                <span style="font-size: 0.9rem; color: var(--text-secondary);">¿La has probado?</span>
+            {% endif %}
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+            <button onclick="updateBeerMatch({{ beer.id }}, 'DISLIKE')" class="btn" style="padding: 0.4rem 0.8rem; background: {% if user_preference == 'DISLIKE' %}var(--color-primary){% else %}var(--bg-panel){% endif %}; color: var(--text-main); font-size: 0.9rem; width: auto; border: 1px solid var(--border-color);">❌</button>
+            <button onclick="updateBeerMatch({{ beer.id }}, 'LIKE')" class="btn" style="padding: 0.4rem 0.8rem; background: {% if user_preference == 'LIKE' %}var(--color-primary){% else %}var(--bg-panel){% endif %}; color: var(--text-main); font-size: 0.9rem; width: auto; border: 1px solid var(--border-color);">❤️</button>
+        </div>
+    </div>
+    <script>
+    function updateBeerMatch(beerId, preference) {
+        fetch('/beermatch/api/preferences', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ beer_id: beerId, preference: preference })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                window.location.reload();
+            }
+        });
+    }
+    </script>
+    {% endif %}
+    
+    {% if beer.tags_list %}
+    <div style="margin-bottom: 1rem; display:flex; flex-wrap:wrap; gap:0.3rem;">
+        {% for t in beer.tags_list %}
+        <span class="pill" style="font-size:0.8rem; background:var(--color-primary); color:black;">{{ t.name }}</span>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <p><strong>Descripción:</strong><br>{{ beer.description }}</p>
     
     <div style="margin-top: 1.5rem;">
-        <a href="{{ url_for('routes.map_view') }}" class="btn">¿Dónde encontrarla?</a>
+        <button id="find-beer-btn" class="btn" onclick="findBeerNearby({{ beer.id }})">¿Dónde encontrarla?</button>
+        <div id="nearby-venues-container" style="margin-top: 1rem; display: none;">
+            <h3 style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">Locales Disponibles</h3>
+            <div id="nearby-venues-list"></div>
+        </div>
     </div>
 </div>
+
+<script>
+function findBeerNearby(beerId) {
+    const btn = document.getElementById('find-beer-btn');
+    const container = document.getElementById('nearby-venues-container');
+    const list = document.getElementById('nearby-venues-list');
+    
+    btn.innerText = 'Buscando tu ubicación...';
+    btn.disabled = true;
+    container.style.display = 'block';
+    list.innerHTML = '<p style="color:var(--text-secondary);">Calculando distancias...</p>';
+
+    function fetchVenues(lat, lon) {
+        let url = `/api/beer/${beerId}/venues`;
+        if (lat !== null && lon !== null) {
+            url += `?lat=${lat}&lon=${lon}`;
+        }
+        
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                btn.innerText = 'Actualizar búsqueda';
+                btn.disabled = false;
+                
+                if (data.length === 0) {
+                    list.innerHTML = '<p>No hemos encontrado ningún local que tenga esta cerveza actualmente.</p>';
+                    return;
+                }
+                
+                let html = '<ul style="list-style:none; padding:0; margin:0;">';
+                data.forEach(v => {
+                    let distanceStr = v.distance_km !== null ? `<span class="pill" style="margin:0; background:var(--color-primary); color:black;">A ${v.distance_km.toFixed(1)} km</span>` : '';
+                    let dateStr = new Date(v.last_updated).toLocaleDateString();
+                    
+                    html += `
+                    <li style="padding: 1rem 0; border-bottom: 1px solid var(--border-color);">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div>
+                                <a href="/venue/${v.venue_id}" style="color:var(--color-secondary); text-decoration:none; font-weight:bold; font-size:1.1rem;">${v.name}</a>
+                                <p style="margin:0.2rem 0; font-size:0.9rem; color:var(--text-secondary);">📍 ${v.city} - ${v.address}</p>
+                                <p style="margin:0; font-size:0.8rem; color:var(--text-secondary);">Confirmado: ${dateStr}</p>
+                            </div>
+                            ${distanceStr}
+                        </div>
+                    </li>`;
+                });
+                html += '</ul>';
+                list.innerHTML = html;
+            })
+            .catch(err => {
+                list.innerHTML = '<p style="color:#ff6b6b;">Error al buscar los locales.</p>';
+                btn.innerText = 'Reintentar';
+                btn.disabled = false;
+            });
+    }
+
+    if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                fetchVenues(position.coords.latitude, position.coords.longitude);
+            },
+            (error) => {
+                // User denied or error, fetch without location
+                fetchVenues(null, null);
+            }
+        );
+    } else {
+        // Geolocation not supported
+        fetchVenues(null, null);
+    }
+}
+
+{% if beer.image %}
+function openImageModal() {
+    document.getElementById('image-modal').style.display = 'flex';
+}
+
+function closeImageModal() {
+    document.getElementById('image-modal').style.display = 'none';
+}
+{% else %}
+function openImageModal() {}
+{% endif %}
+</script>
+
+<!-- Image Modal -->
+{% if beer.image %}
+<div id="image-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center;" onclick="closeImageModal()">
+    <span style="position: absolute; top: 20px; right: 30px; color: white; font-size: 30px; font-weight: bold; cursor: pointer;">&times;</span>
+    <img src="{{ url_for('static', filename='images/beers/' + beer.image) }}" style="max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.8);">
+</div>
+{% endif %}
+
 {% endblock %}

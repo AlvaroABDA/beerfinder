@@ -1,18 +1,324 @@
 [
     {
-        "id": 1,
-        "name": "Mahou 5 Estrellas",
-        "brewery": "Mahou San Miguel",
-        "style": "Lager",
-        "abv": "5.5",
-        "description": "Una cerveza dorada, con un sabor característico, moderado amargor."
+        "id": 3,
+        "name": "Barong",
+        "brewery": "La Quince",
+        "style": "Imperial Stout",
+        "abv": "10,5",
+        "description": "",
+        "image": "barong.jpg",
+        "family_id": 2,
+        "style_id": 23
     },
     {
-        "id": 2,
-        "name": "IPA Artesanal",
-        "brewery": "Cervezas Artesanales S.L.",
-        "style": "IPA",
+        "id": 4,
+        "name": "Non Grata",
+        "brewery": "Laugar",
+        "style": "Imperial Stout",
+        "abv": "11",
+        "description": "Una Imperial Stout a la que hemos añadido coco tostado y canela para un perfil decididamente goloso. Visualmente es oscura y apetecible, con aromas que te transportarán a postres exóticos.\r\nEn boca es sedosa, con el dulzor del coco tostado y el punto justo de la canela creando una sensación especiada y muy placentera.",
+        "image": "laugar.jpg",
+        "family_id": 2,
+        "style_id": 23
+    },
+    {
+        "id": 5,
+        "name": "Arkenstout",
+        "family_id": 2,
+        "style_id": 23,
+        "brewery": "DummyBeer",
+        "abv": "8.2",
+        "description": "Una stout oscura y profunda como las minas de Arken. Notas intensas a chocolate y malta tostada con un final dulce y reconfortante.",
+        "image": ""
+    },
+    {
+        "id": 6,
+        "name": "Blackforge",
+        "family_id": 2,
+        "style_id": 22,
+        "brewery": "DummyBeer",
+        "abv": "6.4",
+        "description": "Forjada en la oscuridad, esta stout clásica presenta un marcado carácter a café torrefacto y maltas oscuras.",
+        "image": ""
+    },
+    {
+        "id": 7,
+        "name": "Deep Rock Galactic",
+        "family_id": 2,
+        "style_id": 21,
+        "brewery": "DummyBeer",
+        "abv": "5.5",
+        "description": "Perfecta para después de una larga jornada de extracción. Suave, con sutiles toques a café y cacao.",
+        "image": ""
+    },
+    {
+        "id": 8,
+        "name": "Glyphid Gold",
+        "family_id": 1,
+        "style_id": 3,
+        "brewery": "DummyBeer",
+        "abv": "4.8",
+        "description": "Dorada, brillante y peligrosa. Una Helles fácil de beber con un dulzor maltoso predominante.",
+        "image": ""
+    },
+    {
+        "id": 9,
+        "name": "Leaf Lover's Lager",
+        "family_id": 1,
+        "style_id": 2,
+        "brewery": "DummyBeer",
+        "abv": "4.5",
+        "description": "Limpia, crujiente y sumamente refrescante. La opción ideal para limpiar el paladar.",
+        "image": ""
+    },
+    {
+        "id": 10,
+        "name": "Dreadnought IPA",
+        "family_id": 2,
+        "style_id": 13,
+        "brewery": "DummyBeer",
+        "abv": "8.0",
+        "description": "Una bomba de lúpulo indomable. Amargor asertivo con potentes notas cítricas y resinosas.",
+        "image": ""
+    },
+    {
+        "id": 11,
+        "name": "Mactera Haze",
+        "family_id": 2,
+        "style_id": 12,
+        "brewery": "DummyBeer",
+        "abv": "6.5",
+        "description": "Zumo de lúpulo en estado puro. Turbia, sedosa y repleta de aromas a frutas tropicales.",
+        "image": ""
+    },
+    {
+        "id": 12,
+        "name": "Sandblasted IPA",
+        "family_id": 2,
+        "style_id": 14,
+        "brewery": "DummyBeer",
         "abv": "6.8",
-        "description": "Cerveza artesanal muy lupulada con toques cítricos."
+        "description": "Clásica IPA de la costa oeste. Final seco, amargor punzante y un vendaval de lúpulos cítricos.",
+        "image": ""
+    },
+    {
+        "id": 13,
+        "name": "Space Rig Saison",
+        "family_id": 5,
+        "style_id": 35,
+        "brewery": "DummyBeer",
+        "abv": "6.2",
+        "description": "Elaborada en órbita. Una Saison tradicional con un perfil de levadura especiado, final seco y toque cítrico.",
+        "image": ""
+    },
+    {
+        "id": 14,
+        "name": "Barrel of Fun",
+        "family_id": 2,
+        "style_id": 19,
+        "brewery": "DummyBeer",
+        "abv": "5.6",
+        "description": "Agradable y reconfortante. Notas a caramelo, frutos secos y un suave fondo tostado.",
+        "image": ""
+    },
+    {
+        "id": 15,
+        "name": "Karl's Revenge",
+        "family_id": 1,
+        "style_id": 1,
+        "brewery": "DummyBeer",
+        "abv": "5.0",
+        "description": "Una Pilsner con carácter. Amargor noble, notas herbales y un perfil crujiente y seco.",
+        "image": ""
+    },
+    {
+        "id": 16,
+        "name": "Bittermantle",
+        "family_id": 2,
+        "style_id": 41,
+        "brewery": "DummyBeer",
+        "abv": "5.8",
+        "description": "Equilibrio británico clásico. Lúpulos terrosos y herbales sobre una base de malta firme, con un amargor persistente.",
+        "image": ""
+    },
+    {
+        "id": 17,
+        "name": "Pogoplane Juice",
+        "family_id": 2,
+        "style_id": 12,
+        "brewery": "DummyBeer",
+        "abv": "6.4",
+        "description": "Exuberancia tropical en tu copa. Turbia y dulzona, recuerda a un batido de frutas exóticas.",
+        "image": ""
+    },
+    {
+        "id": 18,
+        "name": "Morkite Milk Stout",
+        "family_id": 2,
+        "style_id": 42,
+        "brewery": "DummyBeer",
+        "abv": "6.0",
+        "description": "Oscura pero increíblemente sedosa gracias a la adición de lactosa. Notas a batido de chocolate y café con leche.",
+        "image": ""
+    },
+    {
+        "id": 19,
+        "name": "Deep Dive",
+        "family_id": 5,
+        "style_id": 33,
+        "brewery": "DummyBeer",
+        "abv": "8.5",
+        "description": "Compleja y alcohólica. Esteres frutales, fenoles especiados y un final dulce pero engañosamente ligero.",
+        "image": ""
+    },
+    {
+        "id": 20,
+        "name": "Molly's Red",
+        "family_id": 2,
+        "style_id": 18,
+        "brewery": "Falsatica",
+        "abv": "5.2",
+        "description": "Color rubí profundo. Notas a caramelo y galleta con un dulzor maltoso muy equilibrado.",
+        "image": ""
+    },
+    {
+        "id": 21,
+        "name": "Karl's Kölsch",
+        "family_id": 1,
+        "style_id": 43,
+        "brewery": "Falsatica",
+        "abv": "4.9",
+        "description": "Limpia como una lager, afrutada como una ale. Sutilmente cítrica y sumamente refrescante.",
+        "image": ""
+    },
+    {
+        "id": 22,
+        "name": "Rock & Stone IPA",
+        "family_id": 2,
+        "style_id": 10,
+        "brewery": "Falsatica",
+        "abv": "6.4",
+        "description": "Sólida como una roca. Explosión de lúpulos americanos con notas a pino, pomelo y frutas de hueso.",
+        "image": ""
+    },
+    {
+        "id": 23,
+        "name": "Hoxxes Hazy",
+        "family_id": 2,
+        "style_id": 12,
+        "brewery": "Falsatica",
+        "abv": "6.7",
+        "description": "Opaca y jugosa. Un estallido de lúpulos modernos que aportan aromas a mango, maracuyá y melocotón.",
+        "image": ""
+    },
+    {
+        "id": 24,
+        "name": "Driller's Delight",
+        "family_id": 2,
+        "style_id": 21,
+        "brewery": "Falsatica",
+        "abv": "6.0",
+        "description": "Para perforar tus sentidos. Oscura y robusta, dominada por maltas tostadas que evocan café expreso y chocolate amargo.",
+        "image": ""
+    },
+    {
+        "id": 25,
+        "name": "Scout's Wit",
+        "family_id": 3,
+        "style_id": 26,
+        "brewery": "Falsatica",
+        "abv": "4.7",
+        "description": "Pálida y refrescante. Elaborada con trigo, cilantro y piel de naranja para un perfil cítrico y chispeante.",
+        "image": ""
+    },
+    {
+        "id": 26,
+        "name": "Gunner's Gose",
+        "family_id": 4,
+        "style_id": 28,
+        "brewery": "Falsatica",
+        "abv": "4.2",
+        "description": "Ligeramente ácida y sutilmente salada. Una experiencia refrescante y peculiar con un final cítrico.",
+        "image": ""
+    },
+    {
+        "id": 27,
+        "name": "Glyphid Sour",
+        "family_id": 4,
+        "style_id": 30,
+        "brewery": "Falsatica",
+        "abv": "5.0",
+        "description": "Ataque ácido y frutal. Cargada de puré de frutas tropicales sobre una base marcadamente ácida.",
+        "image": ""
+    },
+    {
+        "id": 28,
+        "name": "Mission Control",
+        "family_id": 5,
+        "style_id": 31,
+        "brewery": "Falsatica",
+        "abv": "6.5",
+        "description": "Elegante y equilibrada. Perfil afrutado suave de levadura belga con una base de malta ligeramente dulce.",
+        "image": ""
+    },
+    {
+        "id": 29,
+        "name": "Error 404: Beer Not Found",
+        "family_id": 7,
+        "style_id": 40,
+        "brewery": "Falsatica",
+        "abv": "0.5",
+        "description": "Todo el sabor sin el alcohol. Ligeramente lupulada y refrescante, ideal para cuando no quieres o no puedes.",
+        "image": ""
+    },
+    {
+        "id": 30,
+        "name": "Red Sugar Rush",
+        "family_id": 2,
+        "style_id": 44,
+        "brewery": "Falsatica",
+        "abv": "5.1",
+        "description": "Caramelo y toffee en abundancia. Una Red Ale clásica, suave y reconfortante.",
+        "image": ""
+    },
+    {
+        "id": 31,
+        "name": "Dreadnought's Cousin",
+        "family_id": 2,
+        "style_id": 45,
+        "brewery": "Falsatica",
+        "abv": "9.2",
+        "description": "Peligrosamente intensa. Un jarabe de lúpulo masivo con fuerte amargor y cuerpo denso y alcohólico.",
+        "image": ""
+    },
+    {
+        "id": 32,
+        "name": "Azure Abyss",
+        "family_id": 4,
+        "style_id": 27,
+        "brewery": "Falsatica",
+        "abv": "4.0",
+        "description": "Limpia y punzante acidez láctica. Extremadamente seca y refrescante, con sutiles notas alimonadas.",
+        "image": ""
+    },
+    {
+        "id": 33,
+        "name": "Jungle Fungus",
+        "family_id": 3,
+        "style_id": 25,
+        "brewery": "Falsatica",
+        "abv": "5.0",
+        "description": "Clásica de trigo alemana. Aromas prominentes a plátano y clavo aportados por su característica levadura.",
+        "image": ""
+    },
+    {
+        "id": 34,
+        "name": "Management Approved™",
+        "family_id": 2,
+        "style_id": 46,
+        "brewery": "Falsatica",
+        "abv": "5.6",
+        "description": "El estándar de la casa. Equilibrada, con presencia moderada de maltas caramelo y un claro perfil cítrico y floral.",
+        "image": ""
     }
 ]

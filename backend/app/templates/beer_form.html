@@ -2,27 +2,89 @@
 
 {% block content %}
 <div class="card">
-    <h2>Añadir Cerveza</h2>
-    <form method="POST" action="{{ url_for('routes.beer_new') }}" enctype="multipart/form-data">
+    <h2>{% if beer %}Editar Cerveza: {{ beer.name }}{% else %}Añadir Cerveza{% endif %}</h2>
+    <form method="POST" action="{% if beer %}{{ url_for('routes.edit_beer', id=beer.id) }}{% else %}{{ url_for('routes.beer_new') }}{% endif %}" enctype="multipart/form-data">
         <label>Nombre</label>
-        <input type="text" name="name" required>
+        <input type="text" name="name" value="{{ beer.name if beer else '' }}" required>
         
         <label>Fabricante (Cervecera)</label>
-        <input type="text" name="brewery" required>
+        <input type="text" name="brewery" list="fabricantes-list" placeholder="Selecciona o escribe uno nuevo..." value="{{ beer.brewery if beer else '' }}" required>
+        <datalist id="fabricantes-list">
+            {% for f in fabricantes %}
+            <option value="{{ f.name }}"></option>
+            {% endfor %}
+        </datalist>
         
-        <label>Estilo</label>
-        <input type="text" name="style">
+        <div style="display:flex; gap:1rem;">
+            <div style="flex:1;">
+                <label>Familia</label>
+                <select id="family-select" name="family_id">
+                    <option value="">Selecciona Familia...</option>
+                    {% for f in families %}
+                    <option value="{{ f.id }}" {% if beer and beer.family_id == f.id %}selected{% endif %}>{{ f.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="flex:1;">
+                <label>Estilo</label>
+                <select id="style-select" name="style_id">
+                    <option value="" data-family="">Selecciona Estilo...</option>
+                    {% for s in styles %}
+                    <option value="{{ s.id }}" data-family="{{ s.family_id }}" {% if beer and beer.style_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
         
         <label>Graduación (ABV %)</label>
-        <input type="text" name="abv">
+        <input type="text" name="abv" value="{{ beer.abv if beer else '' }}">
         
         <label>Descripción</label>
-        <textarea name="description" rows="4"></textarea>
+        <textarea name="description" rows="4">{{ beer.description if beer else '' }}</textarea>
 
-        <label>Foto de la Cerveza</label>
+        <label>Tags (Características)</label>
+        <div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem;">
+            {% for t in tags %}
+            <label style="display:flex; align-items:center; gap:0.3rem; margin:0; background:var(--bg-panel); border:1px solid var(--border-color); padding:0.3rem 0.6rem; border-radius:4px; font-weight:normal;">
+                <input type="checkbox" name="tags" value="{{ t.id }}" style="margin:0;" {% if beer and t.id in beer_tag_ids %}checked{% endif %}> {{ t.name }}
+            </label>
+            {% endfor %}
+        </div>
+
+        <script>
+            // Dependent dropdown logic
+            document.getElementById('family-select').addEventListener('change', function() {
+                var familyId = this.value;
+                var styleSelect = document.getElementById('style-select');
+                styleSelect.value = ""; // reset
+                
+                for (var i = 0; i < styleSelect.options.length; i++) {
+                    var opt = styleSelect.options[i];
+                    if (opt.getAttribute('data-family') === "") continue; // skip default option
+                    
+                    if (familyId === "" || opt.getAttribute('data-family') === familyId) {
+                        opt.style.display = '';
+                    } else {
+                        opt.style.display = 'none';
+                    }
+                }
+            });
+            // trigger on load
+            document.getElementById('family-select').dispatchEvent(new Event('change'));
+        </script>
+
+        <label>Foto de la Cerveza (dejar vacío para mantener la actual)</label>
+        {% if beer and beer.image %}
+        <div style="margin-bottom: 0.5rem;">
+            <img src="{{ url_for('static', filename='images/beers/' + beer.image) }}" alt="Logo" style="height: 60px; border-radius:8px;">
+        </div>
+        {% endif %}
         <input type="file" name="image" accept="image/*">
         
-        <button type="submit" class="btn">Guardar Cerveza</button>
+        <div style="display:flex; gap:1rem; margin-top:1rem;">
+            <button type="submit" class="btn">Guardar Cerveza</button>
+            <a href="{{ url_for('routes.admin', type='beers') }}" class="btn btn-outline">Cancelar</a>
+        </div>
     </form>
 </div>
 {% endblock %}
