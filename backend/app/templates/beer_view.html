@@ -8,7 +8,7 @@
         </div>
         <div>
             <h2 style="margin: 0 0 0.5rem 0;">{{ beer.name }}</h2>
-            <p style="margin: 0; padding-bottom: 0.3rem;"><strong>Fabricante:</strong> 
+<p style="margin: 0; padding-bottom: 0.3rem;"><strong>Fabricante:</strong> 
                 {% if linked_fabricante %}
                     <a href="{{ url_for('routes.fabricante_view', id=linked_fabricante.id) }}" style="color: var(--color-secondary); text-decoration: none; border-bottom: 1px dotted var(--color-secondary);">
                         {{ beer.brewery }} <span style="font-size: 0.8em;">🏭</span>
@@ -22,7 +22,12 @@
             <p style="margin: 0;"><strong>Graduación:</strong> {{ beer.abv }}%</p>
         </div>
     </div>
-    
+
+    <!-- Venue más cercano: se carga automáticamente al abrir la ficha -->
+    <div id="nearest-venue-bar" style="display:none; margin-bottom:1rem; padding:0.65rem 0.9rem; background:var(--color-tertiary); border-radius:var(--radius-card); border:1px solid var(--border-color); font-size:0.88rem;">
+        <span id="nearest-venue-text" style="color:var(--text-secondary);"></span>
+    </div>
+
     {% if session.get('user_id') %}
     <div id="beermatch-status-container" style="background: var(--color-tertiary); padding: 0.8rem; border-radius: var(--radius-card); margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
         <div id="beermatch-status-text">
@@ -107,7 +112,12 @@ function findBeerNearby(beerId) {
                 
                 let html = '<ul style="list-style:none; padding:0; margin:0;">';
                 data.forEach(v => {
-                    let distanceStr = v.distance_km !== null ? `<span class="pill" style="margin:0; background:var(--color-primary); color:black;">A ${v.distance_km.toFixed(1)} km</span>` : '';
+            let distanceStr = '';
+                    if (v.distance_km !== null && v.distance_km !== undefined) {
+                        const d = v.distance_km;
+                        distanceStr = d < 1 ? `${Math.round(d * 1000)} m` : `${d.toFixed(1)} km`;
+                        distanceStr = `<span class="pill" style="margin:0; background:var(--color-primary); color:black;">A ${distanceStr}</span>`;
+                    }
                     let dateStr = new Date(v.last_updated).toLocaleDateString();
                     
                     html += `
@@ -132,21 +142,50 @@ function findBeerNearby(beerId) {
             });
     }
 
-    if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                fetchVenues(position.coords.latitude, position.coords.longitude);
-            },
-            (error) => {
-                // User denied or error, fetch without location
-                fetchVenues(null, null);
-            }
-        );
-    } else {
-        // Geolocation not supported
-        fetchVenues(null, null);
-    }
+    window.getAppLocation(
+        (position) => {
+            fetchVenues(position.coords.latitude, position.coords.longitude);
+        },
+        (msg) => {
+            list.innerHTML = `<p style="color:var(--text-secondary); font-size:0.85rem;">📍 ${msg}</p>`;
+            fetchVenues(null, null);
+        }
+    );
 }
+
+// --- Cargar venue más cercano automáticamente al abrir la ficha ---
+(function autoLoadNearestVenue() {
+    function fmt(km) {
+        if (km === null || km === undefined) return null;
+        return km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
+    }
+
+    function showNearestVenue(lat, lon) {
+        let url = `/api/beer/{{ beer.id }}/venues`;
+        if (lat !== null && lon !== null) {
+            url += `?lat=${lat}&lon=${lon}`;
+        }
+        fetch(url)
+            .then(r => r.json())
+            .then(data => {
+                if (!data || data.length === 0) return;
+                const nearest = data[0]; // ya viene ordenado por distancia
+                const bar = document.getElementById('nearest-venue-bar');
+                const txt = document.getElementById('nearest-venue-text');
+                const distPart = nearest.distance_km !== null
+                    ? ` · <strong style="color:var(--color-primary);">${fmt(nearest.distance_km)}</strong>`
+                    : '';
+                txt.innerHTML = `🏪 <a href="/venue/${nearest.venue_id}" style="color:var(--color-secondary);font-weight:bold;">${nearest.name}</a>${distPart}`;
+                bar.style.display = 'block';
+            })
+            .catch(() => {}); // silencioso si falla
+    }
+
+    window.getAppLocation(
+        pos => showNearestVenue(pos.coords.latitude, pos.coords.longitude),
+        () => showNearestVenue(null, null)
+    );
+})();
 
 {% if beer.image %}
 function openImageModal() {

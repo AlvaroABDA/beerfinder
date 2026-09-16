@@ -19,6 +19,17 @@
         <label>Sitio Web</label>
         <input type="url" name="website" value="{{ fabricante.website or '' }}" placeholder="https://ejemplo.com">
         
+        <div style="display: flex; gap: 1rem;">
+            <div style="flex:1;">
+                <label>Email de Contacto</label>
+                <input type="email" name="email" value="{{ fabricante.email or '' }}" placeholder="info@ejemplo.com">
+            </div>
+            <div style="flex:1;">
+                <label>Número de Teléfono</label>
+                <input type="tel" name="phone" value="{{ fabricante.phone or '' }}" placeholder="+34 123 456 789">
+            </div>
+        </div>
+        
         <label>Descripción Breve</label>
         <textarea name="description" rows="3">{{ fabricante.description }}</textarea>
         

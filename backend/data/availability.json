@@ -1,40 +1,78 @@
 [
     {
-        "id": 1,
-        "venue_id": 1,
-        "beer_id": 1,
+        "id": 18,
+        "venue_id": 2,
+        "beer_id": 5,
+        "user_id": 1,
         "status": "AVAILABLE",
-        "last_updated": "2026-09-07T10:00:00Z"
+        "last_updated": "2026-09-11T18:28:39Z"
     },
     {
-        "id": 2,
-        "venue_id": 1,
-        "beer_id": 2,
-        "status": "SOLD_OUT",
-        "last_updated": "2026-09-07T10:00:00Z"
+        "id": 19,
+        "venue_id": 2,
+        "beer_id": 5,
+        "user_id": 1,
+        "status": "AVAILABLE",
+        "last_updated": "2026-09-15T14:23:15Z"
     },
     {
-        "id": 3,
+        "id": 20,
         "venue_id": 3,
         "beer_id": 3,
         "user_id": 1,
         "status": "AVAILABLE",
-        "last_updated": "2026-09-07T15:08:51Z"
+        "last_updated": "2026-09-15T14:26:13Z"
     },
     {
-        "id": 4,
+        "id": 21,
         "venue_id": 3,
-        "beer_id": 4,
+        "beer_id": 3,
         "user_id": 1,
         "status": "AVAILABLE",
-        "last_updated": "2026-09-07T15:08:54Z"
+        "last_updated": "2026-09-15T14:26:17Z"
     },
     {
-        "id": 5,
+        "id": 22,
         "venue_id": 2,
         "beer_id": 4,
         "user_id": 1,
         "status": "AVAILABLE",
-        "last_updated": "2026-09-07T15:24:30Z"
+        "last_updated": "2026-09-15T14:28:58Z"
+    },
+    {
+        "id": 23,
+        "venue_id": 2,
+        "beer_id": 5,
+        "user_id": 1,
+        "status": "SOLD_OUT",
+        "last_updated": "2026-09-15T14:29:01Z"
+    },
+    {
+        "id": 24,
+        "venue_id": 2,
+        "beer_id": 5,
+        "user_id": 1,
+        "status": "AVAILABLE",
+        "last_updated": "2026-09-15T14:29:05Z"
+    },
+    {
+        "id": 25,
+        "created_by": 1,
+        "owner_user_id": null,
+        "venue_id": 2,
+        "beer_id": 5,
+        "user_id": 1,
+        "status": "SOLD_OUT",
+        "last_updated": "2026-09-15T20:51:40Z"
+    },
+    {
+        "id": 26,
+        "created_by": 7,
+        "owner_user_id": null,
+        "venue_id": 2,
+        "beer_id": 14,
+        "user_id": 7,
+        "status": "AVAILABLE",
+        "last_updated": "2026-09-16T10:26:34Z"
     }
 ]

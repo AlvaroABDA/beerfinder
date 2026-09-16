@@ -28,15 +28,28 @@
         
         .app-container { max-width: 480px; margin: 0 auto; background: var(--bg-body); min-height: 100vh; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.5); overflow-x: hidden; }
         header { background: var(--bg-body); color: var(--text-main); padding: 1.5rem 1.2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; font-size: 1.4rem; font-weight: 700; border-bottom: 1px solid var(--border-color); }
-        .menu-btn { background: var(--text-main); color: var(--bg-body); border: none; font-size: 1.2rem; cursor: pointer; padding: 0.4rem 0.6rem; border-radius: 50%; font-weight: bold; }
-        
+        .header-actions { display: flex; align-items: center; gap: 0.7rem; }
+        .menu-btn { background: var(--text-main); color: var(--bg-body); border: none; cursor: pointer; padding: 0.5rem; border-radius: 50%; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+        .icon { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; }
+        .icon-sm { width: 16px; height: 16px; }
+
+        /* Session badge (header) */
+        .session-badge { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); text-decoration: none; }
+        .session-badge .icon { color: var(--color-primary); }
+
+        /* Session info (sidebar) */
+        .sidebar-session { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 1.5rem 1.2rem; margin-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); color: var(--text-main); }
+        .sidebar-session .icon { color: var(--color-primary); width: 26px; height: 26px; }
+        .sidebar-session-name { font-weight: 700; font-size: 1rem; }
+        .sidebar-session-role { font-size: 0.75rem; color: var(--text-secondary); }
+
         /* Sidebar Menu */
         .sidebar { position: fixed; top: 0; left: -250px; width: 250px; height: 100vh; background: var(--bg-panel); z-index: 200; box-shadow: 2px 0 10px rgba(0,0,0,0.5); transition: left 0.3s ease; padding-top: 1rem; border-right: 1px solid var(--border-color); }
         .sidebar.open { left: 0; }
         .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 150; display: none; }
         .sidebar-overlay.open { display: block; }
         .sidebar-close { text-align: right; padding: 0 1rem 1rem; }
-        .sidebar a { display: block; padding: 1rem 1.5rem; color: var(--text-main); text-decoration: none; font-weight: 500; border-bottom: 1px solid var(--border-color); transition: background 0.2s; }
+        .sidebar a { display: flex; align-items: center; gap: 0.8rem; padding: 1rem 1.5rem; color: var(--text-main); text-decoration: none; font-weight: 500; border-bottom: 1px solid var(--border-color); transition: background 0.2s; }
         .sidebar a:hover { background: var(--color-tertiary); }
         
         .content { padding: 1.2rem; }
@@ -78,35 +91,105 @@
         .search-bar { display: flex; background: #fdfdfd; border-radius: var(--radius-card); padding: 0.3rem 0.8rem; align-items: center; margin-bottom: 1.5rem; }
         .search-bar input { margin: 0; border: none; padding: 0.5rem; flex: 1; outline: none; background: transparent; color: var(--text-dark); margin-bottom: 0; }
     </style>
+    <script>
+        window.getAppLocation = function(onSuccess, onError) {
+            const GEO_ERROR_MESSAGES = {
+                1: 'Permiso de ubicación denegado. Actívalo en los ajustes del navegador/sistema para ver distancias.',
+                2: 'No se pudo determinar tu posición (señal GPS/red no disponible).',
+                3: 'Se agotó el tiempo de espera al pedir tu ubicación.'
+            };
+
+            function triggerError(err) {
+                const msg = (err && GEO_ERROR_MESSAGES[err.code]) || 'No se pudo obtener tu ubicación.';
+                console.warn('Geolocation failed or was denied:', msg, err);
+                if (onError) onError(msg);
+            }
+
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => onSuccess(pos),
+                    (err) => triggerError(err),
+                    { timeout: 15000, maximumAge: 60000 }
+                );
+            } else {
+                triggerError({ code: 0 });
+            }
+        };
+    </script>
 </head>
 <body>
+    {% macro icon(name) %}
+        {% if name == 'home' %}<svg class="icon" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7"/><path d="M9 22V12h6v10"/></svg>
+        {% elif name == 'map-pin' %}<svg class="icon" viewBox="0 0 24 24"><path d="M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+        {% elif name == 'heart' %}<svg class="icon" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21.2l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+        {% elif name == 'user' %}<svg class="icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        {% elif name == 'plus' %}<svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        {% elif name == 'settings' %}<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        {% elif name == 'log-out' %}<svg class="icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        {% elif name == 'log-in' %}<svg class="icon" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        {% elif name == 'user-plus' %}<svg class="icon" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        {% elif name == 'x' %}<svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        {% elif name == 'menu' %}<svg class="icon" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        {% endif %}
+    {% endmacro %}
+
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMenu()"></div>
     <div class="sidebar" id="sidebarMenu">
         <div class="sidebar-close">
-            <button class="menu-btn" onclick="toggleMenu()">✕</button>
+            <button class="menu-btn" onclick="toggleMenu()">{{ icon('x') }}</button>
         </div>
-        <a href="{{ url_for('routes.index') }}">🏠 Inicio</a>
-        <a href="{{ url_for('routes.beers_list') }}">🍺 Explorar cervezas</a>
-        <a href="{{ url_for('routes.map_view') }}">📍 Mapa</a>
-        
+
         {% if session.get('user_id') %}
-            <a href="{{ url_for('beermatch.swipe_view') }}" style="color: var(--color-primary); font-weight: bold;">❤️ BeerMatch</a>
-            <a href="{{ url_for('routes.profile') }}">👤 Mi Perfil</a>
-            <a href="{{ url_for('routes.beer_new') }}">➕ Añadir cerveza</a>
-            {% if session.get('role') == 'ADMIN' %}
-                <a href="{{ url_for('routes.admin') }}">⚙️ Administración</a>
-            {% endif %}
-            <a href="{{ url_for('routes.logout') }}" style="color: #ff3b30; margin-top: 1rem; border-top: 2px solid #f2f2f2;">🚪 Cerrar sesión</a>
+            <div class="sidebar-session">
+                {{ icon('user') }}
+                <div>
+                    <div class="sidebar-session-name">{{ session.get('username') }}</div>
+                    <div class="sidebar-session-role">Sesión activa · {{ session.get('role')|title }}</div>
+                </div>
+            </div>
         {% else %}
-            <a href="{{ url_for('routes.login') }}" style="margin-top: 1rem; border-top: 2px solid #f2f2f2;">👤 Iniciar sesión</a>
-            <a href="{{ url_for('routes.register') }}">📝 Registro</a>
+            <div class="sidebar-session">
+                {{ icon('user') }}
+                <div class="sidebar-session-name">Invitado</div>
+            </div>
+        {% endif %}
+
+        <a href="{{ url_for('routes.index') }}">{{ icon('home') }} Inicio</a>
+        <a href="{{ url_for('routes.beers_list') }}">🍺 Explorar cervezas</a>
+        <a href="{{ url_for('routes.map_view') }}">{{ icon('map-pin') }} Mapa</a>
+
+        {% if session.get('user_id') %}
+            <a href="{{ url_for('beermatch.swipe_view') }}" style="color: var(--color-primary); font-weight: bold;">{{ icon('heart') }} BeerMatch</a>
+            <a href="{{ url_for('beermatch.history_view') }}" style="padding-left:2.5rem; font-size:0.9rem;">📋 Mi Historial</a>
+            <a href="{{ url_for('routes.profile') }}">{{ icon('user') }} Mi Perfil</a>
+            <a href="{{ url_for('routes.my_claims') }}">{{ icon('star') }} Mis Reclamaciones</a>
+            <a href="{{ url_for('routes.beer_new') }}">{{ icon('plus') }} Añadir cerveza</a>
+            <a href="{{ url_for('routes.venue_new') }}">🏪 Añadir bar</a>
+            {% if session.get('role') == 'ADMIN' %}
+                <a href="{{ url_for('routes.admin') }}">{{ icon('settings') }} Administración</a>
+            {% endif %}
+            <a href="{{ url_for('routes.logout') }}" style="color: #ff3b30; margin-top: 1rem; border-top: 2px solid #f2f2f2;">{{ icon('log-out') }} Cerrar sesión</a>
+        {% else %}
+            <a href="{{ url_for('routes.login') }}" style="margin-top: 1rem; border-top: 2px solid #f2f2f2;">{{ icon('log-in') }} Iniciar sesión</a>
+            <a href="{{ url_for('routes.register') }}">{{ icon('user-plus') }} Registro</a>
         {% endif %}
     </div>
 
     <div class="app-container">
         <header>
-            <span>🍺 BeerMap</span>
-            <button class="menu-btn" onclick="toggleMenu()">☰</button>
+            <a href="{{ url_for('routes.index') }}" style="display: flex; align-items: center; color: inherit; text-decoration: none;">🍺 BeerMap</a>
+            <div class="header-actions">
+                {% if session.get('user_id') %}
+                    <a href="{{ url_for('routes.profile') }}" class="session-badge">
+                        {{ icon('user') }} {{ session.get('username') }}
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('routes.login') }}" class="session-badge">
+                        {{ icon('log-in') }} Invitado
+                    </a>
+                {% endif %}
+                <button class="menu-btn" onclick="toggleMenu()">{{ icon('menu') }}</button>
+            </div>
         </header>
 
         <div class="content">
@@ -128,5 +211,36 @@
             document.getElementById('sidebarOverlay').classList.toggle('open');
         }
     </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const nameInputs = document.querySelectorAll('input[name="name"]');
+    nameInputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            const val = this.value.trim();
+            if(val.length > 2) {
+                fetch('/api/check_duplicate?q=' + encodeURIComponent(val))
+                .then(r => r.json())
+                .then(data => {
+                    // Remove old warnings
+                    if(this.nextElementSibling && this.nextElementSibling.className === 'duplicate-warning') {
+                        this.nextElementSibling.remove();
+                    }
+                    if(data.exists) {
+                        const warning = document.createElement('div');
+                        warning.className = 'duplicate-warning';
+                        warning.style.color = '#e67e22';
+                        warning.style.fontSize = '0.85rem';
+                        warning.style.marginTop = '0.4rem';
+                        warning.innerHTML = `⚠️ Ya existe un ${data.type} similar ("${data.name}"). Comprueba que no es un duplicado antes de crearlo.`;
+                        this.parentNode.insertBefore(warning, this.nextSibling);
+                    }
+                });
+            }
+        });
+    });
+});
+</script>
 </body>
+
 </html>

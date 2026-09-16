@@ -186,7 +186,7 @@
                         <table class="admin-table" style="width:100%; border-collapse:collapse;">
                             <tr><th>Nombre</th><th>Ciudad</th><th>Coords</th><th>Acciones</th></tr>
                             {% for v in venues %}
-                            <tr style="{% if not v.get('active', True) %}opacity: 0.5;{% endif %}">
+                            <tr style="{% if not is_active(v) %}opacity: 0.5;{% endif %}">
                                 <td><strong>{{ v.name }}</strong></td>
                                 <td>{{ v.city }}</td>
                                 <td style="font-size:0.8rem; color:var(--text-secondary);">{{ v.latitude|default('-')|round(4) if v.latitude }}, {{ v.longitude|default('-')|round(4) if v.longitude }}</td>
@@ -194,7 +194,7 @@
                                     <a href="{{ url_for('routes.edit_venue', id=v.id) }}" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Editar</a>
                                     <form method="POST" action="{{ url_for('routes.toggle_venue', id=v.id) }}" style="margin:0;">
                                         <button type="submit" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">
-                                            {% if v.get('active', True) %}Desactivar{% else %}Activar{% endif %}
+                                            {% if is_active(v) %}Desactivar{% else %}Activar{% endif %}
                                         </button>
                                     </form>
                                     <form method="POST" action="{{ url_for('routes.delete_venue', id=v.id) }}" style="margin:0;" onsubmit="return confirm('¿Seguro que quieres borrar este local permanentemente?');">
@@ -237,7 +237,7 @@
                         <table class="admin-table" style="width:100%; border-collapse:collapse;">
                             <tr><th>Nombre</th><th>Fabricante</th><th>Estilo</th><th>Acciones</th></tr>
                             {% for b in beers %}
-                            <tr style="{% if not b.get('active', True) %}opacity: 0.5;{% endif %}">
+                            <tr style="{% if not is_active(b) %}opacity: 0.5;{% endif %}">
                                 <td><strong>{{ b.name }}</strong></td>
                                 <td>{{ b.brewery }}</td>
                                 <td><span class="pill" style="margin:0;">{{ b.style }}</span></td>
@@ -245,7 +245,7 @@
                                     <a href="{{ url_for('routes.edit_beer', id=b.id) }}" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Editar</a>
                                     <form method="POST" action="{{ url_for('routes.toggle_beer', id=b.id) }}" style="margin:0;">
                                         <button type="submit" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">
-                                            {% if b.get('active', True) %}Desactivar{% else %}Activar{% endif %}
+                                            {% if is_active(b) %}Desactivar{% else %}Activar{% endif %}
                                         </button>
                                     </form>
                                     <form method="POST" action="{{ url_for('routes.delete_beer', id=b.id) }}" style="margin:0;" onsubmit="return confirm('¿Seguro que quieres borrar esta cerveza permanentemente?');">
@@ -280,7 +280,7 @@
 
                     <div style="background: var(--bg-panel); padding: 1rem; border-radius: 8px; border: 1px dashed var(--border-color); margin-bottom: 1.5rem;">
                         <h4 style="margin-top:0; color:var(--color-secondary);">➕ Añadir Fabricante</h4>
-                        <form method="POST" action="{{ url_for('routes.fabricante_new') }}">
+                        <form method="POST" action="{{ url_for('routes.fabricante_new') }}" enctype="multipart/form-data">
                             <div style="display: flex; gap: 1rem;">
                                 <div style="flex:2;">
                                     <label>Nombre del Fabricante</label>
@@ -289,6 +289,28 @@
                                 <div style="flex:1;">
                                     <label>País / Origen</label>
                                     <input type="text" name="country" placeholder="Ej: España" required>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 1rem;">
+                                <div style="flex:1;">
+                                    <label>Sitio Web</label>
+                                    <input type="url" name="website" placeholder="Ej: https://basqueland.com">
+                                </div>
+                                <div style="flex:1;">
+                                    <label>Email de Contacto</label>
+                                    <input type="email" name="email" placeholder="Ej: info@basqueland.com">
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 1rem;">
+                                <div style="flex:1;">
+                                    <label>Número de Teléfono</label>
+                                    <input type="tel" name="phone" placeholder="Ej: +34 123 456 789">
+                                </div>
+                                <div style="flex:1;">
+                                    <label>Logotipo (Imagen)</label>
+                                    <input type="file" name="logo" accept="image/*" style="background: var(--bg-panel); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.8rem; width: 100%; box-sizing: border-box;">
                                 </div>
                             </div>
                             
@@ -305,14 +327,14 @@
                         <table class="admin-table" style="width:100%; border-collapse:collapse;">
                             <tr><th>Nombre</th><th>Origen</th><th>Acciones</th></tr>
                             {% for f in fabricantes %}
-                            <tr style="{% if not f.get('active', True) %}opacity: 0.5;{% endif %}">
+                            <tr style="{% if not is_active(f) %}opacity: 0.5;{% endif %}">
                                 <td><strong>{{ f.name }}</strong></td>
                                 <td>{{ f.country }}</td>
                                 <td style="display:flex; gap:0.5rem;">
                                     <a href="{{ url_for('routes.edit_fabricante', id=f.id) }}" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Editar</a>
                                     <form method="POST" action="{{ url_for('routes.toggle_fabricante', id=f.id) }}" style="margin:0;">
                                         <button type="submit" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">
-                                            {% if f.get('active', True) %}Desactivar{% else %}Activar{% endif %}
+                                            {% if is_active(f) %}Desactivar{% else %}Activar{% endif %}
                                         </button>
                                     </form>
                                     <form method="POST" action="{{ url_for('routes.delete_fabricante', id=f.id) }}" style="margin:0;" onsubmit="return confirm('¿Seguro que quieres borrar este fabricante permanentemente?');">
@@ -389,6 +411,68 @@
                 </div>
             </div>
 
+
+            <!-- Item 6: Reclamaciones -->
+            <div class="accordion-item">
+                <button class="accordion-header {% if search_type == 'claims' %}active{% endif %}" data-target="content-claims">
+                    <span>⚖️ Reclamaciones (Propiedad)</span>
+                </button>
+                <div class="accordion-content" id="content-claims" {% if search_type == 'claims' %}style="display: block;"{% endif %}>
+                    
+                    <h4 style="margin-top:0; color:var(--text-secondary);">Reclamaciones Pendientes</h4>
+                    {% set pending_claims = claims|selectattr("status", "equalto", "PENDING")|list %}
+                    {% if pending_claims %}
+                    <div style="overflow-x:auto;">
+                        <table class="admin-table" style="width:100%; border-collapse:collapse;">
+                            <tr><th>Fecha</th><th>Usuario</th><th>Entidad</th><th>Acciones</th></tr>
+                            {% for c in pending_claims %}
+                            <tr>
+                                <td>{{ c.created_at[:10] }}</td>
+                                <td><strong>{{ c.requesting_username }}</strong></td>
+                                <td>
+                                    <span class="pill">{{ c.entity_type|upper }}</span> {{ c.entity_name }}
+                                </td>
+                                <td style="display:flex; gap:0.5rem;">
+                                    <form method="POST" action="{{ url_for('routes.process_claim', claim_id=c.id, action='approve') }}" style="margin:0;">
+                                        <button type="submit" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; color: #2ecc71; border-color: #2ecc71;">Aprobar</button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('routes.process_claim', claim_id=c.id, action='reject') }}" style="margin:0;">
+                                        <button type="submit" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; color: #e74c3c; border-color: #e74c3c;">Rechazar</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                    {% else %}
+                    <p>No hay reclamaciones pendientes.</p>
+                    {% endif %}
+                    
+                    <h4 style="margin-top:2rem; color:var(--text-secondary);">Historial Reciente</h4>
+                    {% set resolved_claims = claims|selectattr("status", "in", ["APPROVED", "REJECTED"])|list %}
+                    {% if resolved_claims %}
+                    <div style="overflow-x:auto;">
+                        <table class="admin-table" style="width:100%; border-collapse:collapse; opacity: 0.7;">
+                            <tr><th>Fecha</th><th>Usuario</th><th>Entidad</th><th>Estado</th></tr>
+                            {% for c in resolved_claims[:10] %}
+                            <tr>
+                                <td>{{ c.created_at[:10] }}</td>
+                                <td>{{ c.requesting_username }}</td>
+                                <td><span class="pill" style="opacity: 0.6;">{{ c.entity_type|upper }}</span> {{ c.entity_name }}</td>
+                                <td>
+                                    {% if c.status == 'APPROVED' %}
+                                    <span style="color: #2ecc71; font-weight: bold;">Aprobada</span>
+                                    {% else %}
+                                    <span style="color: #e74c3c; font-weight: bold;">Rechazada</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
 

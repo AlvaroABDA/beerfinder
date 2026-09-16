@@ -16,58 +16,6 @@
         "tag_id": 15
     },
     {
-        "beer_id": 5,
-        "tag_id": 8
-    },
-    {
-        "beer_id": 5,
-        "tag_id": 12
-    },
-    {
-        "beer_id": 5,
-        "tag_id": 4
-    },
-    {
-        "beer_id": 5,
-        "tag_id": 16
-    },
-    {
-        "beer_id": 5,
-        "tag_id": 9
-    },
-    {
-        "beer_id": 6,
-        "tag_id": 8
-    },
-    {
-        "beer_id": 6,
-        "tag_id": 12
-    },
-    {
-        "beer_id": 6,
-        "tag_id": 17
-    },
-    {
-        "beer_id": 6,
-        "tag_id": 9
-    },
-    {
-        "beer_id": 7,
-        "tag_id": 8
-    },
-    {
-        "beer_id": 7,
-        "tag_id": 17
-    },
-    {
-        "beer_id": 7,
-        "tag_id": 16
-    },
-    {
-        "beer_id": 7,
-        "tag_id": 11
-    },
-    {
         "beer_id": 8,
         "tag_id": 11
     },
@@ -474,5 +422,57 @@
     {
         "beer_id": 34,
         "tag_id": 18
+    },
+    {
+        "beer_id": 5,
+        "tag_id": 4
+    },
+    {
+        "beer_id": 5,
+        "tag_id": 8
+    },
+    {
+        "beer_id": 5,
+        "tag_id": 9
+    },
+    {
+        "beer_id": 5,
+        "tag_id": 12
+    },
+    {
+        "beer_id": 5,
+        "tag_id": 16
+    },
+    {
+        "beer_id": 7,
+        "tag_id": 8
+    },
+    {
+        "beer_id": 7,
+        "tag_id": 11
+    },
+    {
+        "beer_id": 7,
+        "tag_id": 16
+    },
+    {
+        "beer_id": 7,
+        "tag_id": 17
+    },
+    {
+        "beer_id": 6,
+        "tag_id": 8
+    },
+    {
+        "beer_id": 6,
+        "tag_id": 9
+    },
+    {
+        "beer_id": 6,
+        "tag_id": 12
+    },
+    {
+        "beer_id": 6,
+        "tag_id": 17
     }
 ]

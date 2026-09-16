@@ -26,7 +26,10 @@
 <div class="card" style="text-align: center; margin-bottom: 1.5rem; background: var(--color-tertiary);">
     <h3 style="margin-top:0;">🍺 ¿Has probado esta?</h3>
     <p style="font-size:0.9rem; margin-bottom: 1rem;">Valora cervezas y guarda tus favoritas en BeerMatch.</p>
-    <a href="{{ url_for('beermatch.swipe_view') }}" class="btn" style="background: var(--text-main); color: var(--bg-body);">Ir a BeerMatch ❤️</a>
+    <div style="display:flex; gap:0.75rem;">
+        <a href="{{ url_for('beermatch.swipe_view') }}" class="btn" style="flex:1; background: var(--text-main); color: var(--bg-body);">BeerMatch ❤️</a>
+        <a href="{{ url_for('beermatch.history_view') }}" class="btn btn-outline" style="flex:1;">Mi historial 📋</a>
+    </div>
 </div>
 {% endif %}
 
@@ -35,22 +38,18 @@
     <a href="{{ url_for('routes.beers_list') }}">Ver todas →</a>
 </div>
 
-{% for beer in beers %}
-<a href="{{ url_for('routes.beer_view', id=beer.id) }}" class="beer-card">
-    <div class="card-header">
-        <div class="card-img" {% if beer.image %}style="background-image: url('{{ url_for('static', filename='images/beers/' + beer.image) }}'); background-size: cover; background-position: center;"{% endif %}>
-            {% if not beer.image %}🍺{% endif %}
-        </div>
-        <div class="card-info">
-            <h3 class="card-title">{{ beer.name }}</h3>
-            <p class="card-subtitle">{{ beer.style }} · {{ beer.abv }}%</p>
-            <span class="badge badge-green">🟢 Disponible</span>
-        </div>
+<!-- Mensaje de ubicación (se muestra solo si no hay GPS) -->
+<div id="discover-location-hint" style="display:none; font-size:0.82rem; color:var(--text-secondary); margin-bottom:0.8rem; padding:0.6rem 0.8rem; background:var(--bg-panel); border-radius:10px; border:1px solid var(--border-color);">
+    📍 <strong>Activa tu ubicación</strong> para ver cervezas disponibles cerca de ti.
+</div>
+
+<!-- Feed de descubrimiento -->
+<div id="discover-feed">
+    <div id="discover-loading" style="text-align:center; color:var(--text-secondary); padding:1.5rem 0;">
+        <span style="font-size:1.4rem;">⏳</span><br>
+        <span style="font-size:0.9rem;">Buscando cervezas...</span>
     </div>
-</a>
-{% else %}
-<p>No hay cervezas disponibles para descubrir.</p>
-{% endfor %}
+</div>
 
 <div class="section-title">
     <span>📍 CERCA DE TI</span>
@@ -71,5 +70,83 @@
 {% else %}
 <p>No hay establecimientos cercanos.</p>
 {% endfor %}
+
+<script>
+(function() {
+    function renderDiscoverCard(item) {
+        const imgStyle = item.image_url
+            ? `background-image:url('${item.image_url}');background-size:cover;background-position:center;`
+            : '';
+        const imgFallback = item.image_url ? '' : '🍺';
+
+        const venueHtml = item.nearest_venue_name
+            ? `<p style="margin:0.25rem 0 0;font-size:0.82rem;color:var(--text-secondary);">
+                 🏪 ${item.nearest_venue_name}${item.distance_str ? ' · <strong style="color:var(--color-primary);">' + item.distance_str + '</strong>' : ''}
+               </p>`
+            : '';
+
+        const tagsHtml = (item.tags && item.tags.length)
+            ? `<div style="display:flex;flex-wrap:wrap;gap:0.3rem;margin-top:0.4rem;">
+                 ${item.tags.map(t => `<span style="font-size:0.72rem;padding:0.15rem 0.5rem;border-radius:1rem;background:rgba(255,255,255,0.08);border:1px solid var(--border-color);color:var(--text-secondary);">${t}</span>`).join('')}
+               </div>`
+            : '';
+
+        return `<a href="${item.view_url}" class="beer-card">
+            <div class="card-header">
+                <div class="card-img" style="${imgStyle}">${imgFallback}</div>
+                <div class="card-info">
+                    <h3 class="card-title">${item.name}</h3>
+                    <p class="card-subtitle">${item.style}${item.abv ? ' · ' + item.abv + '%' : ''}</p>
+                    ${venueHtml}
+                    ${tagsHtml}
+                </div>
+            </div>
+        </a>`;
+    }
+
+    function loadDiscover(lat, lon) {
+        let url = '/api/discover';
+        if (lat !== null && lon !== null) {
+            url += `?lat=${lat}&lon=${lon}`;
+        }
+
+        fetch(url)
+            .then(r => r.json())
+            .then(data => {
+                const feed = document.getElementById('discover-feed');
+                const loading = document.getElementById('discover-loading');
+                const hint = document.getElementById('discover-location-hint');
+
+                if (!data.has_location) {
+                    hint.style.display = 'block';
+                }
+
+                const results = data.results || [];
+                if (results.length === 0) {
+                    feed.innerHTML = '<p style="color:var(--text-secondary);font-size:0.9rem;">No hay cervezas disponibles para descubrir en este momento.</p>';
+                    return;
+                }
+
+                if (loading) loading.remove();
+                feed.innerHTML = results.map(renderDiscoverCard).join('');
+            })
+            .catch(() => {
+                const feed = document.getElementById('discover-feed');
+                feed.innerHTML = '<p style="color:var(--text-secondary);font-size:0.9rem;">No se pudo cargar el feed. Inténtalo de nuevo.</p>';
+            });
+    }
+
+    // Intentar geolocalización primero
+    window.getAppLocation(
+        function(pos) {
+            loadDiscover(pos.coords.latitude, pos.coords.longitude);
+        },
+        function() {
+            // Sin GPS: cargar igualmente por afinidad
+            loadDiscover(null, null);
+        }
+    );
+})();
+</script>
 
 {% endblock %}

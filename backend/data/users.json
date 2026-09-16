@@ -16,19 +16,38 @@
         "status": "ACTIVE"
     },
     {
-        "id": 3,
-        "username": "bar_manolo",
-        "email": "manolo@bar.com",
-        "password": "123",
-        "role": "VENUE",
-        "status": "ACTIVE"
-    },
-    {
         "id": 4,
         "username": "cervezas_artesanales",
         "email": "info@artesanales.com",
         "password": "123",
         "role": "BREWERY",
         "status": "ACTIVE"
+    },
+    {
+        "id": 5,
+        "username": "Alvarson",
+        "password": "admin",
+        "email": "velhandor@gmail.com",
+        "role": "USER",
+        "status": "ACTIVE"
+    },
+    {
+        "id": 6,
+        "username": "kukai",
+        "password": "kukai",
+        "email": "kukai@kukai.com",
+        "role": "VENUE",
+        "status": "ACTIVE"
+    },
+    {
+        "id": 7,
+        "created_by": null,
+        "owner_user_id": null,
+        "username": "Kukai",
+        "password": "kukai123",
+        "email": "kukai@kukai.com",
+        "role": "USER",
+        "status": "ACTIVE",
+        "max_distance": 1.0
     }
 ]

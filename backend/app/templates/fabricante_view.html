@@ -16,7 +16,13 @@
                 📍 {{ fabricante.country if fabricante.country else 'Origen desconocido' }}
             </p>
             {% if fabricante.website %}
-            <p style="margin: 0.2rem 0 0 0;"><a href="{{ fabricante.website }}" target="_blank" style="color:var(--color-primary); text-decoration:underline;">Visitar sitio web ↗</a></p>
+            <p style="margin: 0.2rem 0 0 0;"><a href="{{ fabricante.website }}" target="_blank" style="color:var(--color-primary); text-decoration:underline;">🌐 Visitar sitio web ↗</a></p>
+            {% endif %}
+            {% if fabricante.email %}
+            <p style="margin: 0.2rem 0 0 0;"><a href="mailto:{{ fabricante.email }}" style="color:var(--color-primary); text-decoration:underline;">✉️ {{ fabricante.email }}</a></p>
+            {% endif %}
+            {% if fabricante.phone %}
+            <p style="margin: 0.2rem 0 0 0; color: var(--text-secondary);">📞 {{ fabricante.phone }}</p>
             {% endif %}
         </div>
     </div>
@@ -25,6 +31,13 @@
     <p><strong>Descripción:</strong><br>{{ fabricante.description }}</p>
     {% endif %}
     
+    {% if not fabricante.owner_user_id and session.get('user_id') and session.get('user_id') != fabricante.created_by %}
+    <div style="margin-top: 2rem; text-align: center;">
+        <form method="POST" action="{{ url_for('routes.claim_entity', entity_type='brand', entity_id=fabricante.id) }}" style="margin: 0;">
+            <button type="submit" style="background: none; border: none; padding: 0; color: var(--text-secondary); text-decoration: underline; cursor: pointer; font-size: 0.8rem;" onclick="return confirm('¿Solicitar la propiedad de esta marca?');">Reclamar esta marca</button>
+        </form>
+    </div>
+    {% endif %}
     <h3 style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-top: 2rem;">Cervezas de este fabricante</h3>
     
     {% if beers %}

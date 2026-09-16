@@ -37,6 +37,8 @@
     </div>
 </div>
 
+<div id="geoWarning" class="alert alert-warning" style="display:none;"></div>
+
 <div id="resultsContainer">
     <p style="text-align: center; color: var(--text-secondary);">Cargando cervezas...</p>
 </div>
@@ -107,21 +109,18 @@
     }
 
     // Initialize
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            pos => {
-                currentLat = pos.coords.latitude;
-                currentLon = pos.coords.longitude;
-                exploreBeers();
-            },
-            err => {
-                console.warn("Location denied or error:", err);
-                exploreBeers();
-            },
-            {timeout: 5000}
-        );
-    } else {
-        exploreBeers();
-    }
+    window.getAppLocation(
+        pos => {
+            currentLat = pos.coords.latitude;
+            currentLon = pos.coords.longitude;
+            exploreBeers();
+        },
+        msg => {
+            const warning = document.getElementById('geoWarning');
+            warning.textContent = '📍 ' + msg + ' Mostrando resultados sin distancia.';
+            warning.style.display = 'block';
+            exploreBeers();
+        }
+    );
 </script>
 {% endblock %}

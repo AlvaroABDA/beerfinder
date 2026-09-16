@@ -6,7 +6,7 @@
         <div style="font-size: 3rem;">🏪</div>
         <div>
             <h2 style="margin: 0;">{{ venue.name }}</h2>
-            <p style="margin: 0; color: #86868b;">📍 {{ venue.address }}, {{ venue.city }}</p>
+<p style="margin: 0; color: #86868b;">📍 {{ venue.address }}, {{ venue.city }}</p>
         </div>
     </div>
     
@@ -15,6 +15,13 @@
     <div style="margin-top: 1rem;">
         <a href="{{ url_for('routes.map_view') }}" class="btn btn-outline">Ver en Mapa</a>
     </div>
+    {% if not venue.owner_user_id and session.get('user_id') and session.get('user_id') != venue.created_by %}
+    <div style="margin-top: 1.5rem; text-align: center;">
+        <form method="POST" action="{{ url_for('routes.claim_entity', entity_type='venue', entity_id=venue.id) }}" style="margin: 0;">
+            <button type="submit" style="background: none; border: none; padding: 0; color: var(--text-secondary); text-decoration: underline; cursor: pointer; font-size: 0.8rem;" onclick="return confirm('¿Solicitar la propiedad de este local?');">Reclamar este establecimiento</button>
+        </form>
+    </div>
+    {% endif %}
 </div>
 
 <div class="section-title">
@@ -22,7 +29,7 @@
 </div>
 
 {% for beer in available_beers %}
-<a href="{{ url_for('routes.beer_view', id=beer.id) }}" class="beer-card" style="display: block; text-decoration: none; color: inherit;">
+<div class="beer-card" style="display: block; cursor: pointer;" onclick="window.location.href='{{ url_for('routes.beer_view', id=beer.id) }}'">
     <div class="card-header" style="align-items: center;">
         <div class="card-img" {% if beer.image %}style="width: 100px; height: 100px; background-image: url('{{ url_for('static', filename='images/beers/' + beer.image) }}'); background-size: cover; background-position: center; border-radius: 12px; flex-shrink: 0;"{% else %}style="width: 100px; height: 100px; flex-shrink: 0; font-size: 2.5rem;"{% endif %}>
             {% if not beer.image %}🍺{% endif %}
@@ -30,17 +37,17 @@
         <div class="card-info" style="flex: 1;">
             <h3 class="card-title">{{ beer.name }}</h3>
             <p class="card-subtitle">{{ beer.style }} · {{ beer.abv }}%</p>
-            
-            <div style="margin-bottom: 0.5rem;" onclick="toggleHistory(event, 'history-{{ beer.id }}')">
+
+            <div style="margin-bottom: 0.5rem;" onclick="event.stopPropagation(); toggleHistory(event, 'history-{{ beer.id }}')">
                 {% if beer.status == 'AVAILABLE' %}
                     <span class="badge badge-green" style="cursor: pointer;">🟢 Disponible</span>
                 {% else %}
                     <span class="badge" style="background:#ffebee; color:#f44336; cursor: pointer;">🔴 Agotada</span>
                 {% endif %}
             </div>
-            
+
             {% if session.get('user_id') %}
-            <div style="display: flex; gap: 0.3rem; margin-top: 0.5rem;" onclick="event.preventDefault();">
+            <div style="display: flex; gap: 0.3rem; margin-top: 0.5rem;" onclick="event.stopPropagation();">
                 <form action="{{ url_for('routes.update_status', venue_id=venue.id, beer_id=beer.id) }}" method="POST" style="flex: 1;">
                     <input type="hidden" name="status" value="AVAILABLE">
                     <button type="submit" class="btn" style="padding: 0.2rem 0.4rem; font-size: 0.7rem; width: 100%; background: #4caf50;">✅ Disp.</button>
@@ -51,9 +58,9 @@
                 </form>
             </div>
             {% endif %}
-            
+
             {% if beer.history %}
-            <div id="history-{{ beer.id }}" style="display: none; margin-top: 1rem; font-size: 0.75rem; color: #86868b; background: #f9f9f9; padding: 0.5rem; border-radius: 8px;" onclick="event.preventDefault();">
+            <div id="history-{{ beer.id }}" style="display: none; margin-top: 1rem; font-size: 0.75rem; color: #86868b; background: #f9f9f9; padding: 0.5rem; border-radius: 8px;" onclick="event.stopPropagation();">
                 <strong>Últimas actualizaciones:</strong>
                 <ul style="margin: 0; padding-left: 1.2rem;">
                 {% for log in beer.history %}
@@ -64,7 +71,7 @@
             {% endif %}
         </div>
     </div>
-</a>
+</div>
 {% else %}
 <p>Este establecimiento no ha añadido cervezas a su catálogo todavía.</p>
 {% endfor %}
@@ -72,18 +79,143 @@
 {% if session.get('user_id') %}
 <div class="card" style="margin-top: 1rem; border: 1px dashed var(--border-color); background: transparent;">
     <h3 style="margin-top: 0;">Añadir cerveza a este bar</h3>
-    <form action="{{ url_for('routes.venue_add_beer', venue_id=venue.id) }}" method="POST" style="display: flex; gap: 0.5rem;">
-        <select name="beer_id" required style="flex: 1; margin: 0; padding: 0.5rem; border-radius: 8px;">
-            <option value="">Selecciona una cerveza...</option>
-            {% for b in all_beers %}
-            <option value="{{ b.id }}">{{ b.name }} ({{ b.brewery }})</option>
-            {% endfor %}
-        </select>
-        <button type="submit" class="btn" style="width: auto; padding: 0.5rem 1rem;">Añadir</button>
+    <form action="{{ url_for('routes.venue_add_beer', venue_id=venue.id) }}" method="POST" id="add-beer-form" style="display: flex; gap: 0.5rem; align-items: flex-start; flex-direction: column;">
+        <div style="position: relative; width: 100%;" id="beer-autocomplete-wrap">
+            <input
+                type="text"
+                id="beer-search-input"
+                placeholder="Escribe el nombre de la cerveza..."
+                autocomplete="off"
+                style="width: 100%; margin: 0; padding: 0.7rem 1rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-panel); color: var(--text-main); font-size: 0.95rem; font-family: inherit; outline: none; box-sizing: border-box;"
+            >
+            <input type="hidden" name="beer_id" id="beer-id-input" required>
+            <div id="beer-suggestions"
+                 style="display:none; position:absolute; top:calc(100% + 4px); left:0; right:0; background:var(--bg-panel); border:1px solid var(--border-color); border-radius:10px; max-height:220px; overflow-y:auto; z-index:500; box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+            </div>
+        </div>
+        <button type="submit" class="btn" id="add-beer-btn" disabled style="width: 100%; opacity: 0.5;">Añadir al catálogo</button>
     </form>
     <p style="font-size: 0.8rem; margin-top: 0.5rem;">¿No está en la lista? <a href="{{ url_for('routes.beer_new') }}" style="color: var(--color-primary); text-decoration: underline;">Crea una nueva</a>.</p>
 </div>
+
+<script>
+(function() {
+    // Datos de todas las cervezas embebidos desde el servidor
+    const allBeers = {{ all_beers | tojson }};
+
+    const searchInput = document.getElementById('beer-search-input');
+    const hiddenInput = document.getElementById('beer-id-input');
+    const suggestionsBox = document.getElementById('beer-suggestions');
+    const addBtn = document.getElementById('add-beer-btn');
+    const form = document.getElementById('add-beer-form');
+
+    // Construir mapa de estilos (style_id -> name) si está disponible
+    // all_beers ya tiene style como campo en el objeto si el template lo pasa
+    // Usaremos brewery como subtítulo
+
+    function normalize(str) {
+        return (str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function renderSuggestions(query) {
+        const q = normalize(query.trim());
+        if (!q || q.length < 1) {
+            suggestionsBox.style.display = 'none';
+            suggestionsBox.innerHTML = '';
+            return;
+        }
+
+        const matches = allBeers.filter(b => {
+            return normalize(b.name).includes(q)
+                || normalize(b.brewery || '').includes(q);
+        }).slice(0, 12); // Máximo 12 sugerencias
+
+        if (matches.length === 0) {
+            suggestionsBox.innerHTML = '<p style="padding:0.8rem 1rem; color:var(--text-secondary); font-size:0.88rem; margin:0;">Sin resultados para "' + query.trim() + '"</p>';
+            suggestionsBox.style.display = 'block';
+            return;
+        }
+
+        suggestionsBox.innerHTML = matches.map(b => {
+            const highlight = (text) => {
+                const idx = normalize(text).indexOf(q);
+                if (idx === -1) return text;
+                return text.slice(0, idx) + '<strong>' + text.slice(idx, idx + q.length) + '</strong>' + text.slice(idx + q.length);
+            };
+            return `<div class="beer-suggestion-item" data-id="${b.id}" data-name="${b.name}"
+                style="padding:0.7rem 1rem; cursor:pointer; border-bottom:1px solid var(--border-color); display:flex; flex-direction:column; gap:0.1rem; transition: background 0.15s;">
+                <span style="font-size:0.95rem; font-weight:600; color:var(--text-main);">${highlight(b.name)}</span>
+                <span style="font-size:0.78rem; color:var(--text-secondary);">${b.brewery || ''}${b.brewery && b.abv ? ' · ' : ''}${b.abv ? b.abv + '%' : ''}</span>
+            </div>`;
+        }).join('');
+
+        suggestionsBox.style.display = 'block';
+
+        // Hover effect y click
+        suggestionsBox.querySelectorAll('.beer-suggestion-item').forEach(item => {
+            item.addEventListener('mouseenter', () => item.style.background = 'var(--color-tertiary)');
+            item.addEventListener('mouseleave', () => item.style.background = 'transparent');
+            item.addEventListener('mousedown', (e) => {
+                e.preventDefault(); // Evita que el input pierda el foco antes del click
+                selectBeer(item.dataset.id, item.dataset.name);
+            });
+        });
+    }
+
+    function selectBeer(id, name) {
+        hiddenInput.value = id;
+        searchInput.value = name;
+        suggestionsBox.style.display = 'none';
+        suggestionsBox.innerHTML = '';
+        addBtn.disabled = false;
+        addBtn.style.opacity = '1';
+        searchInput.style.borderColor = 'var(--color-primary)';
+    }
+
+    function clearSelection() {
+        hiddenInput.value = '';
+        addBtn.disabled = true;
+        addBtn.style.opacity = '0.5';
+        searchInput.style.borderColor = 'var(--border-color)';
+    }
+
+    searchInput.addEventListener('input', () => {
+        clearSelection();
+        renderSuggestions(searchInput.value);
+    });
+
+    searchInput.addEventListener('focus', () => {
+        if (searchInput.value.trim().length > 0 && !hiddenInput.value) {
+            renderSuggestions(searchInput.value);
+        }
+    });
+
+    // Cerrar al hacer click fuera
+    document.addEventListener('mousedown', (e) => {
+        if (!document.getElementById('beer-autocomplete-wrap').contains(e.target)) {
+            suggestionsBox.style.display = 'none';
+        }
+    });
+
+    // Tecla Escape cierra
+    searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            suggestionsBox.style.display = 'none';
+        }
+    });
+
+    // Validar que se haya seleccionado una cerveza de la lista antes de enviar
+    form.addEventListener('submit', (e) => {
+        if (!hiddenInput.value) {
+            e.preventDefault();
+            searchInput.style.borderColor = 'var(--color-red)';
+            searchInput.placeholder = 'Selecciona una cerveza de la lista';
+        }
+    });
+})();
+</script>
 {% endif %}
+
 
 <div style="margin-top:2rem;">
     <a href="{{ url_for('routes.index') }}" class="btn btn-outline">← Volver al Inicio</a>

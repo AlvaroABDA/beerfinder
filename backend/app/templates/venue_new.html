@@ -1,0 +1,62 @@
+﻿{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2 style="margin-top:0;">🏪 Añadir un Bar</h2>
+    <p style="font-size:0.9rem; color:var(--text-secondary); margin-bottom:1.5rem;">
+        ¿Conoces un bar con buena selección de cervezas? Añádelo para que otros usuarios puedan encontrarlo.
+    </p>
+
+    <form method="POST" action="{{ url_for('routes.venue_new') }}">
+        <label>Nombre del establecimiento *</label>
+        <input type="text" name="name" placeholder="Ej: La Cervecería del Norte" required>
+
+        <label>Dirección *</label>
+        <input type="text" name="address" id="address-input" placeholder="Calle, número..." required>
+
+        <label>Ciudad *</label>
+        <input type="text" name="city" placeholder="Ej: Vitoria-Gasteiz" required>
+
+        <label>Descripción (opcional)</label>
+        <textarea name="description" rows="3" placeholder="Breve descripción del local, especialidad, ambiente..."></textarea>
+
+        <details style="margin-bottom:1rem;">
+            <summary style="font-size:0.85rem; color:var(--text-secondary); cursor:pointer; user-select:none;">
+                ⚙️ Coordenadas precisas (opcional — se calculan automáticamente desde la dirección)
+            </summary>
+            <div style="margin-top:0.8rem; display:flex; gap:0.8rem;">
+                <div style="flex:1;">
+                    <label>Latitud</label>
+                    <input type="text" name="latitude" id="lat-input" placeholder="Ej: 42.8467" style="margin-bottom:0;">
+                </div>
+                <div style="flex:1;">
+                    <label>Longitud</label>
+                    <input type="text" name="longitude" id="lon-input" placeholder="Ej: -2.6726" style="margin-bottom:0;">
+                </div>
+            </div>
+            <button type="button" onclick="useMyLocation()" class="btn btn-outline" style="margin-top:0.8rem; font-size:0.85rem; padding:0.5rem 1rem; width:auto;">
+                📍 Usar mi ubicación actual
+            </button>
+        </details>
+
+        <div style="display:flex; gap:1rem; margin-top:0.5rem;">
+            <button type="submit" class="btn">Añadir Bar</button>
+            <a href="{{ url_for('routes.index') }}" class="btn btn-outline">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<script>
+function useMyLocation() {
+    window.getAppLocation(
+        function(pos) {
+            document.getElementById('lat-input').value = pos.coords.latitude.toFixed(6);
+            document.getElementById('lon-input').value = pos.coords.longitude.toFixed(6);
+        },
+        function(msg) {
+            alert('No se pudo obtener tu ubicación: ' + msg);
+        }
+    );
+}
+</script>
+{% endblock %}

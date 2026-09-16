@@ -1,4 +1,5 @@
 import json
+import math
 import os
 import requests
 from datetime import datetime, timedelta, timezone
@@ -7,6 +8,19 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data')
 
 def get_data_file_path(filename):
     return os.path.join(DATA_DIR, filename)
+
+def is_active(item):
+    """Un item se considera activo salvo que 'active' sea explícitamente False.
+    (dict.get(key, True) NO sirve aquí: si la clave existe con valor None, devuelve None, no el default)."""
+    return item.get('active') is not False
+
+def haversine(lat1, lon1, lat2, lon2):
+    R = 6371.0  # Radio de la Tierra en km
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = math.sin(dlat / 2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return R * c
 
 def load_data(filename):
     path = get_data_file_path(filename)
@@ -47,23 +61,37 @@ def load_users():
 def save_users(users):
     save_data('users.json', users)
 
+def _inject_ownership_defaults(entities):
+    for entity in entities:
+        if 'created_by' not in entity:
+            entity['created_by'] = None
+        if 'owner_user_id' not in entity:
+            entity['owner_user_id'] = None
+    return entities
+
 def load_beers():
-    return load_data('beers.json')
+    return _inject_ownership_defaults(load_data('beers.json'))
 
 def save_beers(beers):
     save_data('beers.json', beers)
 
 def load_venues():
-    return load_data('venues.json')
+    return _inject_ownership_defaults(load_data('venues.json'))
 
 def save_venues(venues):
     save_data('venues.json', venues)
 
 def load_fabricantes():
-    return load_data('fabricantes.json')
+    return _inject_ownership_defaults(load_data('fabricantes.json'))
 
 def save_fabricantes(fabricantes):
     save_data('fabricantes.json', fabricantes)
+
+def load_claims():
+    return load_data('claims.json')
+
+def save_claims(claims):
+    save_data('claims.json', claims)
 
 def load_availability():
     logs = load_data('availability.json')

@@ -63,13 +63,19 @@
         document.getElementById('venue-info-card').style.display = 'none';
     }
 
-    // Geolocation
-    map.locate({setView: true, maxZoom: 15});
-    
-    map.on('locationfound', function(e) {
-        var radius = e.accuracy;
-        L.marker(e.latlng).addTo(map).bindPopup("Estás aquí").openPopup();
-        L.circle(e.latlng, radius).addTo(map);
-    });
+    // Geolocation using our robust getAppLocation (with IP fallback)
+    window.getAppLocation(
+        function(pos) {
+            var latlng = [pos.coords.latitude, pos.coords.longitude];
+            map.setView(latlng, 15);
+            L.marker(latlng).addTo(map).bindPopup("Estás aquí").openPopup();
+            if (pos.coords.accuracy) {
+                L.circle(latlng, pos.coords.accuracy).addTo(map);
+            }
+        },
+        function(err) {
+            console.warn("No se pudo obtener la ubicación para el mapa", err);
+        }
+    );
 </script>
 {% endblock %}

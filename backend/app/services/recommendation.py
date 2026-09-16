@@ -24,26 +24,36 @@ class RecommendationEngine:
         # 1. Obtener preferencias de BeerMatch
         all_bm_prefs = data_access.load_user_beer_preferences()
         user_bm_prefs = [p for p in all_bm_prefs if p['user_id'] == user_id]
-        
-        # 2. Obtener preferencias explícitas de tags
+
+        # 2. Obtener preferencias explícitas del perfil (Familia, Estilo, Tag)
         all_prefs = data_access.load_user_preferences()
-        user_tag_prefs = [p for p in all_prefs if p.get('user_id') == user_id and p.get('target_type') == 'TAG']
-        
+        user_explicit_prefs = [p for p in all_prefs if p.get('user_id') == user_id]
+        user_tag_prefs = [p for p in user_explicit_prefs if p.get('target_type') == 'TAG']
+
         explicit_liked_tags = {p['target_id'] for p in user_tag_prefs if p.get('preference') == 'LIKE'}
         explicit_disliked_tags = {p['target_id'] for p in user_tag_prefs if p.get('preference') == 'DISLIKE'}
-        
+
         # 3. Cargar cervezas para cruzar datos
         beers = {b['id']: b for b in data_access.load_beers()}
         beer_tags = data_access.load_beer_tags()
-        
+
         # Frecuencias inferidas
         family_freq = {}
         style_freq = {}
         tag_freq = {}
-        
+
         liked_beers = set()
         disliked_beers = set()
-        
+
+        # Las preferencias explícitas de Familia/Estilo pesan más que un simple swipe inferido
+        EXPLICIT_WEIGHT = 2
+        for pref in user_explicit_prefs:
+            weight = EXPLICIT_WEIGHT if pref.get('preference') == 'LIKE' else -EXPLICIT_WEIGHT
+            if pref.get('target_type') == 'FAMILY':
+                family_freq[pref['target_id']] = family_freq.get(pref['target_id'], 0) + weight
+            elif pref.get('target_type') == 'STYLE':
+                style_freq[pref['target_id']] = style_freq.get(pref['target_id'], 0) + weight
+
         for pref in user_bm_prefs:
             beer_id = pref['beer_id']
             preference = pref['preference']
@@ -75,7 +85,7 @@ class RecommendationEngine:
                 tag_freq[t_id] = tag_freq.get(t_id, 0) + weight
                 
         return {
-            'data_count': len(user_bm_prefs),
+            'data_count': len(user_bm_prefs) + len(user_explicit_prefs),
             'explicit_liked_tags': explicit_liked_tags,
             'explicit_disliked_tags': explicit_disliked_tags,
             'family_freq': family_freq,

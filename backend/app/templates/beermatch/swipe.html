@@ -2,12 +2,24 @@
 
 {% block content %}
 
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
     <h2 style="margin: 0; font-size: 1.5rem;">🍺 BeerMatch</h2>
     <a href="{{ url_for('beermatch.history_view') }}" class="btn btn-outline" style="width: auto; padding: 0.5rem 1rem; font-size: 0.9rem;">Ver Historial</a>
 </div>
 
-<div id="beermatch-container" style="position: relative; width: 100%; height: 65vh; max-height: 500px; perspective: 1000px; display: flex; justify-content: center; align-items: center;">
+<!-- Search Bar -->
+<div id="swipe-search-bar" style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+    <div style="flex: 1; position: relative;">
+        <input type="text" id="swipe-search-input" placeholder="Buscar cerveza, estilo, cervecería..."
+            style="width: 100%; padding: 0.7rem 1rem 0.7rem 2.5rem; border-radius: var(--radius-card); border: 1px solid var(--border-color); background: var(--bg-panel); color: var(--text-main); font-size: 0.95rem; font-family: inherit; outline: none;">
+        <span style="position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 1rem;">🔍</span>
+    </div>
+    <button id="swipe-search-clear" style="display: none; padding: 0.7rem 1rem; border-radius: var(--radius-card); border: 1px solid var(--border-color); background: var(--bg-panel); color: var(--text-secondary); cursor: pointer; font-size: 0.9rem; font-family: inherit;">✕</button>
+</div>
+
+<div id="geoWarning" class="alert alert-warning" style="display:none;"></div>
+
+<div id="beermatch-container" style="position: relative; width: 100%; height: 60vh; max-height: 480px; perspective: 1000px; display: flex; justify-content: center; align-items: center;">
     
     <div id="loading-indicator" style="text-align: center; color: var(--text-secondary);">
         <p style="font-size: 2rem; margin: 0;">🍻</p>
@@ -21,8 +33,8 @@
 
     <div id="empty-state" style="display: none; text-align: center; color: var(--text-secondary); background: var(--bg-panel); padding: 2rem; border-radius: var(--radius-card); border: 1px solid var(--border-color); width: 100%; max-width: 320px;">
         <p style="font-size: 3rem; margin: 0 0 1rem 0;">🎉</p>
-        <h3 style="margin-top: 0; color: var(--text-main);">¡Has visto todas!</h3>
-        <p>No nos quedan más cervezas por mostrarte en este momento. Vuelve más tarde.</p>
+        <h3 id="empty-title" style="margin-top: 0; color: var(--text-main);">¡Has visto todas!</h3>
+        <p id="empty-msg">No nos quedan más cervezas por mostrarte en este momento. Vuelve más tarde.</p>
         <a href="{{ url_for('routes.index') }}" class="btn" style="margin-top: 1rem;">Volver al inicio</a>
     </div>
 
@@ -93,7 +105,48 @@
 
     .bm-title { margin: 0 0 0.2rem 0; font-size: 1.6rem; color: var(--text-main); font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
     .bm-brewery { margin: 0 0 0.8rem 0; font-size: 1.1rem; color: var(--color-primary); font-weight: 600; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+    .bm-info-row { display: flex; justify-content: space-between; align-items: flex-end; gap: 0.5rem; }
     .bm-info { margin: 0; font-size: 1rem; color: var(--text-secondary); display: flex; gap: 0.5rem; align-items: center; }
+    .bm-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.6rem 0 0 0; }
+    .bm-tag { background: rgba(255,255,255,0.1); border: 1px solid var(--color-tertiary); color: var(--text-secondary); font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 1rem; }
+    .bm-distance { flex-shrink: 0; font-size: 0.85rem; font-weight: 700; color: var(--color-primary); white-space: nowrap; }
+
+    /* Badge de ubicación — parte superior de la imagen */
+    .bm-location-badge {
+        position: absolute;
+        top: 0.75rem;
+        left: 0.75rem;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        background: rgba(0, 0, 0, 0.62);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        border-radius: 20px;
+        padding: 0.3rem 0.65rem 0.3rem 0.5rem;
+        max-width: calc(100% - 1.5rem);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+    }
+    .bm-location-icon { font-size: 0.85rem; flex-shrink: 0; }
+    .bm-location-name {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #ffffff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 160px;
+    }
+    .bm-location-dist {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--color-secondary);
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    .bm-location-dist::before { content: '·'; margin-right: 0.3rem; color: rgba(255,255,255,0.4); }
+
 
     /* Efectos de Swipe */
     .card-swipe-right { transform: translateX(100vw) rotate(30deg) !important; opacity: 0; }
@@ -112,72 +165,161 @@
 document.addEventListener('DOMContentLoaded', () => {
     let beers = [];
     let currentIndex = 0;
+    let userLat = null;
+    let userLon = null;
+    let currentQuery = '';
     
     const stack = document.getElementById('card-stack');
     const loading = document.getElementById('loading-indicator');
     const emptyState = document.getElementById('empty-state');
+    const emptyTitle = document.getElementById('empty-title');
+    const emptyMsg = document.getElementById('empty-msg');
     const actionButtons = document.getElementById('action-buttons');
     const btnLike = document.getElementById('btn-like');
     const btnDislike = document.getElementById('btn-dislike');
     const feedbackOverlay = document.getElementById('feedback-overlay');
     const feedbackText = document.getElementById('feedback-text');
+    const searchInput = document.getElementById('swipe-search-input');
+    const searchClear = document.getElementById('swipe-search-clear');
 
-    // Fetch beers
-    fetch('/beermatch/api/beers')
-        .then(res => res.json())
-        .then(data => {
-            beers = data;
-            loading.style.display = 'none';
-            if (beers.length > 0) {
-                renderCards();
-                stack.style.display = 'flex';
-                actionButtons.style.display = 'flex';
-                setupInteractions();
-            } else {
-                emptyState.style.display = 'block';
-            }
-        })
-        .catch(err => {
-            loading.innerHTML = '<p style="color:var(--color-red)">Error al cargar. Inténtalo de nuevo.</p>';
-        });
+    function fetchBeers(lat, lon, query) {
+        // Reset state
+        currentIndex = 0;
+        stack.innerHTML = '';
+        stack.style.display = 'none';
+        actionButtons.style.display = 'none';
+        emptyState.style.display = 'none';
+        loading.style.display = 'block';
+        loading.innerHTML = '<p style="font-size: 2rem; margin: 0;">🍻</p><p>Buscando cervezas...</p>';
+
+        let params = new URLSearchParams();
+        if (lat != null && lon != null) {
+            params.set('lat', lat);
+            params.set('lon', lon);
+        }
+        if (query) {
+            params.set('q', query);
+        }
+        let url = '/beermatch/api/beers';
+        if (params.toString()) url += '?' + params.toString();
+
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                beers = data;
+                loading.style.display = 'none';
+                if (beers.length > 0) {
+                    renderCards();
+                    stack.style.display = 'flex';
+                    actionButtons.style.display = 'flex';
+                    setupInteractions();
+                } else {
+                    if (query) {
+                        emptyTitle.textContent = 'Sin resultados';
+                        emptyMsg.textContent = `No se encontraron cervezas para "${query}". Prueba otro término.`;
+                    } else {
+                        emptyTitle.textContent = '¡Has visto todas!';
+                        emptyMsg.textContent = 'No nos quedan más cervezas por mostrarte en este momento. Vuelve más tarde.';
+                    }
+                    emptyState.style.display = 'block';
+                }
+            })
+            .catch(err => {
+                loading.innerHTML = '<p style="color:var(--color-red)">Error al cargar. Inténtalo de nuevo.</p>';
+            });
+    }
+
+    // Search bar logic
+    let searchTimeout = null;
+    searchInput.addEventListener('input', () => {
+        const q = searchInput.value.trim();
+        searchClear.style.display = q ? 'block' : 'none';
+        
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            currentQuery = q;
+            fetchBeers(userLat, userLon, q);
+        }, 400);
+    });
+
+    searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            clearTimeout(searchTimeout);
+            currentQuery = searchInput.value.trim();
+            fetchBeers(userLat, userLon, currentQuery);
+        }
+    });
+
+    searchClear.addEventListener('click', () => {
+        searchInput.value = '';
+        searchClear.style.display = 'none';
+        currentQuery = '';
+        fetchBeers(userLat, userLon, '');
+    });
+
+    // Pedimos ubicación para poder priorizar cervezas cercanas; si el usuario la deniega
+    // seguimos sin proximidad, solo con afinidad de gustos.
+    window.getAppLocation(
+        pos => {
+            userLat = pos.coords.latitude;
+            userLon = pos.coords.longitude;
+            fetchBeers(userLat, userLon, currentQuery);
+        },
+        msg => {
+            const warning = document.getElementById('geoWarning');
+            warning.textContent = '📍 ' + msg + ' Mostrando recomendaciones sin proximidad.';
+            warning.style.display = 'block';
+            fetchBeers(null, null, currentQuery);
+        }
+    );
 
     function renderCards() {
         stack.innerHTML = '';
-        // Render in reverse order so the first is on top
-        for (let i = beers.length - 1; i >= currentIndex; i--) {
-            const b = beers[i];
-            const isTop = i === currentIndex;
-            
-            const card = document.createElement('div');
-            card.className = 'beermatch-card';
-            card.id = `card-${i}`;
-            card.style.zIndex = beers.length - i;
-            
-            // Efecto de profundidad visual para las tarjetas de atrás
-            if (!isTop) {
-                const offset = (i - currentIndex) * 10;
-                const scale = 1 - (i - currentIndex) * 0.05;
-                card.style.transform = `translateY(${offset}px) scale(${scale})`;
-                card.style.opacity = '0.9';
-            }
+        if (currentIndex >= beers.length) return;
 
-            const imgUrl = b.image && b.image !== 'default_beer.png' ? `/static/images/beers/${b.image}` : null;
-            const bgStyle = imgUrl ? `background-image: url('${imgUrl}');` : '';
-            const fallbackEmoji = imgUrl ? '' : '🍺';
+        const i = currentIndex;
+        const b = beers[i];
 
-            card.innerHTML = `
-                <div class="badge-swipe badge-like" id="badge-like-${i}">LIKE</div>
-                <div class="badge-swipe badge-dislike" id="badge-dislike-${i}">NOPE</div>
-                <div class="beermatch-card-img" style="${bgStyle}">${fallbackEmoji}</div>
-                <div class="beermatch-card-content">
-                    <h3 class="bm-title">${b.name}</h3>
-                    <p class="bm-brewery">${b.brewery}</p>
+        const card = document.createElement('div');
+        card.className = 'beermatch-card';
+        card.id = `card-${i}`;
+
+        const imgUrl = b.image && b.image !== 'default_beer.png' ? `/static/images/beers/${b.image}` : null;
+        const bgStyle = imgUrl ? `background-image: url('${imgUrl}');` : '';
+        const fallbackEmoji = imgUrl ? '' : '🍺';
+
+        const tagsHtml = (b.tags && b.tags.length)
+            ? `<div class="bm-tags">${b.tags.map(t => `<span class="bm-tag">${t}</span>`).join('')}</div>`
+            : '';
+
+        // Badge de ubicación: venue + distancia en la parte SUPERIOR de la imagen
+        const distStr = b.distance_str || (b.distance_km != null ? b.distance_km + ' km' : null);
+        const locationBadge = b.nearest_venue_name
+            ? `<div class="bm-location-badge">
+                 <span class="bm-location-icon">📍</span>
+                 <span class="bm-location-name">${b.nearest_venue_name}</span>
+                 ${distStr ? `<span class="bm-location-dist">${distStr}</span>` : ''}
+               </div>`
+            : (distStr ? `<div class="bm-location-badge"><span class="bm-location-icon">📍</span><span class="bm-location-dist">${distStr}</span></div>` : '');
+
+        card.innerHTML = `
+            <div class="badge-swipe badge-like" id="badge-like-${i}">LIKE</div>
+            <div class="badge-swipe badge-dislike" id="badge-dislike-${i}">NOPE</div>
+            <div class="beermatch-card-img" style="${bgStyle}">
+                ${fallbackEmoji}
+                ${locationBadge}
+            </div>
+            <div class="beermatch-card-content">
+                <h3 class="bm-title">${b.name}</h3>
+                <p class="bm-brewery">${b.brewery}</p>
+                <div class="bm-info-row">
                     <p class="bm-info"><span>${b.style}</span> &bull; <span>${b.abv}%</span></p>
                 </div>
-            `;
-            
-            stack.appendChild(card);
-        }
+                ${tagsHtml}
+            </div>
+        `;
+
+        stack.appendChild(card);
     }
 
     function showFeedback(type) {

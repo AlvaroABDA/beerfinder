@@ -29,27 +29,27 @@
         "brewery": "DummyBeer",
         "abv": "8.2",
         "description": "Una stout oscura y profunda como las minas de Arken. Notas intensas a chocolate y malta tostada con un final dulce y reconfortante.",
-        "image": ""
+        "image": "arkenstout.jpg"
     },
     {
         "id": 6,
         "name": "Blackforge",
         "family_id": 2,
-        "style_id": 22,
+        "style_id": null,
         "brewery": "DummyBeer",
         "abv": "6.4",
         "description": "Forjada en la oscuridad, esta stout clásica presenta un marcado carácter a café torrefacto y maltas oscuras.",
-        "image": ""
+        "image": "redrock_blaster.jpg"
     },
     {
         "id": 7,
-        "name": "Deep Rock Galactic",
+        "name": "RedRock Blaster",
         "family_id": 2,
-        "style_id": 21,
+        "style_id": null,
         "brewery": "DummyBeer",
         "abv": "5.5",
         "description": "Perfecta para después de una larga jornada de extracción. Suave, con sutiles toques a café y cacao.",
-        "image": ""
+        "image": "redrock_blaster.jpg"
     },
     {
         "id": 8,

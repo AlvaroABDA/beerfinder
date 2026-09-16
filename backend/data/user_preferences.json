@@ -1,0 +1,212 @@
+[
+    {
+        "user_id": 5,
+        "target_type": "FAMILY",
+        "target_id": 2,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 5,
+        "target_type": "STYLE",
+        "target_id": 9,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 5,
+        "target_type": "STYLE",
+        "target_id": 21,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 5,
+        "target_type": "STYLE",
+        "target_id": 22,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 5,
+        "target_type": "STYLE",
+        "target_id": 23,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 5,
+        "target_type": "STYLE",
+        "target_id": 32,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 5,
+        "target_type": "STYLE",
+        "target_id": 33,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 5,
+        "target_type": "STYLE",
+        "target_id": 37,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 5,
+        "target_type": "STYLE",
+        "target_id": 38,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 5,
+        "target_type": "TAG",
+        "target_id": 4,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 5,
+        "target_type": "TAG",
+        "target_id": 15,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 5,
+        "target_type": "TAG",
+        "target_id": 16,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 5,
+        "target_type": "TAG",
+        "target_id": 17,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 2,
+        "target_type": "TAG",
+        "target_id": 4,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 1,
+        "target_type": "FAMILY",
+        "target_id": 2,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 1,
+        "target_type": "STYLE",
+        "target_id": 9,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 1,
+        "target_type": "STYLE",
+        "target_id": 21,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 1,
+        "target_type": "STYLE",
+        "target_id": 22,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 1,
+        "target_type": "STYLE",
+        "target_id": 23,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 1,
+        "target_type": "STYLE",
+        "target_id": 37,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 1,
+        "target_type": "STYLE",
+        "target_id": 38,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 1,
+        "target_type": "TAG",
+        "target_id": 4,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 1,
+        "target_type": "TAG",
+        "target_id": 8,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 1,
+        "target_type": "TAG",
+        "target_id": 11,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 1,
+        "target_type": "TAG",
+        "target_id": 15,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 1,
+        "target_type": "TAG",
+        "target_id": 16,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 1,
+        "target_type": "TAG",
+        "target_id": 17,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 7,
+        "target_type": "FAMILY",
+        "target_id": 2,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 7,
+        "target_type": "STYLE",
+        "target_id": 9,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 7,
+        "target_type": "STYLE",
+        "target_id": 19,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 7,
+        "target_type": "STYLE",
+        "target_id": 21,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 7,
+        "target_type": "STYLE",
+        "target_id": 22,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 7,
+        "target_type": "STYLE",
+        "target_id": 23,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 7,
+        "target_type": "TAG",
+        "target_id": 16,
+        "preference": "LIKE"
+    },
+    {
+        "user_id": 7,
+        "target_type": "TAG",
+        "target_id": 17,
+        "preference": "LIKE"
+    }
+]

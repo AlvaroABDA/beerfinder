@@ -1,15 +1,24 @@
-import math
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session, abort
 from . import data_access
 from . import auth
 
 bp = Blueprint('routes', __name__)
 
+def can_edit_entity(entity, user_id, is_admin):
+    if is_admin:
+        return True
+    owner = entity.get('owner_user_id')
+    creator = entity.get('created_by')
+    if owner is not None:
+        return owner == user_id
+    else:
+        return creator == user_id
+
+
 @bp.route('/')
 def index():
-    beers = data_access.load_beers()[:3] # Show max 3 for "Descubre"
-    venues = [v for v in data_access.load_venues() if v.get('active', True)][:2] # Show max 2 for "Cerca de ti"
-    return render_template('index.html', title="BeerMap MVP", beers=beers, venues=venues)
+    venues = [v for v in data_access.load_venues() if data_access.is_active(v)][:2] # Show max 2 for "Cerca de ti"
+    return render_template('index.html', title="BeerMap MVP", venues=venues)
 
 @bp.route('/search')
 def search():
@@ -62,6 +71,8 @@ def register():
         
         new_user = {
             'id': new_id,
+        'created_by': session.get('user_id'),
+        'owner_user_id': None,
             'username': username,
             'password': password,
             'email': email,
@@ -83,6 +94,7 @@ def logout():
 @auth.admin_required
 def admin():
     users = data_access.load_users()
+    claims = data_access.load_claims()
     venues = data_access.load_venues()
     beers = data_access.load_beers()
     fabricantes = data_access.load_fabricantes()
@@ -106,7 +118,20 @@ def admin():
     styles = data_access.load_beer_styles()
     tags = data_access.load_tags()
     
-    return render_template('admin.html', users=users, venues=venues, beers=beers, fabricantes=fabricantes, families=families, styles=styles, tags=tags, pending_users=pending_users, search_type=search_type)
+
+    for c in claims:
+        if c['entity_type'] == 'beer':
+            c['entity_name'] = next((b['name'] for b in beers if b['id'] == c['entity_id']), 'Desconocida')
+        elif c['entity_type'] == 'venue':
+            c['entity_name'] = next((v['name'] for v in venues if v['id'] == c['entity_id']), 'Desconocida')
+        elif c['entity_type'] == 'brand':
+            c['entity_name'] = next((f['name'] for f in fabricantes if f['id'] == c['entity_id']), 'Desconocida')
+        else:
+            c['entity_name'] = 'Desconocida'
+            
+        c['requesting_username'] = next((u['username'] for u in users if u['id'] == c['requesting_user_id']), 'Desconocido')
+
+    return render_template('admin.html', users=users, venues=venues, beers=beers, fabricantes=fabricantes, families=families, styles=styles, tags=tags, pending_users=pending_users, search_type=search_type, claims=claims)
 
 @bp.route('/admin/approve/<int:user_id>', methods=['POST'])
 @auth.admin_required
@@ -119,9 +144,12 @@ def approve_user(user_id):
     data_access.save_users(users)
     return redirect(url_for('routes.admin', type='users'))
 
-@bp.route('/venue/new', methods=['POST'])
-@auth.admin_required
+@bp.route('/venue/new', methods=['GET', 'POST'])
+@auth.login_required
 def venue_new():
+    if request.method == 'GET':
+        return render_template('venue_new.html', title="Añadir Bar")
+
     venues = data_access.load_venues()
     new_id = max([v.get('id', 0) for v in venues] + [0]) + 1
     
@@ -137,6 +165,8 @@ def venue_new():
     
     new_venue = {
         'id': new_id,
+        'created_by': session.get('user_id'),
+        'owner_user_id': None,
         'name': request.form.get('name'),
         'address': address,
         'city': request.form.get('city'),
@@ -150,7 +180,7 @@ def venue_new():
     return redirect(url_for('routes.admin', type='venues'))
 
 @bp.route('/fabricante/new', methods=['POST'])
-@auth.admin_required
+@auth.login_required
 def fabricante_new():
     fabricantes = data_access.load_fabricantes()
     new_id = max([f.get('id', 0) for f in fabricantes] + [0]) + 1
@@ -167,10 +197,14 @@ def fabricante_new():
             
     new_fabricante = {
         'id': new_id,
+        'created_by': session.get('user_id'),
+        'owner_user_id': None,
         'name': request.form.get('name'),
         'country': request.form.get('country'),
         'description': request.form.get('description'),
         'website': request.form.get('website'),
+        'email': request.form.get('email'),
+        'phone': request.form.get('phone'),
         'logo': logo_filename
     }
     
@@ -209,6 +243,8 @@ def beer_new():
         
         new_beer = {
             'id': new_id,
+        'created_by': session.get('user_id'),
+        'owner_user_id': None,
             'name': request.form.get('name'),
             'family_id': int(family_id) if family_id else None,
             'style_id': int(style_id) if style_id else None,
@@ -344,6 +380,8 @@ def update_status(venue_id, beer_id):
     new_id = max([a.get('id', 0) for a in availabilities] + [0]) + 1
     new_log = {
         'id': new_id,
+        'created_by': session.get('user_id'),
+        'owner_user_id': None,
         'venue_id': venue_id,
         'beer_id': beer_id,
         'user_id': user_id,
@@ -367,6 +405,8 @@ def venue_add_beer(venue_id):
     new_id = max([a.get('id', 0) for a in availabilities] + [0]) + 1
     new_log = {
         'id': new_id,
+        'created_by': session.get('user_id'),
+        'owner_user_id': None,
         'venue_id': venue_id,
         'beer_id': beer_id,
         'user_id': user_id,
@@ -378,27 +418,22 @@ def venue_add_beer(venue_id):
     flash("Cerveza añadida al catálogo del bar.", "success")
     return redirect(url_for('routes.venue_view', id=venue_id))
 
-def haversine(lat1, lon1, lat2, lon2):
-    R = 6371.0 # Radio de la Tierra en km
-    dlat = math.radians(lat2 - lat1)
-    dlon = math.radians(lon2 - lon1)
-    a = math.sin(dlat / 2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2)**2
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    return R * c
-
 @bp.route('/api/beer/<int:id>/venues')
 def api_beer_venues(id):
     lat_str = request.args.get('lat')
     lon_str = request.args.get('lon')
     
-    user_lat = float(lat_str) if lat_str else None
-    user_lon = float(lon_str) if lon_str else None
+    try:
+        user_lat = float(lat_str.replace(',', '.')) if lat_str and lat_str not in ('null', 'undefined') else None
+        user_lon = float(lon_str.replace(',', '.')) if lon_str and lon_str not in ('null', 'undefined') else None
+    except (ValueError, TypeError):
+        user_lat, user_lon = None, None
     
     availabilities = data_access.load_availability()
     venues = data_access.load_venues()
     
     # Get active venues with this beer available
-    active_venues = {v['id']: v for v in venues if v.get('active', True)}
+    active_venues = {v['id']: v for v in venues if data_access.is_active(v)}
     
     results = []
     seen_venues = set()
@@ -415,7 +450,7 @@ def api_beer_venues(id):
                 
                 distance = None
                 if user_lat is not None and user_lon is not None and v.get('latitude') and v.get('longitude'):
-                    distance = haversine(user_lat, user_lon, v['latitude'], v['longitude'])
+                    distance = data_access.haversine(user_lat, user_lon, v['latitude'], v['longitude'])
                     
                 results.append({
                     'venue_id': v['id'],
@@ -443,22 +478,25 @@ def api_explore():
     lat_str = request.args.get('lat')
     lon_str = request.args.get('lon')
     
-    user_lat = float(lat_str) if lat_str else None
-    user_lon = float(lon_str) if lon_str else None
+    try:
+        user_lat = float(lat_str.replace(',', '.')) if lat_str and lat_str not in ('null', 'undefined') else None
+        user_lon = float(lon_str.replace(',', '.')) if lon_str and lon_str not in ('null', 'undefined') else None
+    except (ValueError, TypeError):
+        user_lat, user_lon = None, None
     
     beers = data_access.load_beers()
     beer_tags = data_access.load_beer_tags()
     availabilities = data_access.load_availability()
-    venues = {v['id']: v for v in data_access.load_venues() if v.get('active', True)}
-    
+    venues = {v['id']: v for v in data_access.load_venues() if data_access.is_active(v)}
+
     # Pre-resolve tags and styles dictionaries for string lookup
     all_styles = {s['id']: s['name'].lower() for s in data_access.load_beer_styles()}
     all_tags = {t['id']: t['name'].lower() for t in data_access.load_tags()}
-    
+
     # 1. Filtrar
     filtered = []
     for b in beers:
-        if not b.get('active', True): continue
+        if not data_access.is_active(b): continue
         if q and q not in b.get('name','').lower() and q not in b.get('brewery','').lower(): continue
         
         b_style_name = all_styles.get(b.get('style_id'), '')
@@ -477,7 +515,7 @@ def api_explore():
         for a in b_avail:
             v = venues.get(a['venue_id'])
             if v and v.get('latitude') and v.get('longitude') and user_lat and user_lon:
-                d = haversine(user_lat, user_lon, v['latitude'], v['longitude'])
+                d = data_access.haversine(user_lat, user_lon, v['latitude'], v['longitude'])
                 if d < min_dist:
                     min_dist = d
                     
@@ -499,9 +537,176 @@ def api_explore():
     return jsonify(results)
 
 
+@bp.route('/api/discover')
+def api_discover():
+    """Feed de descubrimiento: hasta 5 cervezas, máximo 1 por venue, ordenadas por proximidad.
+    Sin GPS: devuelve por afinidad de gustos sin distancia.
+    """
+    from app.services.recommendation import RecommendationEngine
+
+    DISCOVER_LIMIT = 5
+
+    lat_str = request.args.get('lat')
+    lon_str = request.args.get('lon')
+
+    try:
+        user_lat = float(lat_str.replace(',', '.')) if lat_str and lat_str not in ('null', 'undefined') else None
+        user_lon = float(lon_str.replace(',', '.')) if lon_str and lon_str not in ('null', 'undefined') else None
+    except (ValueError, TypeError):
+        user_lat, user_lon = None, None
+
+    has_location = user_lat is not None and user_lon is not None
+
+    user_id = session.get('user_id')
+
+    # Cargar datos base
+    beers = data_access.load_beers()
+    active_beers = [b for b in beers if data_access.is_active(b)]
+    availabilities = data_access.load_availability()
+    venues = [v for v in data_access.load_venues() if data_access.is_active(v)]
+
+    # Índice de disponibilidad: beer_id -> [venue_ids donde está AVAILABLE]
+    beer_venue_map = {}  # beer_id -> set of venue_ids
+    for a in availabilities:
+        if a.get('status') == 'AVAILABLE':
+            beer_venue_map.setdefault(a['beer_id'], set()).add(a['venue_id'])
+
+    venues_by_id = {v['id']: v for v in venues}
+
+    # Obtener scores de afinidad para todos los candidatos
+    if user_id:
+        recs = RecommendationEngine.get_recommendations(user_id, active_beers, limit=len(active_beers))
+        affinity_scores = {r['beer_id']: r['score'] for r in recs}
+        affinity_reasons = {r['beer_id']: r['reason'] for r in recs}
+    else:
+        affinity_scores = {}
+        affinity_reasons = {}
+
+    results = []
+    used_venues = set()
+
+    # Diccionario de estilos, tags y formateador (compartidos por ambas ramas)
+    styles = {s['id']: s['name'] for s in data_access.load_beer_styles()}
+    all_tags = {t['id']: t['name'] for t in data_access.load_tags()}
+    beer_tags_raw = data_access.load_beer_tags()  # [{beer_id, tag_id}, ...]
+    # Índice inverso: beer_id -> [tag_name, ...]
+    beer_tag_index = {}
+    for bt in beer_tags_raw:
+        name = all_tags.get(bt['tag_id'])
+        if name:
+            beer_tag_index.setdefault(bt['beer_id'], []).append(name)
+
+    def fmt(d):
+        if d is None:
+            return None
+        if d < 1.0:
+            return f"{int(round(d * 1000))} m"
+        return f"{round(d, 1)} km"
+
+    if has_location:
+        # Recuperar max_distance del usuario (por defecto 20km si no hay config)
+        user_max_distance = 20
+        if user_id:
+            users = data_access.load_users()
+            u_obj = next((u for u in users if u['id'] == user_id), {})
+            user_max_distance = u_obj.get('max_distance', 20)
+
+        # Ordenar venues por distancia al usuario y filtrar por max_distance
+        venues_with_dist = []
+        for v in venues:
+            if v.get('latitude') and v.get('longitude'):
+                d = data_access.haversine(user_lat, user_lon, v['latitude'], v['longitude'])
+                if d <= user_max_distance:
+                    venues_with_dist.append((d, v))
+        venues_with_dist.sort(key=lambda x: x[0])
+
+        for dist, venue in venues_with_dist:
+            if len(results) >= DISCOVER_LIMIT:
+                break
+            vid = venue['id']
+            if vid in used_venues:
+                continue
+
+            # Cervezas disponibles en este venue
+            candidate_beer_ids = [
+                bid for bid, vids in beer_venue_map.items()
+                if vid in vids
+            ]
+            if not candidate_beer_ids:
+                continue
+
+            # Elegir la cerveza con mayor afinidad entre las disponibles en este venue
+            best_beer_id = max(
+                candidate_beer_ids,
+                key=lambda bid: affinity_scores.get(bid, 50)
+            )
+            best_beer = next((b for b in active_beers if b['id'] == best_beer_id), None)
+            if not best_beer:
+                continue
+
+            dist_km = round(dist, 3)
+            results.append({
+                'beer_id': best_beer['id'],
+                'name': best_beer['name'],
+                'style': styles.get(best_beer.get('style_id'), ''),
+                'abv': best_beer.get('abv', ''),
+                'tags': beer_tag_index.get(best_beer_id, [])[:4],
+                'image_url': url_for('static', filename='images/beers/' + best_beer['image']) if best_beer.get('image') else None,
+                'view_url': url_for('routes.beer_view', id=best_beer['id']),
+                'nearest_venue_id': vid,
+                'nearest_venue_name': venue['name'],
+                'distance_km': dist_km,
+                'distance_str': fmt(dist_km),
+                'score': affinity_scores.get(best_beer_id, 50),
+                'reason': affinity_reasons.get(best_beer_id, ''),
+            })
+            used_venues.add(vid)
+
+    else:
+        # Sin GPS: ordenar por afinidad pura, manteniendo la regla 1-por-venue
+        candidates = sorted(active_beers, key=lambda b: affinity_scores.get(b['id'], 50), reverse=True)
+        seen_venues = set()
+        for beer in candidates:
+            if len(results) >= DISCOVER_LIMIT:
+                break
+            available_vids = list(beer_venue_map.get(beer['id'], []))
+            if not available_vids:
+                continue
+            chosen_vid = None
+            for vid in available_vids:
+                if vid not in seen_venues:
+                    chosen_vid = vid
+                    break
+            if chosen_vid is None:
+                continue
+
+            venue = venues_by_id.get(chosen_vid)
+            results.append({
+                'beer_id': beer['id'],
+                'name': beer['name'],
+                'style': styles.get(beer.get('style_id'), ''),
+                'abv': beer.get('abv', ''),
+                'tags': beer_tag_index.get(beer['id'], [])[:4],
+                'image_url': url_for('static', filename='images/beers/' + beer['image']) if beer.get('image') else None,
+                'view_url': url_for('routes.beer_view', id=beer['id']),
+                'nearest_venue_id': chosen_vid,
+                'nearest_venue_name': venue['name'] if venue else None,
+                'distance_km': None,
+                'distance_str': None,
+                'score': affinity_scores.get(beer['id'], 50),
+                'reason': affinity_reasons.get(beer['id'], ''),
+            })
+            seen_venues.add(chosen_vid)
+
+    return jsonify({
+        'has_location': has_location,
+        'results': results
+    })
+
+
 @bp.route('/map')
 def map_view():
-    venues = [v for v in data_access.load_venues() if v.get('active', True)]
+    venues = [v for v in data_access.load_venues() if data_access.is_active(v)]
     return render_template('map.html', venues=venues)
 
 # --- Admin Actions: Toggle & Delete ---
@@ -585,7 +790,9 @@ def add_family():
     if name:
         families = data_access.load_beer_families()
         new_id = max([f.get('id', 0) for f in families] + [0]) + 1
-        families.append({'id': new_id, 'name': name, 'description': ''})
+        families.append({'id': new_id,
+        'created_by': session.get('user_id'),
+        'owner_user_id': None, 'name': name, 'description': ''})
         data_access.save_beer_families(families)
         flash("Familia añadida", "success")
     return redirect(url_for('routes.admin', type='taxonomy'))
@@ -598,7 +805,9 @@ def add_style():
     if name and family_id:
         styles = data_access.load_beer_styles()
         new_id = max([s.get('id', 0) for s in styles] + [0]) + 1
-        styles.append({'id': new_id, 'family_id': int(family_id), 'name': name, 'description': ''})
+        styles.append({'id': new_id,
+        'created_by': session.get('user_id'),
+        'owner_user_id': None, 'family_id': int(family_id), 'name': name, 'description': ''})
         data_access.save_beer_styles(styles)
         flash("Estilo añadido", "success")
     return redirect(url_for('routes.admin', type='taxonomy'))
@@ -610,7 +819,9 @@ def add_tag():
     if name:
         tags = data_access.load_tags()
         new_id = max([t.get('id', 0) for t in tags] + [0]) + 1
-        tags.append({'id': new_id, 'name': name, 'description': ''})
+        tags.append({'id': new_id,
+        'created_by': session.get('user_id'),
+        'owner_user_id': None, 'name': name, 'description': ''})
         data_access.save_tags(tags)
         flash("Tag añadido", "success")
     return redirect(url_for('routes.admin', type='taxonomy'))
@@ -646,11 +857,30 @@ def profile():
             styles_by_family[f_id] = []
         styles_by_family[f_id].append(s)
             
+    user = next((u for u in data_access.load_users() if u['id'] == user_id), {})
+            
     return render_template('profile.html', 
                            families=families, 
                            styles_by_family=styles_by_family, 
                            tags=tags, 
-                           user_prefs=user_prefs)
+                           user_prefs=user_prefs,
+                           user=user)
+
+@bp.route('/api/user/settings', methods=['POST'])
+@auth.login_required
+def update_settings():
+    user_id = session.get('user_id')
+    data = request.get_json()
+    
+    users = data_access.load_users()
+    for u in users:
+        if u['id'] == user_id:
+            if 'max_distance' in data:
+                u['max_distance'] = float(data['max_distance'])
+            break
+            
+    data_access.save_users(users)
+    return jsonify({'status': 'success'})
 
 @bp.route('/api/user/preferences', methods=['POST'])
 @auth.login_required
@@ -658,34 +888,30 @@ def update_preference():
     user_id = session.get('user_id')
     data = request.get_json()
     
-    if not data or 'target_type' not in data or 'target_id' not in data or 'preference' not in data:
-        return jsonify({'error': 'Bad Request'}), 400
-        
-    target_type = data['target_type']
-    target_id = int(data['target_id'])
-    preference = data['preference']
-    
-    if target_type not in ['FAMILY', 'STYLE', 'TAG']:
-        return jsonify({'error': 'Invalid target_type'}), 400
-        
-    if preference not in ['LIKE', 'DISLIKE', 'NEUTRAL']:
-        return jsonify({'error': 'Invalid preference'}), 400
+    if not isinstance(data, list):
+        return jsonify({'error': 'Expected a list of preferences'}), 400
         
     prefs = data_access.load_user_preferences()
     
-    # Remove existing if any
-    prefs = [p for p in prefs if not (p.get('user_id') == user_id and p.get('target_type') == target_type and p.get('target_id') == target_id)]
+    # Remove all existing prefs for this user
+    prefs = [p for p in prefs if p.get('user_id') != user_id]
     
-    # If not NEUTRAL, add new preference
-    if preference != 'NEUTRAL':
-        prefs.append({
-            'user_id': user_id,
-            'target_type': target_type,
-            'target_id': target_id,
-            'preference': preference
-        })
+    # Add new prefs
+    for item in data:
+        target_type = item.get('target_type')
+        target_id = int(item.get('target_id'))
+        preference = item.get('preference')
         
+        if target_type in ['FAMILY', 'STYLE', 'TAG'] and preference in ['LIKE', 'DISLIKE']:
+            prefs.append({
+                'user_id': user_id,
+                'target_type': target_type,
+                'target_id': target_id,
+                'preference': preference
+            })
+            
     data_access.save_user_preferences(prefs)
+    flash("Preferencias guardadas.", "success")
     return jsonify({'status': 'success'})
 
 @bp.route('/admin/user/<int:id>/edit', methods=['GET', 'POST'])
@@ -709,13 +935,17 @@ def edit_user(id):
     return render_template('edit_user.html', user=user)
 
 @bp.route('/admin/venue/<int:id>/edit', methods=['GET', 'POST'])
-@auth.admin_required
+@auth.login_required
 def edit_venue(id):
+    is_admin = session.get('role') == 'ADMIN'
+    user_id = session.get('user_id')
     venues = data_access.load_venues()
     venue = next((v for v in venues if v['id'] == id), None)
     if not venue:
         flash("Local no encontrado.", "danger")
         return redirect(url_for('routes.admin', type='venues'))
+    if not can_edit_entity(venue, user_id, is_admin):
+        abort(403)
         
     if request.method == 'POST':
         venue['name'] = request.form.get('name')
@@ -735,23 +965,29 @@ def edit_venue(id):
     return render_template('edit_venue.html', venue=venue)
 
 @bp.route('/admin/fabricante/<int:id>/edit', methods=['GET', 'POST'])
-@auth.admin_required
+@auth.login_required
 def edit_fabricante(id):
+    is_admin = session.get('role') == 'ADMIN'
+    user_id = session.get('user_id')
     fabricantes = data_access.load_fabricantes()
     fabricante = next((f for f in fabricantes if f['id'] == id), None)
     if not fabricante:
         flash("Fabricante no encontrado.", "danger")
         return redirect(url_for('routes.admin', type='fabricantes'))
+    if not can_edit_entity(fabricante, user_id, is_admin):
+        abort(403)
         
     if request.method == 'POST':
         fabricante['name'] = request.form.get('name')
         fabricante['country'] = request.form.get('country')
         fabricante['website'] = request.form.get('website')
+        fabricante['email'] = request.form.get('email')
+        fabricante['phone'] = request.form.get('phone')
         fabricante['description'] = request.form.get('description')
         
         if 'logo' in request.files:
             file = request.files['logo']
-            if file.filename != '':
+            if file and file.filename != '':
                 filename = secure_filename(file.filename)
                 upload_folder = os.path.join(os.path.dirname(__file__), 'static', 'images', 'fabricantes')
                 os.makedirs(upload_folder, exist_ok=True)
@@ -765,13 +1001,17 @@ def edit_fabricante(id):
     return render_template('edit_fabricante.html', fabricante=fabricante)
 
 @bp.route('/beer/<int:id>/edit', methods=['GET', 'POST'])
-@auth.admin_required
+@auth.login_required
 def edit_beer(id):
+    is_admin = session.get('role') == 'ADMIN'
+    user_id = session.get('user_id')
     beers = data_access.load_beers()
     beer = next((b for b in beers if b['id'] == id), None)
     if not beer:
         flash("Cerveza no encontrada.", "danger")
         return redirect(url_for('routes.admin', type='beers'))
+    if not can_edit_entity(beer, user_id, is_admin):
+        abort(403)
         
     fabricantes = data_access.load_fabricantes()
     families = data_access.load_beer_families()
@@ -814,3 +1054,189 @@ def edit_beer(id):
     beer_tag_ids = [bt['tag_id'] for bt in data_access.load_beer_tags() if bt['beer_id'] == id]
     return render_template('beer_form.html', beer=beer, fabricantes=fabricantes, families=families, styles=styles, tags=tags, beer_tag_ids=beer_tag_ids)
 
+
+from datetime import datetime, timezone
+
+# --- Claiming System ---
+
+@bp.route('/claim/<entity_type>/<int:entity_id>', methods=['POST'])
+@auth.login_required
+def claim_entity(entity_type, entity_id):
+    user_id = session.get('user_id')
+    
+    # Verify entity exists and is unowned
+    if entity_type == 'beer':
+        flash('Las cervezas no se pueden reclamar', 'danger')
+        return redirect(request.referrer or url_for('routes.index'))
+        entity = next((b for b in data_access.load_beers() if b['id'] == entity_id), None)
+    elif entity_type == 'venue':
+        entity = next((v for v in data_access.load_venues() if v['id'] == entity_id), None)
+    elif entity_type == 'brand':
+        entity = next((f for f in data_access.load_fabricantes() if f['id'] == entity_id), None)
+    else:
+        flash('Tipo de entidad inválido', 'danger')
+        return redirect(request.referrer or url_for('routes.index'))
+        
+    if not entity:
+        flash('Entidad no encontrada', 'danger')
+        return redirect(request.referrer or url_for('routes.index'))
+        
+    if entity.get('owner_user_id') is not None:
+        flash('Esta entidad ya tiene propietario', 'danger')
+        return redirect(request.referrer or url_for('routes.index'))
+        
+    claims = data_access.load_claims()
+    
+    # Check if user already has a pending claim for this
+    existing = next((c for c in claims if c['entity_type'] == entity_type and c['entity_id'] == entity_id and c['requesting_user_id'] == user_id and c['status'] == 'PENDING'), None)
+    if existing:
+        flash('Ya tienes una reclamación pendiente para esta entidad', 'warning')
+        return redirect(request.referrer or url_for('routes.index'))
+        
+    new_id = max([c.get('id', 0) for c in claims] + [0]) + 1
+    now_str = datetime.now(timezone.utc).isoformat(timespec='seconds').replace('+00:00', 'Z')
+    
+    new_claim = {
+        'id': new_id,
+        'entity_type': entity_type,
+        'entity_id': entity_id,
+        'requesting_user_id': user_id,
+        'status': 'PENDING',
+        'created_at': now_str
+    }
+    claims.append(new_claim)
+    data_access.save_claims(claims)
+    
+    flash('Reclamación enviada. Pendiente de aprobación.', 'success')
+    return redirect(request.referrer or url_for('routes.index'))
+
+@bp.route('/my_claims')
+@auth.login_required
+def my_claims():
+    user_id = session.get('user_id')
+    claims = [c for c in data_access.load_claims() if c['requesting_user_id'] == user_id]
+    
+    # Fetch entity names for display
+    beers = {b['id']: b for b in data_access.load_beers()}
+    venues = {v['id']: v for v in data_access.load_venues()}
+    brands = {f['id']: f for f in data_access.load_fabricantes()}
+    
+    for c in claims:
+        if c['entity_type'] == 'beer' and c['entity_id'] in beers:
+            c['entity_name'] = beers[c['entity_id']].get('name')
+        elif c['entity_type'] == 'venue' and c['entity_id'] in venues:
+            c['entity_name'] = venues[c['entity_id']].get('name')
+        elif c['entity_type'] == 'brand' and c['entity_id'] in brands:
+            c['entity_name'] = brands[c['entity_id']].get('name')
+        else:
+            c['entity_name'] = "Desconocida"
+            
+    claims.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+    return render_template('my_claims.html', claims=claims)
+
+@bp.route('/admin/claim/<int:claim_id>/<action>', methods=['POST'])
+@auth.admin_required
+def process_claim(claim_id, action):
+    if action not in ['approve', 'reject']:
+        abort(400)
+        
+    claims = data_access.load_claims()
+    claim = next((c for c in claims if c['id'] == claim_id), None)
+    if not claim or claim['status'] != 'PENDING':
+        flash("Reclamación no válida o ya procesada.", "danger")
+        return redirect(url_for('routes.admin', type='claims'))
+        
+    claim['status'] = 'APPROVED' if action == 'approve' else 'REJECTED'
+    claim['resolved_at'] = datetime.now(timezone.utc).isoformat(timespec='seconds').replace('+00:00', 'Z')
+    
+    if action == 'approve':
+        # Assign ownership
+        entity_type = claim['entity_type']
+        entity_id = claim['entity_id']
+        req_user_id = claim['requesting_user_id']
+        
+        if entity_type == 'beer':
+            entities = data_access.load_beers()
+        elif entity_type == 'venue':
+            entities = data_access.load_venues()
+        elif entity_type == 'brand':
+            entities = data_access.load_fabricantes()
+            
+        for e in entities:
+            if e['id'] == entity_id:
+                e['owner_user_id'] = req_user_id
+                break
+                
+        if entity_type == 'beer':
+            data_access.save_beers(entities)
+        elif entity_type == 'venue':
+            data_access.save_venues(entities)
+        elif entity_type == 'brand':
+            data_access.save_fabricantes(entities)
+            
+        # Reject other pending claims for this entity
+        for c in claims:
+            if c['id'] != claim_id and c['entity_type'] == entity_type and c['entity_id'] == entity_id and c['status'] == 'PENDING':
+                c['status'] = 'REJECTED'
+                c['resolved_at'] = claim['resolved_at']
+                c['note'] = 'Otra reclamación fue aprobada.'
+                
+    data_access.save_claims(claims)
+    flash(f"Reclamación {action}d correctamente.", "success")
+    return redirect(url_for('routes.admin', type='claims'))
+
+@bp.route('/admin/revoke/<entity_type>/<int:entity_id>', methods=['POST'])
+@auth.admin_required
+def revoke_ownership(entity_type, entity_id):
+    if entity_type == 'beer':
+        entities = data_access.load_beers()
+    elif entity_type == 'venue':
+        entities = data_access.load_venues()
+    elif entity_type == 'brand':
+        entities = data_access.load_fabricantes()
+    else:
+        abort(400)
+        
+    found = False
+    for e in entities:
+        if e['id'] == entity_id:
+            e['owner_user_id'] = None
+            found = True
+            break
+            
+    if found:
+        if entity_type == 'beer':
+            data_access.save_beers(entities)
+        elif entity_type == 'venue':
+            data_access.save_venues(entities)
+        elif entity_type == 'brand':
+            data_access.save_fabricantes(entities)
+        flash("Propiedad revocada.", "success")
+    else:
+        flash("Entidad no encontrada.", "danger")
+        
+    return redirect(request.referrer or url_for('routes.admin'))
+
+@bp.route('/api/check_duplicate')
+def check_duplicate():
+    q = request.args.get('q', '').lower()
+    if not q or len(q) < 3:
+        return jsonify({'exists': False})
+        
+    beers = data_access.load_beers()
+    venues = data_access.load_venues()
+    brands = data_access.load_fabricantes()
+    
+    for b in beers:
+        if b['name'].lower() == q or q in b['name'].lower():
+            return jsonify({'exists': True, 'type': 'cerveza', 'name': b['name']})
+            
+    for v in venues:
+        if v['name'].lower() == q or q in v['name'].lower():
+            return jsonify({'exists': True, 'type': 'local', 'name': v['name']})
+            
+    for f in brands:
+        if f['name'].lower() == q or q in f['name'].lower():
+            return jsonify({'exists': True, 'type': 'fabricante', 'name': f['name']})
+            
+    return jsonify({'exists': False})

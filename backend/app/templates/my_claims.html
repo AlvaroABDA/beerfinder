@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card" style="border: none; background: transparent; padding: 0;">
+    <h2 style="margin-top:0; margin-bottom: 1.5rem;">Mis Reclamaciones</h2>
+    
+    {% if claims %}
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+        {% for c in claims %}
+            <div class="card" style="padding: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                    <div>
+                        <span class="pill" style="margin-bottom: 0.5rem; display: inline-block;">{{ c.entity_type|upper }}</span>
+                        <h3 style="margin: 0; font-size: 1.2rem;">{{ c.entity_name }}</h3>
+                        <small style="color: var(--text-secondary);">Enviada: {{ c.created_at[:10] }}</small>
+                    </div>
+                    <div>
+                        {% if c.status == 'PENDING' %}
+                            <span class="pill" style="background: var(--color-tertiary); color: var(--text-main);">EN REVISIÓN</span>
+                        {% elif c.status == 'APPROVED' %}
+                            <span class="pill" style="background: rgba(46, 204, 113, 0.2); color: #2ecc71; border: 1px solid #2ecc71;">APROBADA</span>
+                        {% elif c.status == 'REJECTED' %}
+                            <span class="pill" style="background: rgba(231, 76, 60, 0.2); color: #e74c3c; border: 1px solid #e74c3c;">RECHAZADA</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if c.note %}
+                <div style="background: var(--bg-body); padding: 1rem; border-radius: var(--radius-card); margin-top: 1rem;">
+                    <strong>Nota:</strong> {{ c.note }}
+                </div>
+                {% endif %}
+                
+                {% if c.status == 'APPROVED' %}
+                <div style="margin-top: 1rem;">
+                    {% if c.entity_type == 'beer' %}
+                        <a href="{{ url_for('routes.beer_view', id=c.entity_id) }}" class="btn btn-outline" style="width: auto;">Ver Entidad</a>
+                    {% elif c.entity_type == 'venue' %}
+                        <a href="{{ url_for('routes.venue_view', id=c.entity_id) }}" class="btn btn-outline" style="width: auto;">Ver Entidad</a>
+                    {% elif c.entity_type == 'brand' %}
+                        <a href="{{ url_for('routes.fabricante_view', id=c.entity_id) }}" class="btn btn-outline" style="width: auto;">Ver Entidad</a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+        </div>
+    {% else %}
+        <div class="card" style="text-align: center; padding: 3rem;">
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">No has realizado ninguna reclamación de propiedad todavía.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

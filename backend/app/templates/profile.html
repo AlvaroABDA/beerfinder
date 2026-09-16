@@ -1,62 +1,303 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="card">
-    <h2>Mi Perfil Cervecero</h2>
-    <p>Marca las características de las cervezas que más disfrutas y las que prefieres evitar. Esto nos ayudará en el futuro a recomendarte las mejores cervezas para ti.</p>
+<style>
+    .pref-section {
+        background: var(--bg-panel);
+        padding: 1.5rem;
+        border-radius: var(--radius-card);
+        border: 1px solid var(--border-color);
+        margin-bottom: 2rem;
+    }
+    .pref-title {
+        margin-top: 0;
+        margin-bottom: 1rem;
+        font-size: 1.3rem;
+        color: var(--color-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .chip-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.8rem;
+    }
+    .pref-chip {
+        padding: 0.6rem 1.2rem;
+        border-radius: 2rem;
+        font-weight: 500;
+        font-size: 0.95rem;
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.2s ease;
+        border: 2px solid transparent;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
     
-    <form method="POST" action="{{ url_for('routes.profile') }}">
-        <div style="display:flex; gap: 2rem; margin-top:1.5rem;">
-            
-            <div style="flex:1; background:var(--bg-panel); padding:1.5rem; border-radius:8px; border:1px solid var(--border-color);">
-                <h3 style="color:var(--color-primary); margin-top:0;">👍 Me gusta</h3>
-                <div style="display:flex; flex-direction:column; gap:0.5rem;">
-                    {% for t in tags %}
-                    <label style="display:flex; align-items:center; gap:0.5rem;">
-                        <input type="checkbox" name="likes" value="{{ t.id }}" {% if t.id in likes %}checked{% endif %}> {{ t.name }}
-                    </label>
+    /* Estados de los chips */
+    .pref-chip.neutral {
+        background: var(--bg-body);
+        color: var(--text-main);
+        border-color: var(--border-color);
+    }
+    .pref-chip.like {
+        background: var(--color-primary);
+        color: black;
+        border-color: var(--color-primary);
+    }
+    .pref-chip.dislike {
+        background: var(--bg-body);
+        color: var(--text-secondary);
+        border-color: var(--color-red);
+        text-decoration: line-through;
+        opacity: 0.8;
+    }
+
+    /* Accordion para Estilos */
+    .accordion-btn {
+        width: 100%;
+        text-align: left;
+        background: var(--bg-body);
+        border: 1px solid var(--border-color);
+        padding: 1rem;
+        border-radius: 8px;
+        color: var(--text-main);
+        font-weight: bold;
+        cursor: pointer;
+        margin-bottom: 0.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .accordion-content {
+        display: none;
+        padding: 1rem;
+        border: 1px solid var(--border-color);
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        margin-top: -0.5rem;
+        margin-bottom: 1rem;
+        background: var(--bg-body);
+    }
+    .accordion-content.active {
+        display: block;
+    }
+    
+    .legend {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin-bottom: 1.5rem;
+        justify-content: center;
+    }
+</style>
+
+<div>
+    <h2 style="margin-bottom: 0.5rem;">Mi Perfil Cervecero</h2>
+    <p style="color: var(--text-secondary); margin-bottom: 2rem;">Cuéntame qué tipo de birra te gusta. Toca para marcar como favorito, vuelve a tocar para evitar, y una vez más para neutral.</p>
+
+    <div class="legend">
+        <span>❤️ Me gusta</span>
+        <span>❌ Prefiero evitar</span>
+    </div>
+
+    <!-- Bloque Tu Paladar (Preparado para el futuro) -->
+    <div class="pref-section" style="border-color: var(--color-secondary);">
+        <h3 class="pref-title" style="color: var(--color-secondary);">🧠 TU PALADAR</h3>
+        <p style="color: var(--text-secondary); font-size: 0.9rem;">
+            <em>Aún no tenemos suficientes datos de BeerMatch para perfilar tu paladar. ¡Sigue descubriendo cervezas!</em>
+        </p>
+        <!-- Estructura futura (oculta) -->
+        <div style="display: none;">
+            <p>Según las cervezas que has probado:</p>
+            <div class="chip-container">
+                <span class="pref-chip like">🔥 Hoppy</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Familias -->
+    <div class="pref-section">
+        <h3 class="pref-title">¿Qué familias te gustan?</h3>
+        <div class="chip-container">
+            {% for f in families %}
+                {% set pref = user_prefs.get('FAMILY', {}).get(f.id, 'NEUTRAL') %}
+                <div class="pref-chip {{ pref|lower }}" 
+                     data-type="FAMILY" 
+                     data-id="{{ f.id }}"
+                     data-state="{{ pref }}"
+                     onclick="togglePreference(this)">
+                    {{ f.name }}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Estilos -->
+    <div class="pref-section">
+        <h3 class="pref-title">Explora por Estilos</h3>
+        {% for f_id, styles in styles_by_family.items() %}
+            {% set fam_name = (families | selectattr("id", "equalto", f_id) | first).name %}
+            <button class="accordion-btn" onclick="toggleAccordion('acc-{{ f_id }}')">
+                🍺 {{ fam_name }}
+                <span>▼</span>
+            </button>
+            <div class="accordion-content" id="acc-{{ f_id }}">
+                <div class="chip-container">
+                    {% for s in styles %}
+                        {% set pref = user_prefs.get('STYLE', {}).get(s.id, 'NEUTRAL') %}
+                        <div class="pref-chip {{ pref|lower }}" 
+                             data-type="STYLE" 
+                             data-id="{{ s.id }}"
+                             data-state="{{ pref }}"
+                             onclick="togglePreference(this)">
+                            {{ s.name }}
+                        </div>
                     {% endfor %}
                 </div>
             </div>
-            
-            <div style="flex:1; background:var(--bg-panel); padding:1.5rem; border-radius:8px; border:1px solid var(--border-color);">
-                <h3 style="color:#ff6b6b; margin-top:0;">👎 Prefiero evitar</h3>
-                <div style="display:flex; flex-direction:column; gap:0.5rem;">
-                    {% for t in tags %}
-                    <label style="display:flex; align-items:center; gap:0.5rem;">
-                        <input type="checkbox" name="dislikes" value="{{ t.id }}" {% if t.id in dislikes %}checked{% endif %}> {{ t.name }}
-                    </label>
-                    {% endfor %}
+        {% endfor %}
+    </div>
+
+    <!-- Tags -->
+    <div class="pref-section">
+        <h3 class="pref-title">Características y Sabores</h3>
+        <div class="chip-container">
+            {% for t in tags %}
+                {% set pref = user_prefs.get('TAG', {}).get(t.id, 'NEUTRAL') %}
+                <div class="pref-chip {{ pref|lower }}" 
+                     data-type="TAG" 
+                     data-id="{{ t.id }}"
+                     data-state="{{ pref }}"
+                     onclick="togglePreference(this)">
+                    {{ t.name }}
                 </div>
-            </div>
-            
+            {% endfor %}
         </div>
-        
-        <div style="margin-top:2rem;">
-            <button type="submit" class="btn">Guardar Preferencias</button>
+    </div>
+
+    <!-- Ajustes de Búsqueda -->
+    <div class="pref-section" style="border-color: var(--color-primary);">
+        <h3 class="pref-title">📍 Radio de Búsqueda</h3>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+            Distancia máxima para descubrir cervezas y bares en BeerMatch y Descubre.
+        </p>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <input type="range" id="max-distance-slider" min="1" max="50" step="1" value="{{ user.get('max_distance', 20) }}" style="flex: 1;" oninput="updateDistanceLabel(this.value)">
+            <span id="max-distance-label" style="font-weight: bold; width: 60px; text-align: right;">{{ user.get('max_distance', 20) }} km</span>
         </div>
-    </form>
+    </div>
+
+    <button id="btn-save-prefs" class="btn" style="position: sticky; bottom: 1rem; width: 100%; padding: 1rem; font-size: 1.05rem; z-index: 100;" onclick="saveAllPreferences()">
+        💾 Guardar cambios
+    </button>
+
 </div>
 
 <script>
-    // Pequeño script para evitar que se seleccione el mismo tag en ambas columnas a la vez
-    const likes = document.querySelectorAll('input[name="likes"]');
-    const dislikes = document.querySelectorAll('input[name="dislikes"]');
-    
-    likes.forEach(l => {
-        l.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                document.querySelector(`input[name="dislikes"][value="${e.target.value}"]`).checked = false;
+    function updateDistanceLabel(val) {
+        document.getElementById('max-distance-label').innerText = val + ' km';
+        scheduleAutoSave();
+    }
+
+    // Lógica del Acordeón
+    function toggleAccordion(id) {
+        const content = document.getElementById(id);
+        content.classList.toggle('active');
+    }
+
+    // Lógica de 3 Estados (Neutral -> Like -> Dislike -> Neutral)
+    function togglePreference(element) {
+        let currentState = element.getAttribute('data-state');
+        let newState = 'NEUTRAL';
+
+        // Determinar siguiente estado
+        if (currentState === 'NEUTRAL') {
+            newState = 'LIKE';
+        } else if (currentState === 'LIKE') {
+            newState = 'DISLIKE';
+        } else {
+            newState = 'NEUTRAL';
+        }
+
+        // Actualizar UI localmente
+        element.setAttribute('data-state', newState);
+        element.className = `pref-chip ${newState.toLowerCase()}`;
+
+        // Autosave: cada toggle dispara un guardado (debounced) además del botón manual
+        scheduleAutoSave();
+    }
+
+    let autoSaveTimer = null;
+    function scheduleAutoSave() {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(() => saveAllPreferences(true), 600);
+    }
+
+    function collectPreferencesPayload() {
+        const chips = document.querySelectorAll('.pref-chip[data-type]');
+        const payload = [];
+
+        chips.forEach(chip => {
+            const state = chip.getAttribute('data-state');
+            if (state === 'LIKE' || state === 'DISLIKE') {
+                payload.push({
+                    target_type: chip.getAttribute('data-type'),
+                    target_id: chip.getAttribute('data-id'),
+                    preference: state
+                });
             }
         });
-    });
-    
-    dislikes.forEach(d => {
-        d.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                document.querySelector(`input[name="likes"][value="${e.target.value}"]`).checked = false;
-            }
+
+        return payload;
+    }
+
+    function saveAllPreferences(silent) {
+        const btn = document.getElementById('btn-save-prefs');
+        const payload = collectPreferencesPayload();
+        const maxDistance = document.getElementById('max-distance-slider').value;
+
+        const originalText = btn.innerHTML;
+        if (!silent) {
+            btn.disabled = true;
+            btn.innerHTML = 'Guardando...';
+        }
+
+        // Guardar preferencias (tags, estilos)
+        const prefsPromise = fetch('/api/user/preferences', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
         });
-    });
+
+        // Guardar settings (distancia máxima)
+        const settingsPromise = fetch('/api/user/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ max_distance: maxDistance })
+        });
+
+        Promise.all([prefsPromise, settingsPromise])
+        .then(responses => {
+            for (let res of responses) {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+            }
+            if (!silent) {
+                btn.disabled = false;
+                btn.innerHTML = '✅ Guardado';
+                setTimeout(() => btn.innerHTML = originalText, 1500);
+            }
+        })
+        .catch(err => {
+            console.error('Error guardando:', err);
+            btn.disabled = false;
+            btn.innerHTML = 'Error al guardar';
+            setTimeout(() => btn.innerHTML = originalText, 1500);
+        });
+    }
 </script>
 {% endblock %}
