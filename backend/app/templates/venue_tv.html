@@ -553,18 +553,30 @@
             }
         });
 
-        // 4. Live Polling (Every 20 seconds, checks /api/venue/<id>/taplist)
+        // 4. Live Polling (Every 10 minutes, reloads only if taplist actually changed)
         const venueId = {{ venue.id }};
+        const initialSignature = [
+            {% for b in beers %}
+            "{{ b.id }}:{{ b.availability_id }}:{{ b.status }}:{{ b.price if b.price is not none else '' }}:{{ b.tap_number if b.tap_number is not none else '' }}",
+            {% endfor %}
+        ].join('|');
+
+        function buildTaplistSignature(items) {
+            return items.map(b => `${b.id}:${b.availability_id}:${b.status}:${b.price ?? ''}:${b.tap_number ?? ''}`).join('|');
+        }
+
         setInterval(function() {
-            fetch(`/api/venue/${venueId}/taplist`)
-                .then(r => r.json())
+            if (document.hidden) return;
+            fetch(`/api/venue/${venueId}/taplist`, { cache: 'no-store' })
+                .then(r => r.ok ? r.json() : null)
                 .then(data => {
-                    if (!data || !data.beers) return;
-                    // Auto-refresh the page if there is an update to keep sync
-                    // Or smooth reload
+                    if (!data || !Array.isArray(data.beers)) return;
+                    if (buildTaplistSignature(data.beers) !== initialSignature) {
+                        window.location.reload();
+                    }
                 })
                 .catch(() => {});
-        }, 20000);
+        }, 600000);
     </script>
 </body>
 </html>
