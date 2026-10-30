@@ -4,6 +4,7 @@
 <div class="card">
     <h2>Iniciar Sesión</h2>
     <form method="POST" action="{{ url_for('routes.login') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <label>Usuario</label>
         <input type="text" name="username" required>
         

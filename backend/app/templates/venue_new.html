@@ -1,13 +1,14 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block content %}
 <div class="card">
     <h2 style="margin-top:0;">🏪 Añadir un Bar</h2>
     <p style="font-size:0.9rem; color:var(--text-secondary); margin-bottom:1.5rem;">
-        ¿Conoces un bar con buena selección de cervezas? Añádelo para que otros usuarios puedan encontrarlo.
+        ¿Conoces un bar con buena selección de cervezas? Añádelo para que aparezca en el mapa. Si es tu negocio, luego podrás verificar su propiedad desde su ficha.
     </p>
 
     <form method="POST" action="{{ url_for('routes.venue_new') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <label>Nombre del establecimiento *</label>
         <input type="text" name="name" placeholder="Ej: La Cervecería del Norte" required>
 
@@ -19,6 +20,17 @@
 
         <label>Descripción (opcional)</label>
         <textarea name="description" rows="3" placeholder="Breve descripción del local, especialidad, ambiente..."></textarea>
+
+        <div style="display:flex; gap:0.8rem; flex-wrap:wrap;">
+            <div style="flex:1; min-width:180px;">
+                <label>Sitio web oficial (opcional)</label>
+                <input type="url" name="website" placeholder="https://...">
+            </div>
+            <div style="flex:1; min-width:160px;">
+                <label>Instagram (opcional)</label>
+                <input type="text" name="instagram_handle" placeholder="@nombrelocal">
+            </div>
+        </div>
 
         <details style="margin-bottom:1rem;">
             <summary style="font-size:0.85rem; color:var(--text-secondary); cursor:pointer; user-select:none;">

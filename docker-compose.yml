@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-beerfinder}
+      POSTGRES_USER: ${POSTGRES_USER:-beerfinder}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme_in_prod}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-beerfinder} -d ${POSTGRES_DB:-beerfinder}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${PORT:-8080}:8080"
+    environment:
+      APP_ENV: production
+      PORT: 8080
+      SECRET_KEY: ${SECRET_KEY:-replace_with_64_char_random_hex_in_production}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-beerfinder}:${POSTGRES_PASSWORD:-changeme_in_prod}@db:5432/${POSTGRES_DB:-beerfinder}
+      MAIL_PROVIDER: ${MAIL_PROVIDER:-dev_console}
+      MAIL_FROM: ${MAIL_FROM:-BeerMap <no-reply@beermap.app>}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      GCS_PUBLIC_BUCKET: ${GCS_PUBLIC_BUCKET:-}
+      GCS_PRIVATE_BUCKET: ${GCS_PRIVATE_BUCKET:-}
+    volumes:
+      - private_claims:/app/backend/private_uploads
+
+volumes:
+  pgdata:
+  private_claims:

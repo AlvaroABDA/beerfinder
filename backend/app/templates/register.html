@@ -2,25 +2,25 @@
 
 {% block content %}
 <div class="card">
-    <h2>Registro</h2>
+    <h2 style="margin-top:0;">Crear cuenta</h2>
+    <p style="font-size:0.88rem; color:var(--text-secondary); margin-bottom:1.2rem;">
+        Descubre qué cervezas van contigo y dónde encontrarlas cerca. Si representas a una cervecera o un bar, podrás reclamar y verificar su ficha en cualquier momento.
+    </p>
     <form method="POST" action="{{ url_for('routes.register') }}">
-        <label>Usuario</label>
-        <input type="text" name="username" required>
-        
-        <label>Email</label>
-        <input type="email" name="email" required>
-        
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label>Nombre de usuario</label>
+        <input type="text" name="username" minlength="3" required placeholder="Ej: lupulero">
+
+        <label>Correo electrónico</label>
+        <input type="email" name="email" required placeholder="tu@correo.com">
+
         <label>Contraseña</label>
-        <input type="password" name="password" required>
-        
-        <label>Tipo de Cuenta</label>
-        <select name="role">
-            <option value="USER">Usuario (aprobación automática)</option>
-            <option value="VENUE">Bar / Establecimiento (requiere aprobación)</option>
-            <option value="BREWERY">Proveedor / Cervecera (requiere aprobación)</option>
-        </select>
-        
-        <button type="submit" class="btn">Registrarse</button>
+        <input type="password" name="password" minlength="6" required placeholder="Mínimo 6 caracteres">
+
+        <button type="submit" class="btn">Crear cuenta</button>
     </form>
+    <p style="margin-top: 1rem; font-size:0.9rem;">
+        <a href="{{ url_for('routes.login') }}">¿Ya tienes cuenta? Inicia sesión</a>
+    </p>
 </div>
 {% endblock %}

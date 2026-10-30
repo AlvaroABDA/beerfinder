@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pizarra de Grifos en Vivo · {{ venue.name }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- QRCode.js para generar QR nítido en TV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <style>
+        :root {
+            --bg-tv: #07080B;
+            --bg-card: rgba(18, 22, 30, 0.92);
+            --border-card: rgba(255, 255, 255, 0.08);
+            --color-gold: #F59E0B;
+            --color-gold-glow: rgba(245, 158, 11, 0.35);
+            --color-green: #10B981;
+            --color-red: #EF4444;
+            --text-main: #FFFFFF;
+            --text-muted: #94A3B8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-tv);
+            background-image: 
+                radial-gradient(circle at 10% 15%, rgba(245, 158, 11, 0.06) 0%, transparent 40%),
+                radial-gradient(circle at 90% 85%, rgba(16, 185, 129, 0.04) 0%, transparent 40%);
+            color: var(--text-main);
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        /* TV HEADER */
+        .tv-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 3rem;
+            background: rgba(11, 14, 20, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-card);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .tv-brand {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+        }
+
+        .tv-logo-badge {
+            width: 54px;
+            height: 54px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #F59E0B, #B45309);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            box-shadow: 0 0 24px var(--color-gold-glow);
+        }
+
+        .tv-venue-info h1 {
+            font-size: 2.1rem;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            line-height: 1.1;
+        }
+
+        .tv-venue-info p {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+            font-weight: 500;
+        }
+
+        .tv-header-right {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .tv-live-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(16, 185, 129, 0.14);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            color: #6EE7B7;
+            padding: 0.5rem 1.1rem;
+            border-radius: 9999px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .tv-live-dot {
+            width: 10px;
+            height: 10px;
+            background: #10B981;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #10B981;
+            animation: pulseLive 2s infinite;
+        }
+
+        @keyframes pulseLive {
+            0% { transform: scale(0.9); opacity: 0.7; }
+            50% { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.7; }
+        }
+
+        .tv-clock {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #FFFFFF;
+            letter-spacing: 1px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .tv-btn-fullscreen {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-card);
+            color: var(--text-muted);
+            padding: 0.6rem 1rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .tv-btn-fullscreen:hover {
+            background: rgba(255, 255, 255, 0.16);
+            color: #FFFFFF;
+        }
+
+        /* TV TAP LIST GRID */
+        .tv-main {
+            flex: 1;
+            padding: 2.5rem 3rem 8rem 3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .tv-taps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(540px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* TAP CARD */
+        .tap-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-left: 6px solid var(--color-gold);
+            border-radius: 18px;
+            padding: 1.5rem 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .tap-card.sold-out {
+            opacity: 0.5;
+            border-left-color: var(--color-red) !important;
+            filter: grayscale(0.5);
+        }
+
+        .tap-card-left {
+            display: flex;
+            align-items: center;
+            gap: 1.4rem;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .tap-num-box {
+            width: 60px;
+            height: 60px;
+            background: rgba(245, 158, 11, 0.12);
+            border: 2px solid var(--color-gold);
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 0 16px var(--color-gold-glow);
+        }
+
+        .tap-num-box .tap-label {
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--color-gold);
+            letter-spacing: 0.5px;
+            line-height: 1;
+        }
+
+        .tap-num-box .tap-number {
+            font-size: 1.7rem;
+            font-weight: 900;
+            color: #FFFFFF;
+            line-height: 1.1;
+        }
+
+        .tap-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .tap-beer-name {
+            font-size: 1.55rem;
+            font-weight: 800;
+            color: #FFFFFF;
+            margin-bottom: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+        }
+
+        .tap-brewery-name {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--color-gold);
+            margin-bottom: 0.5rem;
+        }
+
+        .tap-badges {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .tap-style-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.8rem;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #F1F5F9;
+        }
+
+        .srm-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .tap-param-pill {
+            padding: 0.35rem 0.7rem;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Right price & status */
+        .tap-card-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.6rem;
+            flex-shrink: 0;
+        }
+
+        .tap-status-badge {
+            font-size: 0.82rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            padding: 0.35rem 0.8rem;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .status-available {
+            background: rgba(16, 185, 129, 0.16);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #34D399;
+        }
+
+        .status-soldout {
+            background: rgba(239, 68, 68, 0.16);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #F87171;
+        }
+
+        .tap-price {
+            font-size: 1.45rem;
+            font-weight: 900;
+            color: #FFFFFF;
+            letter-spacing: -0.3px;
+        }
+
+        .tap-price-sub {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* FLOATING CORNER QR FOR CUSTOMERS */
+        .tv-floating-qr {
+            position: fixed;
+            bottom: 2rem;
+            right: 2.5rem;
+            background: rgba(14, 18, 25, 0.95);
+            backdrop-filter: blur(16px);
+            border: 2px solid var(--color-gold);
+            border-radius: 20px;
+            padding: 1.2rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.3rem;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.7), 0 0 24px var(--color-gold-glow);
+            z-index: 200;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .tv-qr-box {
+            background: #FFFFFF;
+            padding: 8px;
+            border-radius: 12px;
+            width: 106px;
+            height: 106px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .tv-qr-text {
+            max-width: 200px;
+        }
+
+        .tv-qr-text h4 {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #FFFFFF;
+            margin-bottom: 0.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .tv-qr-text p {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            line-height: 1.3;
+        }
+
+        /* EMPTY STATE */
+        .tv-empty {
+            text-align: center;
+            padding: 6rem 2rem;
+            color: var(--text-muted);
+        }
+        .tv-empty h3 {
+            font-size: 2rem;
+            color: #FFFFFF;
+            margin-bottom: 0.8rem;
+        }
+
+        /* Top Action links */
+        .back-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: color 0.2s;
+        }
+        .back-link:hover {
+            color: #FFFFFF;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TV HEADER -->
+    <header class="tv-header">
+        <div class="tv-brand">
+            <a href="{{ url_for('routes.venue_view', id=venue.id) }}" class="back-link" title="Volver al Bar">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            </a>
+            <div class="tv-logo-badge">🍺</div>
+            <div class="tv-venue-info">
+                <h1>
+                    {{ venue.name }}
+                    {% if venue.owner_user_id %}<span title="Verificado" style="font-size:1.4rem;">👑</span>{% endif %}
+                </h1>
+                <p>{{ venue.address }}{% if venue.city %} · {{ venue.city }}{% endif %} — Pizarra Digital de Grifos</p>
+            </div>
+        </div>
+
+        <div class="tv-header-right">
+            <div class="tv-live-pill">
+                <span class="tv-live-dot"></span>
+                <span>En Vivo</span>
+            </div>
+            <div class="tv-clock" id="tvClock">--:--:--</div>
+            <button type="button" class="tv-btn-fullscreen" onclick="toggleFullscreen()" id="fsBtn">
+                ⛶ Pantalla Completa
+            </button>
+        </div>
+    </header>
+
+    <!-- TV MAIN TAP LIST -->
+    <main class="tv-main">
+        {% if beers %}
+        <div class="tv-taps-grid" id="tapsGrid">
+            {% for b in beers %}
+            <div class="tap-card {% if b.status != 'AVAILABLE' %}sold-out{% endif %}" style="border-left-color: {{ b.style_color }};">
+                <div class="tap-card-left">
+                    <div class="tap-num-box" style="border-color: {{ b.style_color }};">
+                        <span class="tap-label">GRIFO</span>
+                        <span class="tap-number">{{ b.tap_number or loop.index }}</span>
+                    </div>
+                    <div class="tap-info">
+                        <div class="tap-beer-name" title="{{ b.name }}">{{ b.name }}</div>
+                        <div class="tap-brewery-name">{{ b.brewery or 'Cervecera Local' }}</div>
+                        <div class="tap-badges">
+                            <span class="tap-style-pill">
+                                <span class="srm-dot" style="background-color: {{ b.style_color }};"></span>
+                                {{ b.style_name or b.style }}
+                            </span>
+                            {% if b.abv %}
+                            <span class="tap-param-pill">{{ b.abv }}% ABV</span>
+                            {% endif %}
+                            {% if b.ibu %}
+                            <span class="tap-param-pill">{{ b.ibu }} IBU</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tap-card-right">
+                    {% if b.status == 'AVAILABLE' %}
+                        <span class="tap-status-badge status-available">
+                            ● Pinchado
+                        </span>
+                    {% else %}
+                        <span class="tap-status-badge status-soldout">
+                            ✕ Agotado
+                        </span>
+                    {% endif %}
+
+                    {% if b.price %}
+                        <div class="tap-price">{{ "%.2f"|format(b.price) }}€</div>
+                        <div class="tap-price-sub">Pinta / Media</div>
+                    {% else %}
+                        <div class="tap-price-sub" style="font-size:0.9rem; color:var(--text-muted);">Consultar barra</div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="tv-empty">
+            <h3>No hay cervezas pinchadas en este momento</h3>
+            <p>El local actualizará su pizarra en cuanto se conecte un nuevo barril.</p>
+        </div>
+        {% endif %}
+    </main>
+
+    <!-- FLOATING CORNER QR FOR CUSTOMERS -->
+    <div class="tv-floating-qr">
+        <div class="tv-qr-box" id="tvQrCanvas"></div>
+        <div class="tv-qr-text">
+            <h4>📱 Carta en tu Móvil</h4>
+            <p>Escanea este código para ver notas de cata, alérgenos y guardar tus cervezas favoritas.</p>
+        </div>
+    </div>
+
+    <script>
+        // 1. Digital Clock
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('tvClock').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // 2. Fullscreen Toggle
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+                document.getElementById('fsBtn').textContent = '✕ Salir';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    document.getElementById('fsBtn').textContent = '⛶ Pantalla Completa';
+                }
+            }
+        }
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'f' || e.key === 'F') toggleFullscreen();
+        });
+
+        // 3. Generate High-Res QR Code for the Venue
+        document.addEventListener('DOMContentLoaded', function() {
+            const qrContainer = document.getElementById('tvQrCanvas');
+            if (qrContainer && typeof QRCode !== 'undefined') {
+                const venueUrl = window.location.origin + "{{ url_for('routes.venue_view', id=venue.id) }}";
+                new QRCode(qrContainer, {
+                    text: venueUrl,
+                    width: 90,
+                    height: 90,
+                    colorDark: "#0B0E14",
+                    colorLight: "#FFFFFF",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+            }
+        });
+
+        // 4. Live Polling (Every 20 seconds, checks /api/venue/<id>/taplist)
+        const venueId = {{ venue.id }};
+        setInterval(function() {
+            fetch(`/api/venue/${venueId}/taplist`)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data || !data.beers) return;
+                    // Auto-refresh the page if there is an update to keep sync
+                    // Or smooth reload
+                })
+                .catch(() => {});
+        }, 20000);
+    </script>
+</body>
+</html>

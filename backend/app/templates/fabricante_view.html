@@ -1,62 +1,195 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="card" style="border-top: 4px solid var(--color-secondary);">
-    <div style="display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1.5rem;">
-        <div style="font-size: 3rem; line-height: 1; flex-shrink: 0;">
+<div class="card" style="border-top: 4px solid var(--color-primary);">
+    <div style="display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1.2rem;">
+        <div style="font-size: 2.8rem; line-height: 1; flex-shrink: 0;">
             {% if fabricante.logo %}
-            <img src="{{ url_for('static', filename='images/fabricantes/' + fabricante.logo) }}" alt="Logo" style="max-height: 60px; border-radius: 8px;">
+            <img src="{{ resolve_media_url('fabricantes', fabricante.logo) }}" alt="{{ fabricante.name }}" style="max-height: 64px; max-width: 64px; object-fit: cover; border-radius: 10px;">
             {% else %}
             🏭
             {% endif %}
         </div>
-        <div>
-            <h2 style="margin: 0 0 0.2rem 0; color: var(--color-secondary);">{{ fabricante.name }}</h2>
-            <p style="margin: 0; color: var(--text-secondary);">
-                📍 {{ fabricante.country if fabricante.country else 'Origen desconocido' }}
+        <div style="flex:1; min-width:0;">
+            <h2 style="margin: 0 0 0.25rem 0;">{{ fabricante.name }}</h2>
+            <p style="margin: 0; color: var(--text-secondary); font-size:0.9rem;">
+                📍 {{ fabricante.country if fabricante.country else 'Origen no especificado' }}
             </p>
-            {% if fabricante.website %}
-            <p style="margin: 0.2rem 0 0 0;"><a href="{{ fabricante.website }}" target="_blank" style="color:var(--color-primary); text-decoration:underline;">🌐 Visitar sitio web ↗</a></p>
-            {% endif %}
-            {% if fabricante.email %}
-            <p style="margin: 0.2rem 0 0 0;"><a href="mailto:{{ fabricante.email }}" style="color:var(--color-primary); text-decoration:underline;">✉️ {{ fabricante.email }}</a></p>
-            {% endif %}
-            {% if fabricante.phone %}
-            <p style="margin: 0.2rem 0 0 0; color: var(--text-secondary);">📞 {{ fabricante.phone }}</p>
-            {% endif %}
+            <div style="display:flex; flex-wrap:wrap; gap:0.75rem; margin-top:0.4rem; font-size:0.84rem;">
+                {% if fabricante.website %}
+                <a href="{{ fabricante.website }}" target="_blank" rel="noopener" style="color:var(--color-primary); text-decoration:underline;">🌐 Sitio web oficial ↗</a>
+                {% endif %}
+                {% if fabricante.instagram_handle %}
+                <span style="color:var(--text-secondary);">📱 {{ fabricante.instagram_handle }}</span>
+                {% endif %}
+                {% if fabricante.email %}
+                <a href="mailto:{{ fabricante.email }}" style="color:var(--color-primary); text-decoration:underline;">✉️ {{ fabricante.email }}</a>
+                {% endif %}
+                {% if fabricante.phone %}
+                <span style="color:var(--text-secondary);">📞 {{ fabricante.phone }}</span>
+                {% endif %}
+            </div>
         </div>
     </div>
-    
-    {% if fabricante.description %}
-    <p><strong>Descripción:</strong><br>{{ fabricante.description }}</p>
+
+    {% if fabricante.owner_user_id %}
+    <span class="badge badge-green" style="margin-bottom: 0.6rem; display: inline-block;">👑 Marca verificada oficialmente</span>
+    {% else %}
+    <span class="badge" style="background:#2A2E39; color:var(--text-secondary); margin-bottom: 0.6rem; display: inline-block;">Colaborativa · Sin propietario verificado</span>
     {% endif %}
-    
-    {% if not fabricante.owner_user_id and session.get('user_id') and session.get('user_id') != fabricante.created_by %}
-    <div style="margin-top: 2rem; text-align: center;">
-        <form method="POST" action="{{ url_for('routes.claim_entity', entity_type='brand', entity_id=fabricante.id) }}" style="margin: 0;">
-            <button type="submit" style="background: none; border: none; padding: 0; color: var(--text-secondary); text-decoration: underline; cursor: pointer; font-size: 0.8rem;" onclick="return confirm('¿Solicitar la propiedad de esta marca?');">Reclamar esta marca</button>
+
+    {% if fabricante.description %}
+    <p style="margin: 0.6rem 0 0.9rem 0; line-height:1.5;">{{ fabricante.description }}</p>
+    {% endif %}
+
+    {% if is_verified_owner %}
+    <div style="margin-top:0.85rem; padding:0.85rem; border-radius:12px; background:rgba(16, 185, 129, 0.08); border:1px solid rgba(16, 185, 129, 0.3);">
+        <div style="font-size:0.78rem; font-weight:700; color:#6EE7B7; text-transform:uppercase; margin-bottom:0.4rem;">
+            👑 Panel de Marca Verificada
+        </div>
+        {% if radar_demand_count > 0 %}
+        <p style="margin:0 0 0.55rem 0; font-size:0.84rem; color:#FCD34D;">
+            📡 <strong>{{ radar_demand_count }} {{ 'persona tiene' if radar_demand_count == 1 else 'personas tienen' }}</strong> cervezas de tu catálogo en su radar.
+        </p>
+        {% endif %}
+        {% if orphan_beers_count > 0 %}
+        <form method="POST" action="{{ url_for('routes.adopt_brand_beers', id=fabricante.id) }}" style="margin:0;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn" style="font-size:0.84rem; padding:0.5rem 0.9rem;">
+                🔗 Adoptar y verificar {{ orphan_beers_count }} {{ 'cerveza' if orphan_beers_count == 1 else 'cervezas' }} de mi marca
+            </button>
         </form>
+        {% else %}
+        <p style="margin:0; font-size:0.82rem; color:var(--text-secondary);">Todas las cervezas registradas bajo tu marca están vinculadas a tu cuenta.</p>
+        {% endif %}
     </div>
     {% endif %}
-    <h3 style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-top: 2rem;">Cervezas de este fabricante</h3>
-    
+
+    {% if can_edit %}
+    <div style="display:flex; gap:0.6rem; margin-top: 0.9rem;">
+        <a href="{{ url_for('routes.edit_fabricante', id=fabricante.id) }}" class="btn btn-outline" style="flex:1;">✏️ Editar marca</a>
+        <a href="{{ url_for('routes.beer_new') }}?brewery={{ fabricante.name|urlencode }}" class="btn" style="flex:1;">+ Añadir cerveza</a>
+    </div>
+    {% endif %}
+
+    {% if session.get('user_id') %}
+        {% if has_pending_claim %}
+        <div style="margin-top:1rem; padding-top:0.8rem; border-top:1px solid var(--border-color); font-size:0.82rem;">
+            ⏳ Tienes una solicitud de verificación abierta sobre esta marca ·
+            <a href="{{ url_for('routes.my_claims') }}" style="color:var(--color-primary); font-weight:700;">Completar verificación →</a>
+        </div>
+        {% elif not fabricante.owner_user_id %}
+        <details style="margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid var(--border-color);">
+            <summary style="color: var(--color-primary); cursor: pointer; font-size: 0.84rem; font-weight:600;">
+                🛡️ ¿Representas oficialmente a {{ fabricante.name }}? Verifica tu marca
+            </summary>
+            <form method="POST" action="{{ url_for('routes.claim_entity', entity_type='brand', entity_id=fabricante.id) }}" enctype="multipart/form-data" style="margin-top: 0.75rem;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <label style="font-size:0.82rem;">Método de acreditación</label>
+                <select name="verification_method" onchange="toggleBrandClaimFields(this.value)">
+                    {% if fabricante.website %}
+                    <option value="DOMAIN_EMAIL">✉️ Email corporativo del dominio web oficial (OTP rápido)</option>
+                    <option value="DNS_META">🌐 Etiqueta Meta / archivo en la web oficial</option>
+                    {% endif %}
+                    <option value="SOCIAL_TOKEN">📱 Código temporal en bio de Instagram ({{ fabricante.instagram_handle or '@tucervecera' }})</option>
+                    <option value="DOCUMENT_UPLOAD">📄 Documento acreditativo privado (CIF / registro sanitario)</option>
+                    {% if not fabricante.website %}
+                    <option value="DOMAIN_EMAIL">✉️ Email corporativo propio</option>
+                    <option value="DNS_META">🌐 Etiqueta Meta en web oficial</option>
+                    {% endif %}
+                    <option value="MANUAL">📝 Revisión manual con enlace y explicación</option>
+                </select>
+
+                <div id="brand-claim-target-box">
+                    <label id="brand-claim-target-label" style="font-size:0.82rem;">
+                        {% if fabricante.website %}Email corporativo del dominio{% else %}Cuenta de Instagram / Red oficial{% endif %}
+                    </label>
+                    <input type="text" name="verification_target" placeholder="{% if fabricante.website %}hola@tucervecera.com{% else %}@tucervecera{% endif %}">
+                </div>
+
+                <div id="brand-claim-doc-box" style="display:none;">
+                    <label style="font-size:0.82rem;">Documento privado (PDF/JPG/PNG — confidencial)</label>
+                    <input type="file" name="evidence_file" accept=".pdf,.png,.jpg,.jpeg,.webp">
+                </div>
+
+                <label style="font-size:0.82rem;">Enlace oficial de respaldo</label>
+                <input type="url" name="evidence_url" placeholder="https://...">
+
+                <label style="font-size:0.82rem;">Cargo o vínculo con la marca</label>
+                <textarea name="justification" rows="2" required placeholder="Ej: Maestro cervecero / responsable de marca..."></textarea>
+
+                <button type="submit" class="btn btn-outline">Iniciar verificación de marca</button>
+            </form>
+        </details>
+        {% elif not is_verified_owner %}
+        <details style="margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid var(--border-color);">
+            <summary style="color: var(--text-muted); cursor: pointer; font-size: 0.78rem;">
+                ⚖️ ¿Eres el titular legítimo de esta marca? Disputar propiedad
+            </summary>
+            <form method="POST" action="{{ url_for('routes.claim_entity', entity_type='brand', entity_id=fabricante.id) }}" enctype="multipart/form-data" style="margin-top: 0.65rem;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="is_dispute" value="1">
+                <input type="hidden" name="verification_method" value="DOCUMENT_UPLOAD">
+                <label style="font-size:0.8rem;">Documento acreditativo oficial (confidencial)</label>
+                <input type="file" name="evidence_file" accept=".pdf,.png,.jpg,.jpeg,.webp">
+                <label style="font-size:0.8rem;">Motivo de la disputa</label>
+                <textarea name="justification" rows="2" required placeholder="Explica y acredita la titularidad de la marca..."></textarea>
+                <button type="submit" class="btn btn-outline" style="font-size:0.82rem;">Enviar disputa</button>
+            </form>
+        </details>
+        {% endif %}
+    {% endif %}
+
+    <h3 style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-top: 1.8rem; font-size:1.05rem;">
+        🍺 Catálogo de {{ fabricante.name }} ({{ beers|length }})
+    </h3>
+
     {% if beers %}
-    <ul style="list-style: none; padding: 0;">
+    <ul style="list-style: none; padding: 0; margin: 0;">
         {% for b in beers %}
-        <li style="padding: 0.8rem 0; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 1rem;">
-            <div class="card-img" style="width: 40px; height: 40px; border-radius: 4px; {% if b.image %}background-image: url('{{ url_for('static', filename='images/beers/' + b.image) }}'); background-size: cover; background-position: center;{% endif %}">
-                {% if not b.image %}🍺{% endif %}
+        <li style="padding: 0.8rem 0; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 0.8rem;">
+            <div style="display:flex; align-items:center; gap:0.85rem; min-width:0;">
+                <div class="card-img" style="width: 44px; height: 44px; border-radius: 8px; flex-shrink:0; {% if b.image_url %}background-image: url('{{ b.image_url }}'); background-size: cover; background-position: center;{% endif %}">
+                    {% if not b.image_url %}🍺{% endif %}
+                </div>
+                <div style="min-width:0;">
+                    <a href="{{ url_for('routes.beer_view', id=b.id) }}" style="color: var(--text-main); text-decoration: none; font-weight: 700;">
+                        {{ b.name }}
+                    </a>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">
+                        {{ b.style_name or b.style }}{% if b.abv %} · {{ b.abv }}% ABV{% endif %}
+                    </div>
+                </div>
             </div>
-            <div>
-                <a href="{{ url_for('routes.beer_view', id=b.id) }}" style="color: var(--text-main); text-decoration: none; font-weight: bold;">{{ b.name }}</a>
-                <br>
-                <span style="font-size: 0.8rem; color: var(--text-secondary);">{{ b.style }} - {{ b.abv }}% ABV</span>
-            </div>
+            {% if b.owner_user_id %}
+            <span title="Cerveza verificada" style="font-size:0.85rem;">👑</span>
+            {% endif %}
         </li>
         {% endfor %}
     </ul>
     {% else %}
-    <p style="color: var(--text-secondary);">No hay cervezas registradas de este fabricante.</p>
+    <p style="color: var(--text-secondary); font-size:0.9rem;">No hay cervezas registradas bajo esta marca todavía.</p>
     {% endif %}
 </div>
+
+<script>
+function toggleBrandClaimFields(method) {
+    const targetBox = document.getElementById('brand-claim-target-box');
+    const targetLabel = document.getElementById('brand-claim-target-label');
+    const docBox = document.getElementById('brand-claim-doc-box');
+    if (!targetBox || !docBox) return;
+
+    docBox.style.display = (method === 'DOCUMENT_UPLOAD') ? 'block' : 'none';
+    if (method === 'DOMAIN_EMAIL') {
+        targetBox.style.display = 'block';
+        targetLabel.textContent = 'Email corporativo del dominio oficial';
+    } else if (method === 'SOCIAL_TOKEN') {
+        targetBox.style.display = 'block';
+        targetLabel.textContent = 'Cuenta oficial de Instagram / Red social';
+    } else {
+        targetBox.style.display = 'none';
+    }
+}
+</script>
 {% endblock %}

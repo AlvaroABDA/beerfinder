@@ -3,7 +3,7 @@
 {% block content %}
 <div class="search-bar" style="margin-bottom: 1rem;">
     <span style="font-size: 1.2rem; color: var(--text-secondary);">🔍</span>
-    <input type="text" id="searchInput" list="beer-list" placeholder="Buscar por nombre, fabricante..." oninput="debounceExplore()">
+    <input type="text" id="searchInput" list="beer-list" placeholder="Buscar por nombre, fabricante..." oninput="debounceExplore()" value="{{ request.args.get('q', '') }}">
     <datalist id="beer-list">
         {% for b in beers %}
         <option value="{{ b.name }}"></option>
@@ -16,7 +16,12 @@
     
     <div style="display: flex; flex-direction: column; gap: 1rem;">
         <div>
-            <label style="font-size: 0.85rem; color: var(--text-secondary);">Estilo de Cerveza</label>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.3rem;">
+                <label style="font-size: 0.85rem; color: var(--text-secondary); margin:0;">Estilo de Cerveza</label>
+                <button type="button" onclick="openStyleGuideModal()" class="style-info-btn">
+                    📖 Guía de estilos
+                </button>
+            </div>
             <input type="text" id="styleInput" list="style-list" placeholder="Escribe un estilo (ej. IPA, Pilsner)..." oninput="debounceExplore()" style="margin: 0; padding: 0.5rem; width: 100%; border-radius: 8px;">
             <datalist id="style-list">
                 {% for s in styles %}
@@ -74,6 +79,7 @@
                     const card = document.createElement('a');
                     card.className = 'beer-card';
                     card.href = beer.view_url;
+                    if (beer.style_color) card.style.borderLeftColor = beer.style_color;
                     
                     let imgHtml = '<div class="card-img">🍺</div>';
                     if (beer.image_url) {
@@ -86,14 +92,19 @@
                     } else if (currentLat !== null) {
                         distanceHtml = `<span style="font-size: 0.8rem; color: var(--color-red); display: block; margin-top: 0.2rem;">📍 No disponible cerca</span>`;
                     }
-                    
+
+                    const reasonHtml = beer.reason
+                        ? `<span style="font-size: 0.78rem; color: var(--color-secondary); display: block; margin-top: 0.3rem;">💡 ${escapeHtml(beer.reason)}</span>`
+                        : '';
+
                     card.innerHTML = `
                         <div class="card-header">
                             ${imgHtml}
                             <div class="card-info">
-                                <h3 class="card-title">${beer.name}</h3>
-                                <p class="card-subtitle">${beer.brewery} · ${beer.abv}% ABV</p>
+                                <h3 class="card-title">${escapeHtml(beer.name)}</h3>
+                                <p class="card-subtitle">${escapeHtml(beer.brewery)} · ${escapeHtml(beer.abv)}% ABV</p>
                                 ${distanceHtml}
+                                ${reasonHtml}
                             </div>
                         </div>
                     `;

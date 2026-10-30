@@ -1,166 +1,339 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+    .taste-selector-box {
+        background: var(--bg-body);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-card);
+        padding: 0.9rem;
+        margin: 1rem 0;
+    }
+    .taste-seg-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.45rem;
+    }
+    .taste-seg-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.2rem;
+        padding: 0.65rem 0.35rem;
+        border-radius: 12px;
+        border: 1.5px solid var(--border-color);
+        background: var(--bg-panel);
+        color: var(--text-secondary);
+        font-size: 0.78rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        font-family: inherit;
+    }
+    .taste-seg-btn .seg-emoji {
+        font-size: 1.25rem;
+        line-height: 1;
+    }
+    .taste-seg-btn.active-dislike {
+        background: rgba(239, 68, 68, 0.14);
+        border-color: rgba(239, 68, 68, 0.55);
+        color: #FCA5A5;
+    }
+    .taste-seg-btn.active-wishlist {
+        background: rgba(245, 158, 11, 0.18);
+        border-color: #F59E0B;
+        color: #FCD34D;
+        box-shadow: 0 0 14px rgba(245, 158, 11, 0.2);
+    }
+    .taste-seg-btn.active-like {
+        background: rgba(16, 185, 129, 0.16);
+        border-color: #10B981;
+        color: #6EE7B7;
+    }
+    .radar-bell-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.6rem;
+        margin-top: 0.7rem;
+        padding-top: 0.65rem;
+        border-top: 1px solid var(--border-color);
+        font-size: 0.82rem;
+    }
+    .radar-bell-btn {
+        padding: 0.38rem 0.8rem;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        cursor: pointer;
+        border: 1px solid var(--border-color);
+        background: var(--bg-panel);
+        color: var(--text-secondary);
+        font-family: inherit;
+        transition: all 0.15s ease;
+    }
+    .radar-bell-btn.active {
+        background: rgba(245, 158, 11, 0.18);
+        border-color: #F59E0B;
+        color: #FCD34D;
+    }
+</style>
+
 <div class="card">
-    <div style="display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1rem;">
-        <div class="card-img" onclick="openImageModal()" style="width: 80px; height: 80px; flex-shrink: 0; cursor: zoom-in; {% if beer.image %}background-image: url('{{ url_for('static', filename='images/beers/' + beer.image) }}'); background-size: cover; background-position: center;{% endif %}">
-            {% if not beer.image %}🍺{% endif %}
+    <div style="display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 0.85rem;">
+        <div class="card-img" onclick="openImageModal()" style="width: 84px; height: 84px; flex-shrink: 0; border-radius: 12px; {% if beer.image_url %}cursor: zoom-in; background-image: url('{{ beer.image_url }}'); background-size: cover; background-position: center;{% endif %}">
+            {% if not beer.image_url %}🍺{% endif %}
         </div>
-        <div>
-            <h2 style="margin: 0 0 0.5rem 0;">{{ beer.name }}</h2>
-<p style="margin: 0; padding-bottom: 0.3rem;"><strong>Fabricante:</strong> 
+        <div style="flex: 1; min-width: 0;">
+            <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.35rem;">
+                <h2 style="margin: 0;">{{ beer.name }}</h2>
+                {% if beer.owner_user_id %}
+                <span class="badge badge-green" style="font-size:0.7rem; padding:2px 8px;">👑 Oficial</span>
+                {% endif %}
+            </div>
+
+            <p style="margin: 0 0 0.25rem 0; font-size:0.92rem;">
+                <strong>Fabricante:</strong>
                 {% if linked_fabricante %}
-                    <a href="{{ url_for('routes.fabricante_view', id=linked_fabricante.id) }}" style="color: var(--color-secondary); text-decoration: none; border-bottom: 1px dotted var(--color-secondary);">
-                        {{ beer.brewery }} <span style="font-size: 0.8em;">🏭</span>
+                    <a href="{{ url_for('routes.fabricante_view', id=linked_fabricante.id) }}" style="color: var(--color-primary); text-decoration: none; border-bottom: 1px dotted var(--color-primary); font-weight:600;">
+                        {{ beer.brewery }}
                     </a>
                 {% else %}
                     {{ beer.brewery }}
                 {% endif %}
             </p>
-            <p style="margin: 0;"><strong>Familia:</strong> {{ beer.family_name }}</p>
-            <p style="margin: 0;"><strong>Estilo:</strong> {{ beer.style_name }}</p>
-            <p style="margin: 0;"><strong>Graduación:</strong> {{ beer.abv }}%</p>
-        </div>
-    </div>
-
-    <!-- Venue más cercano: se carga automáticamente al abrir la ficha -->
-    <div id="nearest-venue-bar" style="display:none; margin-bottom:1rem; padding:0.65rem 0.9rem; background:var(--color-tertiary); border-radius:var(--radius-card); border:1px solid var(--border-color); font-size:0.88rem;">
-        <span id="nearest-venue-text" style="color:var(--text-secondary);"></span>
-    </div>
-
-    {% if session.get('user_id') %}
-    <div id="beermatch-status-container" style="background: var(--color-tertiary); padding: 0.8rem; border-radius: var(--radius-card); margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
-        <div id="beermatch-status-text">
-            {% if user_preference == 'LIKE' %}
-                <span style="font-size: 1.1rem;">❤️ Te gustó</span>
-            {% elif user_preference == 'DISLIKE' %}
-                <span style="font-size: 1.1rem;">❌ No te gustó</span>
-            {% else %}
-                <span style="font-size: 0.9rem; color: var(--text-secondary);">¿La has probado?</span>
+            <p style="margin: 0 0 0.2rem 0; font-size:0.88rem; color:var(--text-secondary);">
+                <strong>Familia:</strong> {{ beer.family_name }}
+            </p>
+            <p style="margin: 0 0 0.2rem 0; font-size:0.88rem; display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap;">
+                <strong>Estilo:</strong>
+                {% if beer.style_color %}<span style="width:0.75rem; height:0.75rem; border-radius:50%; background:{{ beer.style_color }}; display:inline-block; border:1px solid rgba(255,255,255,0.3);"></span>{% endif %}
+                <span>{{ beer.style_name }}</span>
+                {% if beer.style_id %}
+                <button type="button" onclick="showStyleInfo({{ beer.style_id }})" class="style-info-btn">
+                    ℹ️ ¿Qué es?
+                </button>
+                {% endif %}
+            </p>
+            {% if beer.abv %}
+            <p style="margin: 0; font-size:0.88rem; color:var(--text-secondary);"><strong>Graduación:</strong> {{ beer.abv }}% ABV</p>
             {% endif %}
         </div>
-        <div style="display: flex; gap: 0.5rem;">
-            <button onclick="updateBeerMatch({{ beer.id }}, 'DISLIKE')" class="btn" style="padding: 0.4rem 0.8rem; background: {% if user_preference == 'DISLIKE' %}var(--color-primary){% else %}var(--bg-panel){% endif %}; color: var(--text-main); font-size: 0.9rem; width: auto; border: 1px solid var(--border-color);">❌</button>
-            <button onclick="updateBeerMatch({{ beer.id }}, 'LIKE')" class="btn" style="padding: 0.4rem 0.8rem; background: {% if user_preference == 'LIKE' %}var(--color-primary){% else %}var(--bg-panel){% endif %}; color: var(--text-main); font-size: 0.9rem; width: auto; border: 1px solid var(--border-color);">❤️</button>
-        </div>
     </div>
-    <script>
-    function updateBeerMatch(beerId, preference) {
-        fetch('/beermatch/api/preferences', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ beer_id: beerId, preference: preference })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                window.location.reload();
-            }
-        });
-    }
-    </script>
+
+    {% if is_brand_or_beer_owner and radar_demand_count > 0 %}
+    <div style="margin-bottom:0.9rem; padding:0.65rem 0.9rem; border-radius:10px; background:rgba(245, 158, 11, 0.12); border:1px solid rgba(245, 158, 11, 0.35); font-size:0.84rem; color:#FCD34D;">
+        📡 <strong>Demanda en vivo:</strong> {{ radar_demand_count }} {{ 'persona tiene' if radar_demand_count == 1 else 'personas tienen' }} esta cerveza activa en su radar.
+    </div>
     {% endif %}
-    
+
+    {% if can_edit %}
+    <div style="margin-bottom: 0.9rem;">
+        <a href="{{ url_for('routes.edit_beer', id=beer.id) }}" class="btn btn-outline" style="padding:0.45rem 0.9rem; font-size:0.84rem;">
+            {{ icon('edit') }} Editar ficha
+        </a>
+    </div>
+    {% endif %}
+
+    {% if session.get('user_id') %}
+    <!-- Selector Unificado Variante B: Paladar + Radar Silencioso -->
+    <div class="taste-selector-box">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:0.55rem;">
+            <span style="font-size:0.82rem; font-weight:700; color:var(--text-main);">Tu afinidad con esta cerveza</span>
+            <span id="taste-feedback-hint" style="font-size:0.74rem; color:var(--text-secondary);">
+                {% if user_preference == 'WISHLIST' %}📡 En tu radar cercano
+                {% elif user_preference == 'LIKE' and notify_nearby %}❤️ Favorita · 🔔 Radar activo
+                {% elif user_preference == 'LIKE' %}❤️ Guardada en tus gustos
+                {% elif user_preference == 'DISLIKE' %}❌ Descartada de recomendaciones
+                {% else %}Toca para guardar{% endif %}
+            </span>
+        </div>
+
+        <div class="taste-seg-grid">
+            <button type="button"
+                    class="taste-seg-btn {% if user_preference == 'DISLIKE' %}active-dislike{% endif %}"
+                    onclick="setBeerPreference({{ beer.id }}, '{{ 'CLEAR' if user_preference == 'DISLIKE' else 'DISLIKE' }}')">
+                <span class="seg-emoji">❌</span>
+                <span>No es para mí</span>
+            </button>
+            <button type="button"
+                    class="taste-seg-btn {% if user_preference == 'WISHLIST' %}active-wishlist{% endif %}"
+                    onclick="setBeerPreference({{ beer.id }}, '{{ 'CLEAR' if user_preference == 'WISHLIST' else 'WISHLIST' }}')">
+                <span class="seg-emoji">📡</span>
+                <span>Quiero probar</span>
+            </button>
+            <button type="button"
+                    class="taste-seg-btn {% if user_preference == 'LIKE' %}active-like{% endif %}"
+                    onclick="setBeerPreference({{ beer.id }}, '{{ 'CLEAR' if user_preference == 'LIKE' else 'LIKE' }}')">
+                <span class="seg-emoji">❤️</span>
+                <span>Me gusta</span>
+            </button>
+        </div>
+
+        {% if user_preference == 'LIKE' %}
+        <div class="radar-bell-row">
+            <span style="color:var(--text-secondary);">¿Destacarla en Inicio y Mapa cuando la pinchen cerca?</span>
+            <button type="button"
+                    id="radar-bell-toggle"
+                    class="radar-bell-btn {% if notify_nearby %}active{% endif %}"
+                    onclick="toggleRadarBell({{ beer.id }})">
+                {% if notify_nearby %}🔔 Avisarme activo{% else %}🔕 Avisarme cerca{% endif %}
+            </button>
+        </div>
+        {% elif user_preference == 'WISHLIST' %}
+        <p style="margin:0.6rem 0 0; font-size:0.76rem; color:var(--text-secondary);">
+            📡 Sin notificaciones intrusivas: solo verás un aviso silencioso en Inicio y en el Mapa cuando esté disponible cerca de ti.
+        </p>
+        {% endif %}
+    </div>
+    {% endif %}
+
     {% if beer.tags_list %}
-    <div style="margin-bottom: 1rem; display:flex; flex-wrap:wrap; gap:0.3rem;">
+    <div style="margin: 0.9rem 0; display:flex; flex-wrap:wrap; gap:0.35rem;">
         {% for t in beer.tags_list %}
-        <span class="pill" style="font-size:0.8rem; background:var(--color-primary); color:black;">{{ t.name }}</span>
+        <span class="pill" style="margin:0; font-size:0.78rem; background:rgba(245, 158, 11, 0.14); color:var(--color-primary); border-color:rgba(245, 158, 11, 0.35);">
+            {{ t.icon or '🏷️' }} {{ t.name }}
+        </span>
         {% endfor %}
     </div>
     {% endif %}
 
-    <p><strong>Descripción:</strong><br>{{ beer.description }}</p>
-    
-    <div style="margin-top: 1.5rem;">
-        <button id="find-beer-btn" class="btn" onclick="findBeerNearby({{ beer.id }})">¿Dónde encontrarla?</button>
-        <div id="nearby-venues-container" style="margin-top: 1rem; display: none;">
-            <h3 style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">Locales Disponibles</h3>
-            <div id="nearby-venues-list"></div>
+    {% if beer.description %}
+    <p style="margin: 0.8rem 0 0; line-height: 1.5; color: var(--text-main);">{{ beer.description }}</p>
+    {% endif %}
+
+    {% if session.get('user_id') %}
+        {% if has_pending_claim %}
+        <div style="margin-top:1.1rem; padding-top:0.85rem; border-top:1px solid var(--border-color); font-size:0.82rem;">
+            ⏳ Tienes una solicitud de verificación abierta para esta cerveza ·
+            <a href="{{ url_for('routes.my_claims') }}" style="color:var(--color-primary); font-weight:700;">Ver estado / verificar código →</a>
         </div>
+        {% elif not beer.owner_user_id %}
+        <details style="margin-top: 1.1rem; padding-top: 0.85rem; border-top: 1px solid var(--border-color);">
+            <summary style="color: var(--text-secondary); cursor: pointer; font-size: 0.82rem; font-weight:600;">
+                🛡️ ¿Eres el fabricante oficial de esta cerveza? Verifícala
+            </summary>
+            <form method="POST" action="{{ url_for('routes.claim_entity', entity_type='beer', entity_id=beer.id) }}" enctype="multipart/form-data" style="margin-top: 0.75rem;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <label style="font-size:0.82rem;">Método de acreditación</label>
+                <select name="verification_method" onchange="toggleBeerClaimFields(this.value)">
+                    <option value="DOMAIN_EMAIL">✉️ Email corporativo del dominio oficial (OTP rápido)</option>
+                    <option value="DNS_META">🌐 Etiqueta Meta / archivo en la web oficial</option>
+                    <option value="SOCIAL_TOKEN">📱 Código temporal en bio de Instagram / red oficial</option>
+                    <option value="DOCUMENT_UPLOAD">📄 Documento acreditativo privado (CIF / registro)</option>
+                    <option value="MANUAL">📝 Revisión manual con enlace y explicación</option>
+                </select>
+
+                <div id="beer-claim-target-box">
+                    <label id="beer-claim-target-label" style="font-size:0.82rem;">Email corporativo</label>
+                    <input type="text" name="verification_target" placeholder="contacto@tucervecera.com">
+                </div>
+
+                <div id="beer-claim-doc-box" style="display:none;">
+                    <label style="font-size:0.82rem;">Documento privado (PDF/JPG/PNG — solo visible para administración)</label>
+                    <input type="file" name="evidence_file" accept=".pdf,.png,.jpg,.jpeg,.webp">
+                </div>
+
+                <label style="font-size:0.82rem;">Enlace oficial de respaldo (opcional)</label>
+                <input type="url" name="evidence_url" placeholder="https://...">
+
+                <label style="font-size:0.82rem;">Explicación breve</label>
+                <textarea name="justification" rows="2" required placeholder="Indica tu rol en la cervecera..."></textarea>
+
+                <button type="submit" class="btn btn-outline">Iniciar verificación</button>
+            </form>
+        </details>
+        {% elif not is_brand_or_beer_owner %}
+        <details style="margin-top: 1.1rem; padding-top: 0.85rem; border-top: 1px solid var(--border-color);">
+            <summary style="color: var(--text-muted); cursor: pointer; font-size: 0.78rem;">
+                ⚖️ ¿Eres el titular legítimo y deseas disputar la propiedad?
+            </summary>
+            <form method="POST" action="{{ url_for('routes.claim_entity', entity_type='beer', entity_id=beer.id) }}" enctype="multipart/form-data" style="margin-top: 0.65rem;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="is_dispute" value="1">
+                <input type="hidden" name="verification_method" value="DOCUMENT_UPLOAD">
+                <label style="font-size:0.8rem;">Adjunta prueba acreditativa oficial (privada)</label>
+                <input type="file" name="evidence_file" accept=".pdf,.png,.jpg,.jpeg,.webp">
+                <label style="font-size:0.8rem;">Motivo de la disputa</label>
+                <textarea name="justification" rows="2" required placeholder="Explica y acredita la titularidad oficial..."></textarea>
+                <button type="submit" class="btn btn-outline" style="font-size:0.82rem;">Enviar disputa a revisión</button>
+            </form>
+        </details>
+        {% endif %}
+    {% endif %}
+</div>
+
+<!-- DÓNDE ENCONTRARLA CERCA (Core Purpose #2) -->
+<div class="section-title">
+    <span>📍 Dónde tomarla cerca</span>
+    <a href="{{ url_for('routes.map_view') }}" style="font-size:0.82rem; color:var(--color-primary); text-decoration:none; font-weight:600;">Ver mapa →</a>
+</div>
+
+<div class="card" id="nearby-venues-card">
+    <div id="nearby-venues-list">
+        <p style="margin:0; color:var(--text-secondary); font-size:0.9rem;">Buscando pizarras activas cerca de ti...</p>
     </div>
 </div>
 
+{% if beer.image_url %}
+<div id="image-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center;" onclick="closeImageModal()">
+    <span style="position: absolute; top: 20px; right: 30px; color: white; font-size: 30px; font-weight: bold; cursor: pointer;">&times;</span>
+    <img src="{{ beer.image_url }}" alt="{{ beer.name }}" style="max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.8);">
+</div>
+{% endif %}
+
 <script>
-function findBeerNearby(beerId) {
-    const btn = document.getElementById('find-beer-btn');
-    const container = document.getElementById('nearby-venues-container');
-    const list = document.getElementById('nearby-venues-list');
-    
-    btn.innerText = 'Buscando tu ubicación...';
-    btn.disabled = true;
-    container.style.display = 'block';
-    list.innerHTML = '<p style="color:var(--text-secondary);">Calculando distancias...</p>';
-
-    function fetchVenues(lat, lon) {
-        let url = `/api/beer/${beerId}/venues`;
-        if (lat !== null && lon !== null) {
-            url += `?lat=${lat}&lon=${lon}`;
+function setBeerPreference(beerId, preference) {
+    fetch('/beermatch/api/preferences', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ beer_id: beerId, preference: preference })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            window.location.reload();
         }
-        
-        fetch(url)
-            .then(res => res.json())
-            .then(data => {
-                btn.innerText = 'Actualizar búsqueda';
-                btn.disabled = false;
-                
-                if (data.length === 0) {
-                    list.innerHTML = '<p>No hemos encontrado ningún local que tenga esta cerveza actualmente.</p>';
-                    return;
-                }
-                
-                let html = '<ul style="list-style:none; padding:0; margin:0;">';
-                data.forEach(v => {
-            let distanceStr = '';
-                    if (v.distance_km !== null && v.distance_km !== undefined) {
-                        const d = v.distance_km;
-                        distanceStr = d < 1 ? `${Math.round(d * 1000)} m` : `${d.toFixed(1)} km`;
-                        distanceStr = `<span class="pill" style="margin:0; background:var(--color-primary); color:black;">A ${distanceStr}</span>`;
-                    }
-                    let dateStr = new Date(v.last_updated).toLocaleDateString();
-                    
-                    html += `
-                    <li style="padding: 1rem 0; border-bottom: 1px solid var(--border-color);">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                            <div>
-                                <a href="/venue/${v.venue_id}" style="color:var(--color-secondary); text-decoration:none; font-weight:bold; font-size:1.1rem;">${v.name}</a>
-                                <p style="margin:0.2rem 0; font-size:0.9rem; color:var(--text-secondary);">📍 ${v.city} - ${v.address}</p>
-                                <p style="margin:0; font-size:0.8rem; color:var(--text-secondary);">Confirmado: ${dateStr}</p>
-                            </div>
-                            ${distanceStr}
-                        </div>
-                    </li>`;
-                });
-                html += '</ul>';
-                list.innerHTML = html;
-            })
-            .catch(err => {
-                list.innerHTML = '<p style="color:#ff6b6b;">Error al buscar los locales.</p>';
-                btn.innerText = 'Reintentar';
-                btn.disabled = false;
-            });
-    }
-
-    window.getAppLocation(
-        (position) => {
-            fetchVenues(position.coords.latitude, position.coords.longitude);
-        },
-        (msg) => {
-            list.innerHTML = `<p style="color:var(--text-secondary); font-size:0.85rem;">📍 ${msg}</p>`;
-            fetchVenues(null, null);
-        }
-    );
+    });
 }
 
-// --- Cargar venue más cercano automáticamente al abrir la ficha ---
-(function autoLoadNearestVenue() {
-    function fmt(km) {
-        if (km === null || km === undefined) return null;
-        return km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
-    }
+function toggleRadarBell(beerId) {
+    fetch('/beermatch/api/radar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ beer_id: beerId })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            window.location.reload();
+        }
+    });
+}
 
-    function showNearestVenue(lat, lon) {
+function toggleBeerClaimFields(method) {
+    const targetBox = document.getElementById('beer-claim-target-box');
+    const targetLabel = document.getElementById('beer-claim-target-label');
+    const docBox = document.getElementById('beer-claim-doc-box');
+    if (!targetBox || !docBox) return;
+
+    docBox.style.display = (method === 'DOCUMENT_UPLOAD') ? 'block' : 'none';
+    if (method === 'DOMAIN_EMAIL') {
+        targetBox.style.display = 'block';
+        targetLabel.textContent = 'Email corporativo del dominio de la marca';
+    } else if (method === 'SOCIAL_TOKEN') {
+        targetBox.style.display = 'block';
+        targetLabel.textContent = 'Usuario / URL de Instagram o red social oficial';
+    } else {
+        targetBox.style.display = 'none';
+    }
+}
+
+(function loadBeerVenues() {
+    const listEl = document.getElementById('nearby-venues-list');
+
+    function renderVenues(lat, lon) {
         let url = `/api/beer/{{ beer.id }}/venues`;
         if (lat !== null && lon !== null) {
             url += `?lat=${lat}&lon=${lon}`;
@@ -168,44 +341,62 @@ function findBeerNearby(beerId) {
         fetch(url)
             .then(r => r.json())
             .then(data => {
-                if (!data || data.length === 0) return;
-                const nearest = data[0]; // ya viene ordenado por distancia
-                const bar = document.getElementById('nearest-venue-bar');
-                const txt = document.getElementById('nearest-venue-text');
-                const distPart = nearest.distance_km !== null
-                    ? ` · <strong style="color:var(--color-primary);">${fmt(nearest.distance_km)}</strong>`
-                    : '';
-                txt.innerHTML = `🏪 <a href="/venue/${nearest.venue_id}" style="color:var(--color-secondary);font-weight:bold;">${nearest.name}</a>${distPart}`;
-                bar.style.display = 'block';
+                if (!data || data.length === 0) {
+                    listEl.innerHTML = `
+                        <p style="margin:0; color:var(--text-secondary); font-size:0.9rem;">
+                            Ahora mismo ningún local cercano reporta tenerla pinchada.
+                            {% if session.get('user_id') and user_preference != 'WISHLIST' and not notify_nearby %}
+                            <br><span style="font-size:0.82rem;">💡 Márcala con <strong>📡 Quiero probar</strong> arriba para verla destacada cuando salga.</span>
+                            {% endif %}
+                        </p>`;
+                    return;
+                }
+
+                listEl.innerHTML = data.map((v, idx) => {
+                    const borderStyle = idx < data.length - 1 ? 'border-bottom:1px solid var(--border-color); padding-bottom:0.85rem; margin-bottom:0.85rem;' : '';
+                    const verifiedBadge = v.is_verified_venue ? ' <span title="Local verificado">👑</span>' : '';
+                    const distBadge = v.walking_str
+                        ? `<span class="walk-badge">🚶 ${escapeHtml(v.walking_str)} · ${escapeHtml(v.distance_str)}</span>`
+                        : (v.distance_str ? `<span class="pill" style="margin:0;">📍 ${escapeHtml(v.distance_str)}</span>` : '');
+                    const formatInfo = v.price
+                        ? `<span style="font-size:0.8rem; color:var(--color-primary); font-weight:700;">${Number(v.price).toFixed(2)}€</span>`
+                        : '';
+                    return `
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:0.8rem; flex-wrap:wrap; ${borderStyle}">
+                            <div style="min-width:0; flex:1;">
+                                <a href="/venue/${v.venue_id}" style="color:var(--text-main); text-decoration:none; font-weight:700; font-size:1rem;">
+                                    🏪 ${escapeHtml(v.name)}${verifiedBadge}
+                                </a>
+                                <p style="margin:0.2rem 0 0; font-size:0.82rem; color:var(--text-secondary);">
+                                    ${escapeHtml(v.address)}${v.city ? ', ' + escapeHtml(v.city) : ''}
+                                </p>
+                            </div>
+                            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:0.25rem;">
+                                ${distBadge}
+                                ${formatInfo}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
             })
-            .catch(() => {}); // silencioso si falla
+            .catch(() => {
+                listEl.innerHTML = '<p style="margin:0; color:var(--text-secondary);">No se pudieron consultar los locales cercanos.</p>';
+            });
     }
 
     window.getAppLocation(
-        pos => showNearestVenue(pos.coords.latitude, pos.coords.longitude),
-        () => showNearestVenue(null, null)
+        pos => renderVenues(pos.coords.latitude, pos.coords.longitude),
+        () => renderVenues(null, null)
     );
 })();
 
-{% if beer.image %}
 function openImageModal() {
-    document.getElementById('image-modal').style.display = 'flex';
+    const m = document.getElementById('image-modal');
+    if (m) m.style.display = 'flex';
 }
-
 function closeImageModal() {
-    document.getElementById('image-modal').style.display = 'none';
+    const m = document.getElementById('image-modal');
+    if (m) m.style.display = 'none';
 }
-{% else %}
-function openImageModal() {}
-{% endif %}
 </script>
-
-<!-- Image Modal -->
-{% if beer.image %}
-<div id="image-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center;" onclick="closeImageModal()">
-    <span style="position: absolute; top: 20px; right: 30px; color: white; font-size: 30px; font-weight: bold; cursor: pointer;">&times;</span>
-    <img src="{{ url_for('static', filename='images/beers/' + beer.image) }}" style="max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.8);">
-</div>
-{% endif %}
-
 {% endblock %}

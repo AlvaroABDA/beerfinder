@@ -5,522 +5,880 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
 <style>
-    .accordion-item {
-        background: var(--bg-panel);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-card);
-        margin-bottom: 0.8rem;
-        overflow: hidden;
-    }
-    
-    .accordion-header {
-        background: transparent;
-        color: var(--text-secondary);
-        border: none;
-        padding: 1.2rem;
-        width: 100%;
-        text-align: left;
-        font-size: 1.1rem;
-        font-weight: 500;
-        cursor: pointer;
+    .admin-dashboard-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        transition: all 0.2s;
+        margin-bottom: 1.8rem;
+        flex-wrap: wrap;
+        gap: 1rem;
     }
-    
-    .accordion-header:hover {
-        background: var(--color-tertiary);
+    .admin-dashboard-title h2 {
+        margin: 0 0 0.3rem 0;
+        font-size: 1.6rem;
+        font-weight: 800;
         color: var(--text-main);
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
     }
-    
-    .accordion-header.active {
+    .admin-dashboard-title p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+    }
+    .admin-header-actions {
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+    }
+    .admin-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    .admin-kpi-card {
+        background: var(--bg-panel);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-card);
+        padding: 1.1rem 1.25rem;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.15s ease, border-color 0.15s;
+    }
+    .admin-kpi-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(245, 158, 11, 0.35);
+    }
+    .admin-kpi-card.alert-highlight {
+        border-color: rgba(245, 158, 11, 0.55);
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(22, 25, 32, 0.9) 100%);
+    }
+    .admin-kpi-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .admin-kpi-value {
+        font-size: 1.85rem;
+        font-weight: 800;
+        color: var(--text-main);
+        margin: 0.4rem 0 0.2rem 0;
+        line-height: 1;
+    }
+    .admin-kpi-sub { font-size: 0.8rem; color: var(--text-secondary); }
+    .admin-tabs-bar {
+        display: flex;
+        gap: 0.5rem;
+        overflow-x: auto;
+        padding-bottom: 0.8rem;
+        margin-bottom: 1.8rem;
+        border-bottom: 1px solid var(--border-color);
+        scrollbar-width: none;
+    }
+    .admin-tabs-bar::-webkit-scrollbar { display: none; }
+    .admin-tab-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.65rem 1.15rem;
+        background: var(--bg-panel);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-pill);
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        font-weight: 600;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+    .admin-tab-btn.active {
+        background: rgba(245, 158, 11, 0.16);
+        color: var(--color-primary);
+        border-color: rgba(245, 158, 11, 0.5);
+    }
+    .admin-tab-badge {
+        font-size: 0.72rem;
+        padding: 1px 7px;
+        border-radius: 10px;
+        background: rgba(255,255,255,0.08);
+        color: var(--text-secondary);
+    }
+    .admin-tab-btn.active .admin-tab-badge {
         background: var(--color-primary);
-        color: var(--text-dark);
+        color: #0E1015;
         font-weight: 700;
     }
-    
-    .accordion-content {
-        display: none;
-        padding: 1.2rem;
-        border-top: 1px solid var(--border-color);
-        background: var(--bg-body);
+    .admin-tab-badge.badge-alert {
+        background: #F59E0B !important;
+        color: #0E1015 !important;
+        font-weight: 700;
     }
-    
-    .admin-table th, .admin-table td {
-        padding: 0.8rem;
-        border-bottom: 1px solid var(--border-color);
+    .admin-pane { display: none; }
+    .admin-pane.active { display: block; }
+    .admin-desktop-table-container {
+        background: var(--bg-panel);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-card);
+        overflow-x: auto;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+        margin-bottom: 2rem;
+    }
+    .admin-table {
+        width: 100%;
+        border-collapse: collapse;
         text-align: left;
+        font-size: 0.9rem;
     }
     .admin-table th {
-        color: var(--color-secondary);
-        font-weight: 600;
+        background: rgba(255,255,255,0.02);
+        color: var(--text-secondary);
+        font-weight: 700;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 0.9rem 1.1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .admin-table td {
+        padding: 0.85rem 1.1rem;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+        color: var(--text-main);
+        vertical-align: middle;
+    }
+    .admin-split-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        align-items: start;
+    }
+    @media (max-width: 900px) { .admin-split-grid { grid-template-columns: 1fr; } }
+    .admin-form-box {
+        background: var(--bg-panel);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-card);
+        padding: 1.4rem;
+        margin-bottom: 1.8rem;
+    }
+    .admin-form-box h4 {
+        margin: 0 0 1rem 0;
+        font-size: 1.05rem;
+        color: var(--color-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .claim-desktop-card {
+        background: var(--bg-panel);
+        border: 1px solid var(--border-color);
+        border-left: 4px solid var(--color-primary);
+        border-radius: var(--radius-card);
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.25);
     }
 </style>
 
-    <div class="card" style="border: none; background: transparent; padding: 0;">
-        <h2 style="margin-top:0; margin-bottom: 1.5rem;">Panel de Administración</h2>
-        
-        <div class="accordion-container">
-            
-            <!-- Item 1: Usuarios -->
-            <div class="accordion-item">
-                <button class="accordion-header {% if search_type == 'users' or not search_type %}active{% endif %}" data-target="content-users">
-                    <span>👥 Usuarios</span>
-                </button>
-                <div class="accordion-content" id="content-users" {% if search_type == 'users' or not search_type %}style="display: block;"{% endif %}>
-                    
-                    <div style="background: var(--bg-panel); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
-                        <h4 style="margin-top:0; color:var(--text-secondary);">🔍 Buscar Usuarios</h4>
-                        <form method="GET" action="{{ url_for('routes.admin') }}" style="display:flex; gap:0.8rem;">
-                            <input type="hidden" name="type" value="users">
-                            <input type="text" name="q" placeholder="Email o nombre..." required style="flex:1; margin:0;">
-                            <button type="submit" class="btn" style="width:auto;">Buscar</button>
-                        </form>
-                    </div>
+<div>
+    <!-- 1. DASHBOARD HEADER -->
+    <div class="admin-dashboard-header">
+        <div class="admin-dashboard-title">
+            <h2>{{ icon('settings') }} Panel de Gobernanza y Administración</h2>
+            <p>Supervisión global de usuarios, catálogo, locales y verificación de propiedad multi-vía.</p>
+        </div>
+        <div class="admin-header-actions">
+            <a href="{{ url_for('routes.beer_new') }}" class="btn btn-outline" style="width:auto; padding:0.5rem 0.9rem; font-size:0.85rem;">🍺 + Cerveza</a>
+            <a href="{{ url_for('routes.venue_new') }}" class="btn btn-outline" style="width:auto; padding:0.5rem 0.9rem; font-size:0.85rem;">🏪 + Local</a>
+            <a href="{{ url_for('routes.fabricante_new') }}" class="btn btn-outline" style="width:auto; padding:0.5rem 0.9rem; font-size:0.85rem;">🏭 + Marca</a>
+            <a href="{{ url_for('routes.index') }}" class="btn" style="width:auto; padding:0.5rem 1rem; font-size:0.85rem;">{{ icon('home') }} Volver a la App</a>
+        </div>
+    </div>
 
-                    {% if pending_users %}
-                    <div style="background: var(--color-tertiary); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
-                        <h4 style="margin-top:0; color:var(--color-primary);">⏳ Pendientes de Aprobación</h4>
-                        <ul style="list-style:none; padding:0; margin:0;">
-                        {% for u in pending_users %}
-                            <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <strong style="color:var(--text-main);">{{ u.username }}</strong> 
-                                    <span class="pill">{{ u.role }}</span><br>
-                                    <small style="color:var(--text-secondary);">{{ u.email }}</small>
-                                </div>
-                                <form method="POST" action="{{ url_for('routes.approve_user', user_id=u.id) }}" style="margin:0;">
-                                    <button type="submit" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Aprobar</button>
-                                </form>
-                            </li>
-                        {% endfor %}
-                        </ul>
-                    </div>
-                    {% endif %}
+    <!-- 2. KPI METRICS -->
+    <div class="admin-kpi-grid">
+        <div class="admin-kpi-card {% if metrics.pending_claims > 0 %}alert-highlight{% endif %}" onclick="switchAdminTab('pane-claims', document.getElementById('tab-btn-claims'))" style="cursor:pointer;">
+            <div class="admin-kpi-top"><span>Reclamaciones</span><span>{{ icon('scale') }}</span></div>
+            <div class="admin-kpi-value" style="color:{% if metrics.pending_claims > 0 %}#F59E0B{% else %}var(--text-main){% endif %};">{{ metrics.pending_claims }}</div>
+            <div class="admin-kpi-sub">{% if metrics.pending_claims > 0 %}<strong style="color:#F59E0B;">⚠️ Pendientes de revisión</strong>{% else %}Al día ({{ metrics.total_claims }} totales){% endif %}</div>
+        </div>
+        <div class="admin-kpi-card" onclick="switchAdminTab('pane-users', document.getElementById('tab-btn-users'))" style="cursor:pointer;">
+            <div class="admin-kpi-top"><span>Usuarios</span><span>{{ icon('users') }}</span></div>
+            <div class="admin-kpi-value">{{ metrics.total_users }}</div>
+            <div class="admin-kpi-sub">{% if metrics.pending_users > 0 %}<strong style="color:#F59E0B;">{{ metrics.pending_users }} pendientes</strong>{% else %}Todos activos{% endif %}</div>
+        </div>
+        <div class="admin-kpi-card" onclick="switchAdminTab('pane-venues', document.getElementById('tab-btn-venues'))" style="cursor:pointer;">
+            <div class="admin-kpi-top"><span>Locales</span><span>{{ icon('store') }}</span></div>
+            <div class="admin-kpi-value">{{ metrics.total_venues }}</div>
+            <div class="admin-kpi-sub">{{ metrics.active_venues }} activos en mapa</div>
+        </div>
+        <div class="admin-kpi-card" onclick="switchAdminTab('pane-beers', document.getElementById('tab-btn-beers'))" style="cursor:pointer;">
+            <div class="admin-kpi-top"><span>Cervezas</span><span>🍺</span></div>
+            <div class="admin-kpi-value">{{ metrics.total_beers }}</div>
+            <div class="admin-kpi-sub">{{ metrics.active_beers }} activas</div>
+        </div>
+        <div class="admin-kpi-card" onclick="switchAdminTab('pane-fabricantes', document.getElementById('tab-btn-fabricantes'))" style="cursor:pointer;">
+            <div class="admin-kpi-top"><span>Fabricantes</span><span>{{ icon('factory') }}</span></div>
+            <div class="admin-kpi-value">{{ metrics.total_fabricantes }}</div>
+            <div class="admin-kpi-sub">Marcas registradas</div>
+        </div>
+    </div>
 
-                    <h4 style="margin-top:0; color:var(--text-secondary);">Directorio General</h4>
-                    {% if users %}
-                    <div style="overflow-x:auto;">
-                        <table class="admin-table" style="width:100%; border-collapse:collapse;">
-                            <tr><th>ID</th><th>Usuario</th><th>Email</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr>
-                            {% for u in users %}
-                            <tr style="{% if u.status == 'INACTIVE' %}opacity: 0.5;{% endif %}">
-                                <td>#{{ u.id }}</td>
-                                <td>{{ u.username }}</td>
-                                <td>{{ u.email }}</td>
-                                <td><span class="pill">{{ u.role }}</span></td>
-                                <td>{{ u.status }}</td>
-                                <td style="display:flex; gap:0.5rem;">
-                                    <a href="{{ url_for('routes.edit_user', id=u.id) }}" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Editar</a>
-                                    <form method="POST" action="{{ url_for('routes.toggle_user', id=u.id) }}" style="margin:0;">
-                                        <button type="submit" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">
-                                            {% if u.status == 'ACTIVE' %}Desactivar{% else %}Activar{% endif %}
-                                        </button>
-                                    </form>
-                                    <form method="POST" action="{{ url_for('routes.delete_user', id=u.id) }}" style="margin:0;" onsubmit="return confirm('¿Seguro que quieres borrar este usuario permanentemente?');">
-                                        <button type="submit" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; color: #ff6b6b; border-color: #ff6b6b;">Borrar</button>
-                                    </form>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </table>
-                    </div>
-                    {% else %}
-                    <p>No hay usuarios registrados.</p>
-                    {% endif %}
-                </div>
-            </div>
+    <!-- 3. TABS -->
+    <div class="admin-tabs-bar">
+        <button type="button" id="tab-btn-claims" class="admin-tab-btn {% if search_type == 'claims' or (not search_type and metrics.pending_claims > 0) %}active{% endif %}" onclick="switchAdminTab('pane-claims', this)">
+            <span>{{ icon('scale') }} Verificaciones de Propiedad</span>
+            {% if metrics.pending_claims > 0 %}
+                <span class="admin-tab-badge badge-alert">{{ metrics.pending_claims }}</span>
+            {% else %}
+                <span class="admin-tab-badge">{{ metrics.total_claims }}</span>
+            {% endif %}
+        </button>
+        <button type="button" id="tab-btn-users" class="admin-tab-btn {% if search_type == 'users' or (not search_type and metrics.pending_claims == 0) %}active{% endif %}" onclick="switchAdminTab('pane-users', this)">
+            <span>{{ icon('users') }} Usuarios</span>
+            <span class="admin-tab-badge">{{ metrics.total_users }}</span>
+        </button>
+        <button type="button" id="tab-btn-venues" class="admin-tab-btn {% if search_type == 'venues' %}active{% endif %}" onclick="switchAdminTab('pane-venues', this)">
+            <span>{{ icon('store') }} Locales</span>
+            <span class="admin-tab-badge">{{ metrics.total_venues }}</span>
+        </button>
+        <button type="button" id="tab-btn-beers" class="admin-tab-btn {% if search_type == 'beers' %}active{% endif %}" onclick="switchAdminTab('pane-beers', this)">
+            <span>🍺 Cervezas</span>
+            <span class="admin-tab-badge">{{ metrics.total_beers }}</span>
+        </button>
+        <button type="button" id="tab-btn-fabricantes" class="admin-tab-btn {% if search_type == 'fabricantes' %}active{% endif %}" onclick="switchAdminTab('pane-fabricantes', this)">
+            <span>{{ icon('factory') }} Fabricantes</span>
+            <span class="admin-tab-badge">{{ metrics.total_fabricantes }}</span>
+        </button>
+        <button type="button" id="tab-btn-taxonomy" class="admin-tab-btn {% if search_type == 'taxonomy' %}active{% endif %}" onclick="switchAdminTab('pane-taxonomy', this)">
+            <span>{{ icon('tag') }} Taxonomía</span>
+            <span class="admin-tab-badge">{{ styles|length }}</span>
+        </button>
+    </div>
 
-            <!-- Item 2: Locales -->
-            <div class="accordion-item">
-                <button class="accordion-header {% if search_type == 'venues' %}active{% endif %}" data-target="content-venues">
-                    <span>🏪 Locales</span>
-                </button>
-                <div class="accordion-content" id="content-venues" {% if search_type == 'venues' %}style="display: block;"{% endif %}>
-                    
-                    <div style="background: var(--bg-panel); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
-                        <h4 style="margin-top:0; color:var(--text-secondary);">🔍 Buscar Locales</h4>
-                        <form method="GET" action="{{ url_for('routes.admin') }}" style="display:flex; gap:0.8rem;">
-                            <input type="hidden" name="type" value="venues">
-                            <input type="text" name="q" placeholder="Nombre o ciudad..." required style="flex:1; margin:0;">
-                            <button type="submit" class="btn" style="width:auto;">Buscar</button>
-                        </form>
-                    </div>
-
-                    <div style="background: var(--bg-panel); padding: 1rem; border-radius: 8px; border: 1px dashed var(--border-color); margin-bottom: 1.5rem;">
-                        <h4 style="margin-top:0; color:var(--color-secondary);">➕ Añadir Nuevo Local</h4>
-                        <form method="POST" action="{{ url_for('routes.venue_new') }}">
-                            <div style="display: flex; gap: 1rem;">
-                                <div style="flex:1;">
-                                    <label>Nombre del Bar</label>
-                                    <input type="text" name="name" required>
-                                </div>
-                                <div style="flex:1;">
-                                    <label>Ciudad</label>
-                                    <input type="text" name="city" required>
-                                </div>
-                            </div>
-                            
-                            <label>Dirección</label>
-                            <input type="text" name="address" required>
-                            
-                            <label>Descripción</label>
-                            <textarea name="description" rows="2"></textarea>
-                            
-                            <label>Ubicación (opcional, clic en mapa o se buscará sola)</label>
-                            <div id="admin-map" style="height: 200px; width: 100%; border-radius: 8px; margin-bottom: 1rem; z-index: 1;"></div>
-                            
-                            <div style="display: flex; gap: 1rem; display: none;">
-                                <input type="text" id="latitude" name="latitude">
-                                <input type="text" id="longitude" name="longitude">
-                            </div>
-                            
-                            <button type="submit" class="btn btn-outline">Añadir Establecimiento</button>
-                        </form>
-                    </div>
-
-                    <h4 style="margin-top:0; color:var(--text-secondary);">Directorio de Locales</h4>
-                    {% if venues %}
-                    <div style="overflow-x:auto;">
-                        <table class="admin-table" style="width:100%; border-collapse:collapse;">
-                            <tr><th>Nombre</th><th>Ciudad</th><th>Coords</th><th>Acciones</th></tr>
-                            {% for v in venues %}
-                            <tr style="{% if not is_active(v) %}opacity: 0.5;{% endif %}">
-                                <td><strong>{{ v.name }}</strong></td>
-                                <td>{{ v.city }}</td>
-                                <td style="font-size:0.8rem; color:var(--text-secondary);">{{ v.latitude|default('-')|round(4) if v.latitude }}, {{ v.longitude|default('-')|round(4) if v.longitude }}</td>
-                                <td style="display:flex; gap:0.5rem;">
-                                    <a href="{{ url_for('routes.edit_venue', id=v.id) }}" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Editar</a>
-                                    <form method="POST" action="{{ url_for('routes.toggle_venue', id=v.id) }}" style="margin:0;">
-                                        <button type="submit" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">
-                                            {% if is_active(v) %}Desactivar{% else %}Activar{% endif %}
-                                        </button>
-                                    </form>
-                                    <form method="POST" action="{{ url_for('routes.delete_venue', id=v.id) }}" style="margin:0;" onsubmit="return confirm('¿Seguro que quieres borrar este local permanentemente?');">
-                                        <button type="submit" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; color: #ff6b6b; border-color: #ff6b6b;">Borrar</button>
-                                    </form>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </table>
-                    </div>
-                    {% else %}
-                    <p>No hay locales.</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Item 3: Cervezas -->
-            <div class="accordion-item">
-                <button class="accordion-header {% if search_type == 'beers' %}active{% endif %}" data-target="content-beers">
-                    <span>🍺 Cervezas</span>
-                </button>
-                <div class="accordion-content" id="content-beers" {% if search_type == 'beers' %}style="display: block;"{% endif %}>
-                    
-                    <div style="background: var(--bg-panel); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
-                        <h4 style="margin-top:0; color:var(--text-secondary);">🔍 Buscar Cervezas</h4>
-                        <form method="GET" action="{{ url_for('routes.admin') }}" style="display:flex; gap:0.8rem;">
-                            <input type="hidden" name="type" value="beers">
-                            <input type="text" name="q" placeholder="Nombre, estilo o fabricante..." required style="flex:1; margin:0;">
-                            <button type="submit" class="btn" style="width:auto;">Buscar</button>
-                        </form>
-                    </div>
-
-                    <div style="margin-bottom: 1.5rem; text-align: right;">
-                        <a href="{{ url_for('routes.beer_new') }}" class="btn btn-outline" style="width:auto; padding: 0.6rem 1.2rem;">+ Añadir Cerveza (Formulario completo)</a>
-                    </div>
-
-                    <h4 style="margin-top:0; color:var(--text-secondary);">Catálogo Global</h4>
-                    {% if beers %}
-                    <div style="overflow-x:auto;">
-                        <table class="admin-table" style="width:100%; border-collapse:collapse;">
-                            <tr><th>Nombre</th><th>Fabricante</th><th>Estilo</th><th>Acciones</th></tr>
-                            {% for b in beers %}
-                            <tr style="{% if not is_active(b) %}opacity: 0.5;{% endif %}">
-                                <td><strong>{{ b.name }}</strong></td>
-                                <td>{{ b.brewery }}</td>
-                                <td><span class="pill" style="margin:0;">{{ b.style }}</span></td>
-                                <td style="display:flex; gap:0.5rem;">
-                                    <a href="{{ url_for('routes.edit_beer', id=b.id) }}" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Editar</a>
-                                    <form method="POST" action="{{ url_for('routes.toggle_beer', id=b.id) }}" style="margin:0;">
-                                        <button type="submit" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">
-                                            {% if is_active(b) %}Desactivar{% else %}Activar{% endif %}
-                                        </button>
-                                    </form>
-                                    <form method="POST" action="{{ url_for('routes.delete_beer', id=b.id) }}" style="margin:0;" onsubmit="return confirm('¿Seguro que quieres borrar esta cerveza permanentemente?');">
-                                        <button type="submit" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; color: #ff6b6b; border-color: #ff6b6b;">Borrar</button>
-                                    </form>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </table>
-                    </div>
-                    {% else %}
-                    <p>No hay cervezas registradas.</p>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <!-- Item 4: Fabricantes -->
-            <div class="accordion-item">
-                <button class="accordion-header {% if search_type == 'fabricantes' %}active{% endif %}" data-target="content-fabricantes">
-                    <span>🏭 Fabricantes/Proveedores</span>
-                </button>
-                <div class="accordion-content" id="content-fabricantes" {% if search_type == 'fabricantes' %}style="display: block;"{% endif %}>
-                    
-                    <div style="background: var(--bg-panel); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
-                        <h4 style="margin-top:0; color:var(--text-secondary);">🔍 Buscar Fabricantes</h4>
-                        <form method="GET" action="{{ url_for('routes.admin') }}" style="display:flex; gap:0.8rem;">
-                            <input type="hidden" name="type" value="fabricantes">
-                            <input type="text" name="q" placeholder="Nombre o país..." required style="flex:1; margin:0;">
-                            <button type="submit" class="btn" style="width:auto;">Buscar</button>
-                        </form>
-                    </div>
-
-                    <div style="background: var(--bg-panel); padding: 1rem; border-radius: 8px; border: 1px dashed var(--border-color); margin-bottom: 1.5rem;">
-                        <h4 style="margin-top:0; color:var(--color-secondary);">➕ Añadir Fabricante</h4>
-                        <form method="POST" action="{{ url_for('routes.fabricante_new') }}" enctype="multipart/form-data">
-                            <div style="display: flex; gap: 1rem;">
-                                <div style="flex:2;">
-                                    <label>Nombre del Fabricante</label>
-                                    <input type="text" name="name" placeholder="Ej: Basqueland" required>
-                                </div>
-                                <div style="flex:1;">
-                                    <label>País / Origen</label>
-                                    <input type="text" name="country" placeholder="Ej: España" required>
-                                </div>
-                            </div>
-                            
-                            <div style="display: flex; gap: 1rem;">
-                                <div style="flex:1;">
-                                    <label>Sitio Web</label>
-                                    <input type="url" name="website" placeholder="Ej: https://basqueland.com">
-                                </div>
-                                <div style="flex:1;">
-                                    <label>Email de Contacto</label>
-                                    <input type="email" name="email" placeholder="Ej: info@basqueland.com">
-                                </div>
-                            </div>
-                            
-                            <div style="display: flex; gap: 1rem;">
-                                <div style="flex:1;">
-                                    <label>Número de Teléfono</label>
-                                    <input type="tel" name="phone" placeholder="Ej: +34 123 456 789">
-                                </div>
-                                <div style="flex:1;">
-                                    <label>Logotipo (Imagen)</label>
-                                    <input type="file" name="logo" accept="image/*" style="background: var(--bg-panel); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.8rem; width: 100%; box-sizing: border-box;">
-                                </div>
-                            </div>
-                            
-                            <label>Descripción Breve</label>
-                            <textarea name="description" rows="2" placeholder="Opcional..."></textarea>
-                            
-                            <button type="submit" class="btn btn-outline">Añadir Fabricante</button>
-                        </form>
-                    </div>
-
-                    <h4 style="margin-top:0; color:var(--text-secondary);">Directorio de Fabricantes</h4>
-                    {% if fabricantes %}
-                    <div style="overflow-x:auto;">
-                        <table class="admin-table" style="width:100%; border-collapse:collapse;">
-                            <tr><th>Nombre</th><th>Origen</th><th>Acciones</th></tr>
-                            {% for f in fabricantes %}
-                            <tr style="{% if not is_active(f) %}opacity: 0.5;{% endif %}">
-                                <td><strong>{{ f.name }}</strong></td>
-                                <td>{{ f.country }}</td>
-                                <td style="display:flex; gap:0.5rem;">
-                                    <a href="{{ url_for('routes.edit_fabricante', id=f.id) }}" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Editar</a>
-                                    <form method="POST" action="{{ url_for('routes.toggle_fabricante', id=f.id) }}" style="margin:0;">
-                                        <button type="submit" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">
-                                            {% if is_active(f) %}Desactivar{% else %}Activar{% endif %}
-                                        </button>
-                                    </form>
-                                    <form method="POST" action="{{ url_for('routes.delete_fabricante', id=f.id) }}" style="margin:0;" onsubmit="return confirm('¿Seguro que quieres borrar este fabricante permanentemente?');">
-                                        <button type="submit" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; color: #ff6b6b; border-color: #ff6b6b;">Borrar</button>
-                                    </form>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </table>
-                    </div>
-                    {% else %}
-                    <p>No hay fabricantes registrados.</p>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <!-- Item 5: Taxonomía -->
-            <div class="accordion-item">
-                <button class="accordion-header {% if search_type == 'taxonomy' %}active{% endif %}" data-target="content-taxonomy">
-                    <span>🏷️ Taxonomía (Clasificación)</span>
-                </button>
-                <div class="accordion-content" id="content-taxonomy" {% if search_type == 'taxonomy' %}style="display: block;"{% endif %}>
-                    
-                    <div style="background: var(--bg-panel); padding: 1rem; border-radius: 8px; border: 1px dashed var(--border-color); margin-bottom: 1.5rem;">
-                        <h4 style="margin-top:0; color:var(--color-secondary);">Familias de Cerveza</h4>
-                        <form method="POST" action="{{ url_for('routes.add_family') }}" style="display:flex; gap:0.5rem; margin-bottom:1rem;">
-                            <input type="text" name="name" placeholder="Nueva Familia" required style="flex:1;">
-                            <button type="submit" class="btn btn-outline" style="width:auto;">Añadir</button>
-                        </form>
-                        {% if families %}
-                        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                            {% for f in families %}
-                            <span class="pill" style="font-size:0.9rem; padding:0.4rem 0.8rem;">{{ f.name }}</span>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-                    </div>
-
-                    <div style="background: var(--bg-panel); padding: 1rem; border-radius: 8px; border: 1px dashed var(--border-color); margin-bottom: 1.5rem;">
-                        <h4 style="margin-top:0; color:var(--color-secondary);">Estilos de Cerveza</h4>
-                        <form method="POST" action="{{ url_for('routes.add_style') }}" style="display:flex; gap:0.5rem; margin-bottom:1rem;">
-                            <select name="family_id" required style="width:auto;">
-                                <option value="">Selecciona Familia...</option>
-                                {% for f in families %}
-                                <option value="{{ f.id }}">{{ f.name }}</option>
-                                {% endfor %}
-                            </select>
-                            <input type="text" name="name" placeholder="Nuevo Estilo" required style="flex:1;">
-                            <button type="submit" class="btn btn-outline" style="width:auto;">Añadir</button>
-                        </form>
-                        {% if styles %}
-                        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                            {% for s in styles %}
-                            <span class="pill" style="font-size:0.85rem; background: var(--bg-primary); border: 1px solid var(--border-color);">{{ s.name }}</span>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-                    </div>
-
-                    <div style="background: var(--bg-panel); padding: 1rem; border-radius: 8px; border: 1px dashed var(--border-color); margin-bottom: 1.5rem;">
-                        <h4 style="margin-top:0; color:var(--color-secondary);">Tags (Características)</h4>
-                        <form method="POST" action="{{ url_for('routes.add_tag') }}" style="display:flex; gap:0.5rem; margin-bottom:1rem;">
-                            <input type="text" name="name" placeholder="Nuevo Tag" required style="flex:1;">
-                            <button type="submit" class="btn btn-outline" style="width:auto;">Añadir</button>
-                        </form>
-                        {% if tags %}
-                        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                            {% for t in tags %}
-                            <span class="pill" style="font-size:0.85rem; background: var(--color-primary); color: black;">{{ t.name }}</span>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-
-            <!-- Item 6: Reclamaciones -->
-            <div class="accordion-item">
-                <button class="accordion-header {% if search_type == 'claims' %}active{% endif %}" data-target="content-claims">
-                    <span>⚖️ Reclamaciones (Propiedad)</span>
-                </button>
-                <div class="accordion-content" id="content-claims" {% if search_type == 'claims' %}style="display: block;"{% endif %}>
-                    
-                    <h4 style="margin-top:0; color:var(--text-secondary);">Reclamaciones Pendientes</h4>
-                    {% set pending_claims = claims|selectattr("status", "equalto", "PENDING")|list %}
-                    {% if pending_claims %}
-                    <div style="overflow-x:auto;">
-                        <table class="admin-table" style="width:100%; border-collapse:collapse;">
-                            <tr><th>Fecha</th><th>Usuario</th><th>Entidad</th><th>Acciones</th></tr>
-                            {% for c in pending_claims %}
-                            <tr>
-                                <td>{{ c.created_at[:10] }}</td>
-                                <td><strong>{{ c.requesting_username }}</strong></td>
-                                <td>
-                                    <span class="pill">{{ c.entity_type|upper }}</span> {{ c.entity_name }}
-                                </td>
-                                <td style="display:flex; gap:0.5rem;">
-                                    <form method="POST" action="{{ url_for('routes.process_claim', claim_id=c.id, action='approve') }}" style="margin:0;">
-                                        <button type="submit" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; color: #2ecc71; border-color: #2ecc71;">Aprobar</button>
-                                    </form>
-                                    <form method="POST" action="{{ url_for('routes.process_claim', claim_id=c.id, action='reject') }}" style="margin:0;">
-                                        <button type="submit" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; color: #e74c3c; border-color: #e74c3c;">Rechazar</button>
-                                    </form>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </table>
-                    </div>
-                    {% else %}
-                    <p>No hay reclamaciones pendientes.</p>
-                    {% endif %}
-                    
-                    <h4 style="margin-top:2rem; color:var(--text-secondary);">Historial Reciente</h4>
-                    {% set resolved_claims = claims|selectattr("status", "in", ["APPROVED", "REJECTED"])|list %}
-                    {% if resolved_claims %}
-                    <div style="overflow-x:auto;">
-                        <table class="admin-table" style="width:100%; border-collapse:collapse; opacity: 0.7;">
-                            <tr><th>Fecha</th><th>Usuario</th><th>Entidad</th><th>Estado</th></tr>
-                            {% for c in resolved_claims[:10] %}
-                            <tr>
-                                <td>{{ c.created_at[:10] }}</td>
-                                <td>{{ c.requesting_username }}</td>
-                                <td><span class="pill" style="opacity: 0.6;">{{ c.entity_type|upper }}</span> {{ c.entity_name }}</td>
-                                <td>
-                                    {% if c.status == 'APPROVED' %}
-                                    <span style="color: #2ecc71; font-weight: bold;">Aprobada</span>
-                                    {% else %}
-                                    <span style="color: #e74c3c; font-weight: bold;">Rechazada</span>
+    <!-- PANE: RECLAMACIONES Y VERIFICACIÓN -->
+    <div id="pane-claims" class="admin-pane {% if search_type == 'claims' or (not search_type and metrics.pending_claims > 0) %}active{% endif %}">
+        {% set pending_claims = claims|selectattr("status", "equalto", "PENDING")|list %}
+        {% if pending_claims %}
+            <div style="margin-bottom:2rem;">
+                <h4 style="margin:0 0 1rem 0; color:#F59E0B;">⏳ Solicitudes Pendientes de Decisión ({{ pending_claims|length }})</h4>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(430px, 1fr)); gap:1rem;">
+                    {% for c in pending_claims %}
+                    <div class="claim-desktop-card" style="{% if c.is_dispute %}border-left-color:#EF4444;{% endif %}">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.6rem; margin-bottom:0.75rem;">
+                            <div>
+                                <div style="display:flex; gap:0.4rem; flex-wrap:wrap; margin-bottom:0.3rem;">
+                                    <span class="pill" style="margin:0; font-size:0.7rem;">{{ c.entity_type|upper }}</span>
+                                    <span class="pill" style="margin:0; font-size:0.7rem; background:rgba(255,255,255,0.06);">{{ c.verification_method }} · {{ c.verification_status }}</span>
+                                    {% if c.is_dispute %}
+                                    <span class="pill" style="margin:0; font-size:0.7rem; background:rgba(239, 68, 68, 0.2); color:#FCA5A5; border-color:#EF4444;">⚖️ DISPUTA DE TITULARIDAD</span>
                                     {% endif %}
-                                </td>
-                            </tr>
+                                </div>
+                                <h4 style="margin:0; font-size:1.15rem;">
+                                    <a href="{{ c.entity_url }}" style="color:var(--text-main); text-decoration:none;">{{ c.entity_name }} ↗</a>
+                                </h4>
+                                <small style="color:var(--text-secondary);">
+                                    Solicitado el {{ (c.created_at or '')[:10] }} por <strong>{{ c.requesting_username }}</strong> ({{ c.requesting_email or 'sin email' }})
+                                </small>
+                            </div>
+                            <div style="text-align:right; flex-shrink:0;">
+                                <span class="pill" style="margin:0; font-weight:800; font-size:0.78rem; {% if c.trust_score >= 70 %}background:rgba(16, 185, 129, 0.2); color:#6EE7B7; border-color:#10B981;{% elif c.trust_score >= 40 %}background:rgba(245, 158, 11, 0.18); color:#FCD34D; border-color:#F59E0B;{% else %}background:rgba(239, 68, 68, 0.16); color:#FCA5A5; border-color:#EF4444;{% endif %}">
+                                    Trust {{ c.trust_score }}/100
+                                </span>
+                            </div>
+                        </div>
+
+                        {% if c.verification_target or c.verification_token %}
+                        <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:0.55rem;">
+                            {% if c.verification_target %}🎯 Destino: <code>{{ c.verification_target }}</code>{% endif %}
+                            {% if c.verification_token %} · 🔑 Token: <code>{{ c.verification_token }}</code>{% endif %}
+                        </div>
+                        {% endif %}
+
+                        {% if c.justification %}
+                        <div style="background:var(--bg-body); border-left:3px solid var(--color-primary); padding:0.7rem 0.9rem; border-radius:4px; font-size:0.86rem; margin-bottom:0.6rem;">
+                            <strong>Justificación:</strong> “{{ c.justification }}”
+                        </div>
+                        {% endif %}
+
+                        <div style="display:flex; gap:0.8rem; flex-wrap:wrap; margin-bottom:0.7rem;">
+                            {% if c.evidence_url %}
+                            <a href="{{ c.evidence_url }}" target="_blank" rel="noopener" style="font-size:0.82rem; color:var(--color-primary); text-decoration:underline;">
+                                🌐 Enlace público aportado ↗
+                            </a>
+                            {% endif %}
+                            {% if c.evidence_file %}
+                            <a href="{{ url_for('routes.claim_evidence_download', claim_id=c.id) }}" target="_blank" style="font-size:0.82rem; color:#6EE7B7; text-decoration:underline; font-weight:700;">
+                                🔒 Ver documento acreditativo privado ↗
+                            </a>
+                            {% endif %}
+                        </div>
+
+                        {% if c.trust_signals %}
+                        <div style="margin-bottom:0.9rem; display:flex; flex-wrap:wrap; gap:0.4rem;">
+                            {% for level, text in c.trust_signals %}
+                            <span class="pill" style="margin:0; font-size:0.74rem; {% if level == 'success' %}background:rgba(16, 185, 129, 0.15); color:#6EE7B7; border:1px solid rgba(16, 185, 129, 0.3);{% else %}background:rgba(245, 158, 11, 0.15); color:#FCD34D; border:1px solid rgba(245, 158, 11, 0.3);{% endif %}">
+                                {% if level == 'success' %}✅{% else %}⚠️{% endif %} {{ text }}
+                            </span>
                             {% endfor %}
-                        </table>
+                        </div>
+                        {% endif %}
+
+                        <div style="display:flex; gap:0.8rem; align-items:center; padding-top:0.8rem; border-top:1px solid var(--border-color); flex-wrap:wrap;">
+                            <form method="POST" action="{{ url_for('routes.process_claim', claim_id=c.id, action='approve') }}" style="margin:0;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn" style="width:auto; padding:0.5rem 1.2rem; background:#10B981; color:#0E1015; font-size:0.85rem;">
+                                    ✅ Conceder Propiedad
+                                </button>
+                            </form>
+                            <details style="flex:1; min-width:200px;">
+                                <summary class="btn btn-outline" style="width:auto; padding:0.5rem 1rem; color:#EF4444; border-color:#EF4444; cursor:pointer; font-size:0.85rem;">
+                                    ❌ Rechazar...
+                                </summary>
+                                <form method="POST" action="{{ url_for('routes.process_claim', claim_id=c.id, action='reject') }}" style="margin-top:0.6rem;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <textarea name="resolution_note" rows="2" placeholder="Motivo del rechazo..." required style="width:100%; padding:0.6rem; border-radius:8px; margin-bottom:0.5rem; font-size:0.85rem;"></textarea>
+                                    <button type="submit" class="btn" style="background:#EF4444; font-size:0.82rem; padding:0.4rem 0.8rem;">Confirmar Rechazo</button>
+                                </form>
+                            </details>
+                        </div>
                     </div>
-                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        {% else %}
+            <div style="background:var(--bg-panel); border:1px dashed var(--border-color); border-radius:var(--radius-card); padding:2rem; text-align:center; margin-bottom:2rem;">
+                <span style="font-size:2rem;">✅</span>
+                <h4 style="margin:0.5rem 0 0.2rem 0;">Sin verificaciones pendientes</h4>
+                <p style="margin:0; font-size:0.85rem; color:var(--text-secondary);">Todas las reclamaciones de propiedad están al día.</p>
+            </div>
+        {% endif %}
+
+        <h4 style="margin:1.5rem 0 0.8rem 0; color:var(--text-secondary);">Historial de Decisiones</h4>
+        {% set resolved_claims = claims|selectattr("status", "in", ["APPROVED", "REJECTED"])|list %}
+        {% if resolved_claims %}
+        <div class="admin-desktop-table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Tipo / Vía</th>
+                        <th>Entidad</th>
+                        <th>Solicitante</th>
+                        <th>Trust</th>
+                        <th>Estado</th>
+                        <th>Nota</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in resolved_claims[:20] %}
+                    <tr>
+                        <td style="color:var(--text-secondary); font-size:0.82rem;">{{ (c.created_at or '')[:10] }}</td>
+                        <td><span class="pill" style="font-size:0.7rem; margin:0;">{{ c.entity_type|upper }} · {{ c.verification_method }}</span></td>
+                        <td><strong><a href="{{ c.entity_url }}" style="color:var(--text-main);">{{ c.entity_name }}</a></strong></td>
+                        <td>{{ c.requesting_username }}</td>
+                        <td style="font-family:monospace;">{{ c.trust_score }}</td>
+                        <td>
+                            {% if c.status == 'APPROVED' %}
+                            <span class="pill" style="background:rgba(16, 185, 129, 0.2); color:#6EE7B7; border:1px solid rgba(16, 185, 129, 0.4); margin:0;">Aprobada</span>
+                            {% else %}
+                            <span class="pill" style="background:rgba(239, 68, 68, 0.2); color:#FCA5A5; border:1px solid rgba(239, 68, 68, 0.4); margin:0;">Rechazada</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size:0.82rem; color:var(--text-secondary);">{{ c.resolution_note or '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- PANE: USUARIOS -->
+    <div id="pane-users" class="admin-pane {% if search_type == 'users' or (not search_type and metrics.pending_claims == 0) %}active{% endif %}">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem; flex-wrap:wrap; gap:0.8rem;">
+            <div>
+                <h3 style="margin:0 0 0.2rem 0; font-size:1.2rem;">Directorio de Usuarios</h3>
+                <p style="margin:0; font-size:0.85rem; color:var(--text-secondary);">Cuentas registradas y estado de verificación de correo.</p>
+            </div>
+            <form method="GET" action="{{ url_for('routes.admin') }}" style="display:flex; gap:0.6rem; margin:0;">
+                <input type="hidden" name="type" value="users">
+                <input type="text" name="q" placeholder="Buscar por email o usuario..." value="{{ request.args.get('q', '') if search_type == 'users' else '' }}" style="margin:0; width:260px; padding:0.5rem 0.8rem;">
+                <button type="submit" class="btn" style="width:auto; padding:0.5rem 1rem;">Buscar</button>
+            </form>
+        </div>
+
+        {% if pending_users %}
+        <div style="background:rgba(245, 158, 11, 0.1); border:1px solid rgba(245, 158, 11, 0.35); padding:1.2rem; border-radius:var(--radius-card); margin-bottom:1.5rem;">
+            <h4 style="margin:0 0 0.8rem 0; color:#F59E0B;">⏳ Cuentas Pendientes ({{ pending_users|length }})</h4>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:0.8rem;">
+                {% for u in pending_users %}
+                <div style="background:var(--bg-panel); padding:0.9rem; border-radius:8px; border:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <strong>{{ u.username }}</strong>
+                        <div style="font-size:0.8rem; color:var(--text-secondary);">{{ u.email }}</div>
+                    </div>
+                    <form method="POST" action="{{ url_for('routes.approve_user', user_id=u.id) }}" style="margin:0;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn" style="padding:0.4rem 0.9rem; font-size:0.8rem; background:#10B981; color:#0E1015; width:auto;">Aprobar</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if users %}
+        <div class="admin-desktop-table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Usuario</th>
+                        <th>Email</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr style="{% if u.status == 'INACTIVE' %}opacity: 0.55;{% endif %}">
+                        <td style="color:var(--text-secondary); font-family:monospace;">#{{ u.id }}</td>
+                        <td><strong>{{ u.username }}</strong></td>
+                        <td>
+                            {{ u.email }}
+                            {% if u.email_verified %}<span title="Email verificado" style="color:#10B981;">✓</span>{% endif %}
+                        </td>
+                        <td>
+                            {% if u.role == 'ADMIN' %}
+                            <span class="pill" style="background:rgba(239, 68, 68, 0.2); color:#FCA5A5; border:1px solid rgba(239, 68, 68, 0.4); margin:0;">ADMIN</span>
+                            {% else %}
+                            <span class="pill" style="margin:0;">USER</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if u.status == 'ACTIVE' %}
+                            <span style="color:#10B981; font-weight:600; font-size:0.85rem;">● Activo</span>
+                            {% else %}
+                            <span style="color:var(--text-muted); font-size:0.85rem;">● {{ u.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div style="display:flex; gap:0.4rem;">
+                                <a href="{{ url_for('routes.edit_user', id=u.id) }}" class="btn btn-outline" style="padding:0.3rem 0.65rem; font-size:0.78rem; width:auto;">Editar</a>
+                                <form method="POST" action="{{ url_for('routes.toggle_user', id=u.id) }}" style="margin:0;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-outline" style="padding:0.3rem 0.65rem; font-size:0.78rem; width:auto;">{% if u.status == 'ACTIVE' %}Desactivar{% else %}Activar{% endif %}</button>
+                                </form>
+                                <form method="POST" action="{{ url_for('routes.delete_user', id=u.id) }}" style="margin:0;" onsubmit="return confirm('¿Borrar este usuario permanentemente?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-outline" style="padding:0.3rem 0.65rem; font-size:0.78rem; width:auto; color:#EF4444; border-color:#EF4444;">Borrar</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- PANE: LOCALES -->
+    <div id="pane-venues" class="admin-pane {% if search_type == 'venues' %}active{% endif %}">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem; flex-wrap:wrap; gap:0.8rem;">
+            <div>
+                <h3 style="margin:0 0 0.2rem 0; font-size:1.2rem;">Directorio de Locales</h3>
+                <p style="margin:0; font-size:0.85rem; color:var(--text-secondary);">Establecimientos en el mapa.</p>
+            </div>
+            <form method="GET" action="{{ url_for('routes.admin') }}" style="display:flex; gap:0.6rem; margin:0;">
+                <input type="hidden" name="type" value="venues">
+                <input type="text" name="q" placeholder="Buscar por nombre o ciudad..." value="{{ request.args.get('q', '') if search_type == 'venues' else '' }}" style="margin:0; width:260px; padding:0.5rem 0.8rem;">
+                <button type="submit" class="btn" style="width:auto; padding:0.5rem 1rem;">Buscar</button>
+            </form>
+        </div>
+
+        <div class="admin-form-box">
+            <h4>{{ icon('plus') }} Registrar Nuevo Local</h4>
+            <form method="POST" action="{{ url_for('routes.venue_new') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="admin-split-grid">
+                    <div>
+                        <div style="display:flex; gap:0.8rem;">
+                            <div style="flex:1;"><label>Nombre del Bar</label><input type="text" name="name" required></div>
+                            <div style="flex:1;"><label>Ciudad</label><input type="text" name="city" required></div>
+                        </div>
+                        <label>Dirección física</label>
+                        <input type="text" name="address" required>
+                        <div style="display:flex; gap:0.8rem;">
+                            <div style="flex:1;"><label>Sitio Web</label><input type="url" name="website" placeholder="https://..."></div>
+                            <div style="flex:1;"><label>Instagram</label><input type="text" name="instagram_handle" placeholder="@local"></div>
+                        </div>
+                        <label>Descripción</label>
+                        <textarea name="description" rows="2"></textarea>
+                        <div style="display:flex; gap:0.8rem;">
+                            <div style="flex:1;"><label>Latitud</label><input type="text" id="latitude" name="latitude" readonly style="background:var(--bg-body);"></div>
+                            <div style="flex:1;"><label>Longitud</label><input type="text" id="longitude" name="longitude" readonly style="background:var(--bg-body);"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <label>🗺️ Haz clic en el mapa para fijar coordenadas</label>
+                        <div id="admin-map" style="height: 270px; width: 100%; border-radius: 10px; border: 1px solid var(--border-color); z-index: 1;"></div>
+                    </div>
+                </div>
+                <div style="margin-top:1rem; text-align:right;">
+                    <button type="submit" class="btn" style="width:auto; padding:0.65rem 1.8rem;">Añadir Local</button>
+                </div>
+            </form>
+        </div>
+
+        {% if venues %}
+        <div class="admin-desktop-table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Ciudad</th>
+                        <th>Coordenadas</th>
+                        <th>Propiedad</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for v in venues %}
+                    <tr style="{% if not is_active(v) %}opacity: 0.55;{% endif %}">
+                        <td><strong><a href="{{ url_for('routes.venue_view', id=v.id) }}" style="color:var(--text-main);">{{ v.name }}</a></strong></td>
+                        <td>{{ v.city }}</td>
+                        <td style="font-size:0.78rem; font-family:monospace;">
+                            {% if v.latitude and v.longitude %}{{ v.latitude|round(4) }}, {{ v.longitude|round(4) }}{% else %}<span style="color:#F59E0B;">Sin GPS</span>{% endif %}
+                        </td>
+                        <td>
+                            {% if v.owner_user_id %}
+                                <span class="pill" style="margin:0; background:rgba(16, 185, 129, 0.15); color:#6EE7B7; border:1px solid rgba(16, 185, 129, 0.35); font-size:0.72rem;">👑 Verificada</span>
+                            {% else %}
+                                <span class="pill" style="margin:0; font-size:0.72rem;">Colaborativo</span>
+                            {% endif %}
+                        </td>
+                        <td>{% if is_active(v) %}<span style="color:#10B981;">● Activo</span>{% else %}<span style="color:var(--text-muted);">● Inactivo</span>{% endif %}</td>
+                        <td>
+                            <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+                                <a href="{{ url_for('routes.venue_tv', id=v.id) }}" target="_blank" class="btn btn-outline" style="padding:0.3rem 0.6rem; font-size:0.75rem; width:auto;">📺 TV</a>
+                                <a href="{{ url_for('routes.venue_qr_poster', id=v.id) }}" target="_blank" class="btn btn-outline" style="padding:0.3rem 0.6rem; font-size:0.75rem; width:auto;">📱 QR</a>
+                                <a href="{{ url_for('routes.edit_venue', id=v.id) }}" class="btn btn-outline" style="padding:0.3rem 0.65rem; font-size:0.78rem; width:auto;">Editar</a>
+                                <form method="POST" action="{{ url_for('routes.toggle_venue', id=v.id) }}" style="margin:0;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-outline" style="padding:0.3rem 0.65rem; font-size:0.78rem; width:auto;">{% if is_active(v) %}Desactivar{% else %}Activar{% endif %}</button>
+                                </form>
+                                {% if v.owner_user_id %}
+                                <form method="POST" action="{{ url_for('routes.revoke_ownership', entity_type='venue', entity_id=v.id) }}" style="margin:0;" onsubmit="return confirm('¿Revocar propiedad verificada de este local?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-outline" style="padding:0.3rem 0.65rem; font-size:0.78rem; width:auto; color:#F59E0B; border-color:#F59E0B;">Revocar</button>
+                                </form>
+                                {% endif %}
+                                <form method="POST" action="{{ url_for('routes.delete_venue', id=v.id) }}" style="margin:0;" onsubmit="return confirm('¿Borrar este local permanentemente?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-outline" style="padding:0.3rem 0.65rem; font-size:0.78rem; width:auto; color:#EF4444; border-color:#EF4444;">Borrar</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- PANE: CERVEZAS -->
+    <div id="pane-beers" class="admin-pane {% if search_type == 'beers' %}active{% endif %}">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem; flex-wrap:wrap; gap:0.8rem;">
+            <div>
+                <h3 style="margin:0 0 0.2rem 0; font-size:1.2rem;">Catálogo Global de Cervezas</h3>
+                <p style="margin:0; font-size:0.85rem; color:var(--text-secondary);">Inventario maestro de cervezas.</p>
+            </div>
+            <div style="display:flex; gap:0.6rem; align-items:center;">
+                <form method="GET" action="{{ url_for('routes.admin') }}" style="display:flex; gap:0.6rem; margin:0;">
+                    <input type="hidden" name="type" value="beers">
+                    <input type="text" name="q" placeholder="Buscar cerveza, marca..." value="{{ request.args.get('q', '') if search_type == 'beers' else '' }}" style="margin:0; width:240px; padding:0.5rem 0.8rem;">
+                    <button type="submit" class="btn" style="width:auto; padding:0.5rem 1rem;">Buscar</button>
+                </form>
+                <a href="{{ url_for('routes.beer_new') }}" class="btn btn-outline" style="width:auto; padding:0.5rem 1rem; font-size:0.85rem;">+ Añadir</a>
+            </div>
+        </div>
+
+        {% if beers %}
+        <div class="admin-desktop-table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Cerveza</th>
+                        <th>Marca</th>
+                        <th>Estilo</th>
+                        <th>ABV</th>
+                        <th>Propiedad</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in beers %}
+                    <tr style="{% if not is_active(b) %}opacity: 0.55;{% endif %}">
+                        <td>
+                            <div style="display:flex; align-items:center; gap:0.75rem;">
+                                <div class="card-img" style="width:36px; height:36px; border-radius:6px; font-size:1.1rem; flex-shrink:0; {% if b.image %}background-image:url('{{ resolve_media_url('beers', b.image) }}'); background-size:cover; background-position:center;{% endif %}">
+                                    {% if not b.image %}🍺{% endif %}
+                                </div>
+                                <strong><a href="{{ url_for('routes.beer_view', id=b.id) }}" style="color:var(--text-main);">{{ b.name }}</a></strong>
+                            </div>
+                        </td>
+                        <td>{{ b.brewery }}</td>
+                        <td><span class="pill" style="margin:0; font-size:0.75rem;">{{ b.style }}</span></td>
+                        <td>{{ b.abv }}%</td>
+                        <td>
+                            {% if b.owner_user_id %}
+                                <span class="pill" style="margin:0; background:rgba(16, 185, 129, 0.15); color:#6EE7B7; border:1px solid rgba(16, 185, 129, 0.35); font-size:0.72rem;">👑 Verificada</span>
+                            {% else %}
+                                <span class="pill" style="margin:0; font-size:0.72rem;">Colaborativa</span>
+                            {% endif %}
+                        </td>
+                        <td>{% if is_active(b) %}<span style="color:#10B981;">● Activa</span>{% else %}<span style="color:var(--text-muted);">● Inactiva</span>{% endif %}</td>
+                        <td>
+                            <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+                                <a href="{{ url_for('routes.edit_beer', id=b.id) }}" class="btn btn-outline" style="padding:0.3rem 0.65rem; font-size:0.78rem; width:auto;">Editar</a>
+                                <form method="POST" action="{{ url_for('routes.toggle_beer', id=b.id) }}" style="margin:0;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-outline" style="padding:0.3rem 0.65rem; font-size:0.78rem; width:auto;">{% if is_active(b) %}Desactivar{% else %}Activar{% endif %}</button>
+                                </form>
+                                {% if b.owner_user_id %}
+                                <form method="POST" action="{{ url_for('routes.revoke_ownership', entity_type='beer', entity_id=b.id) }}" style="margin:0;" onsubmit="return confirm('¿Revocar propiedad verificada de esta cerveza?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-outline" style="padding:0.3rem 0.65rem; font-size:0.78rem; width:auto; color:#F59E0B; border-color:#F59E0B;">Revocar</button>
+                                </form>
+                                {% endif %}
+                                <form method="POST" action="{{ url_for('routes.delete_beer', id=b.id) }}" style="margin:0;" onsubmit="return confirm('¿Borrar esta cerveza permanentemente?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-outline" style="padding:0.3rem 0.65rem; font-size:0.78rem; width:auto; color:#EF4444; border-color:#EF4444;">Borrar</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- PANE: FABRICANTES -->
+    <div id="pane-fabricantes" class="admin-pane {% if search_type == 'fabricantes' %}active{% endif %}">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem; flex-wrap:wrap; gap:0.8rem;">
+            <div>
+                <h3 style="margin:0 0 0.2rem 0; font-size:1.2rem;">Directorio de Fabricantes</h3>
+                <p style="margin:0; font-size:0.85rem; color:var(--text-secondary);">Cerveceras y marcas.</p>
+            </div>
+            <form method="GET" action="{{ url_for('routes.admin') }}" style="display:flex; gap:0.6rem; margin:0;">
+                <input type="hidden" name="type" value="fabricantes">
+                <input type="text" name="q" placeholder="Buscar marca..." value="{{ request.args.get('q', '') if search_type == 'fabricantes' else '' }}" style="margin:0; width:260px; padding:0.5rem 0.8rem;">
+                <button type="submit" class="btn" style="width:auto; padding:0.5rem 1rem;">Buscar</button>
+            </form>
+        </div>
+
+        <div class="admin-form-box">
+            <h4>{{ icon('plus') }} Registrar Fabricante / Cervecera</h4>
+            <form method="POST" action="{{ url_for('routes.fabricante_new') }}" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem;">
+                    <div><label>Nombre de la Marca</label><input type="text" name="name" required></div>
+                    <div><label>País / Región</label><input type="text" name="country" required></div>
+                    <div><label>Logotipo</label><input type="file" name="logo" accept="image/*"></div>
+                    <div><label>Sitio Web</label><input type="url" name="website" placeholder="https://..."></div>
+                    <div><label>Instagram</label><input type="text" name="instagram_handle" placeholder="@cervecera"></div>
+                    <div><label>Email</label><input type="email" name="email"></div>
+                </div>
+                <label style="margin-top:0.4rem;">Descripción</label>
+                <textarea name="description" rows="2"></textarea>
+                <div style="margin-top:1rem; text-align:right;">
+                    <button type="submit" class="btn" style="width:auto; padding:0.6rem 1.8rem;">Registrar Fabricante</button>
+                </div>
+            </form>
+        </div>
+
+        {% if fabricantes %}
+        <div class="admin-desktop-table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Marca</th>
+                        <th>Origen</th>
+                        <th>Contacto</th>
+                        <th>Propiedad</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for f in fabricantes %}
+                    <tr style="{% if not is_active(f) %}opacity: 0.55;{% endif %}">
+                        <td>
+                            <div style="display:flex; align-items:center; gap:0.75rem;">
+                                <div class="card-img" style="width:36px; height:36px; border-radius:6px; font-size:1.1rem; flex-shrink:0; {% if f.logo %}background-image:url('{{ resolve_media_url('fabricantes', f.logo) }}'); background-size:cover; background-position:center;{% endif %}">
+                                    {% if not f.logo %}🏭{% endif %}
+                                </div>
+                                <strong><a href="{{ url_for('routes.fabricante_view', id=f.id) }}" style="color:var(--text-main);">{{ f.name }}</a></strong>
+                            </div>
+                        </td>
+                        <td>{{ f.country }}</td>
+                        <td style="font-size:0.82rem; color:var(--text-secondary);">
+                            {% if f.website %}<a href="{{ f.website }}" target="_blank" style="color:var(--color-primary);">Web ↗</a>{% endif %}
+                            {% if f.instagram_handle %} · {{ f.instagram_handle }}{% endif %}
+                        </td>
+                        <td>
+                            {% if f.owner_user_id %}
+                                <span class="pill" style="margin:0; background:rgba(16, 185, 129, 0.15); color:#6EE7B7; border:1px solid rgba(16, 185, 129, 0.35); font-size:0.72rem;">👑 Verificada</span>
+                            {% else %}
+                                <span class="pill" style="margin:0; font-size:0.72rem;">Colaborativa</span>
+                            {% endif %}
+                        </td>
+                        <td>{% if is_active(f) %}<span style="color:#10B981;">● Activo</span>{% else %}<span style="color:var(--text-muted);">● Inactivo</span>{% endif %}</td>
+                        <td>
+                            <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+                                <a href="{{ url_for('routes.edit_fabricante', id=f.id) }}" class="btn btn-outline" style="padding:0.3rem 0.65rem; font-size:0.78rem; width:auto;">Editar</a>
+                                <form method="POST" action="{{ url_for('routes.toggle_fabricante', id=f.id) }}" style="margin:0;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-outline" style="padding:0.3rem 0.65rem; font-size:0.78rem; width:auto;">{% if is_active(f) %}Desactivar{% else %}Activar{% endif %}</button>
+                                </form>
+                                {% if f.owner_user_id %}
+                                <form method="POST" action="{{ url_for('routes.revoke_ownership', entity_type='brand', entity_id=f.id) }}" style="margin:0;" onsubmit="return confirm('¿Revocar propiedad verificada de esta marca?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-outline" style="padding:0.3rem 0.65rem; font-size:0.78rem; width:auto; color:#F59E0B; border-color:#F59E0B;">Revocar</button>
+                                </form>
+                                {% endif %}
+                                <form method="POST" action="{{ url_for('routes.delete_fabricante', id=f.id) }}" style="margin:0;" onsubmit="return confirm('¿Borrar este fabricante permanentemente?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-outline" style="padding:0.3rem 0.65rem; font-size:0.78rem; width:auto; color:#EF4444; border-color:#EF4444;">Borrar</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- PANE: TAXONOMÍA -->
+    <div id="pane-taxonomy" class="admin-pane {% if search_type == 'taxonomy' %}active{% endif %}">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(340px, 1fr)); gap:1.5rem;">
+            <div class="admin-form-box">
+                <h4>🍺 Familias</h4>
+                <form method="POST" action="{{ url_for('routes.add_family') }}" style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1.2rem;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="text" name="name" placeholder="Nombre (ej: Ale, Lager, Sour)" required>
+                    <input type="text" name="description" placeholder="Descripción breve...">
+                    <button type="submit" class="btn btn-outline" style="width:auto; align-self:flex-start; padding:0.4rem 1rem;">+ Añadir Familia</button>
+                </form>
+                <div style="display:flex; flex-wrap:wrap; gap:0.4rem;">
+                    {% for f in families %}<span class="pill">{{ f.name }}</span>{% endfor %}
+                </div>
+            </div>
+
+            <div class="admin-form-box">
+                <h4>📖 Estilos BJCP</h4>
+                <form method="POST" action="{{ url_for('routes.add_style') }}" style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1.2rem;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div style="display:flex; gap:0.6rem;">
+                        <select name="family_id" required style="flex:1; margin:0;">
+                            <option value="">Selecciona Familia...</option>
+                            {% for f in families %}<option value="{{ f.id }}">{{ f.name }}</option>{% endfor %}
+                        </select>
+                        <input type="color" name="color" value="#F59E0B" style="width:48px; height:42px; padding:2px; margin:0;">
+                    </div>
+                    <input type="text" name="name" placeholder="Nombre del estilo" required style="margin:0;">
+                    <textarea name="description" rows="2" placeholder="Notas de estilo..." style="margin:0;"></textarea>
+                    <button type="submit" class="btn btn-outline" style="width:auto; align-self:flex-start; padding:0.4rem 1rem;">+ Añadir Estilo</button>
+                </form>
+                <div style="display:flex; flex-wrap:wrap; gap:0.4rem; max-height:240px; overflow-y:auto;">
+                    {% for s in styles %}
+                    <span class="pill" onclick="showStyleInfo({{ s.id }})" style="cursor:pointer;">
+                        {% if s.color %}<span style="width:0.65rem; height:0.65rem; border-radius:50%; background:{{ s.color }}; display:inline-block;"></span>{% endif %}
+                        {{ s.name }}
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="admin-form-box">
+                <h4>🏷️ Tags Sensoriales</h4>
+                <form method="POST" action="{{ url_for('routes.add_tag') }}" style="display:flex; gap:0.5rem; margin-bottom:1.2rem; align-items:center;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="text" name="icon" placeholder="🏷️" maxlength="4" style="width:50px; text-align:center; margin:0;">
+                    <input type="text" name="name" placeholder="Descriptor" required style="flex:1; margin:0;">
+                    <button type="submit" class="btn btn-outline" style="width:auto; margin:0; padding:0.5rem 1rem;">+ Añadir</button>
+                </form>
+                <div style="display:flex; flex-wrap:wrap; gap:0.4rem;">
+                    {% for t in tags %}<span class="pill">{{ t.icon }} {{ t.name }}</span>{% endfor %}
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        // Accordion functionality
-        document.querySelectorAll('.accordion-header').forEach(function(btn){
-            btn.addEventListener('click', function(){
-                // If it's already active, just close it (optional toggle behavior)
-                var isActive = btn.classList.contains('active');
-                
-                // deactivate all tabs
-                document.querySelectorAll('.accordion-header').forEach(function(b){ b.classList.remove('active'); });
-                // hide all content
-                document.querySelectorAll('.accordion-content').forEach(function(c){ c.style.display='none'; });
-                
-                if (!isActive) {
-                    // activate clicked
-                    btn.classList.add('active');
-                    var targetId = btn.getAttribute('data-target');
-                    var content = document.getElementById(targetId);
-                    if(content) content.style.display='block';
-                }
-            });
-        });
-        
-        var map = L.map('admin-map').setView([40.416775, -3.703790], 13); // Madrid default
+<script>
+    function switchAdminTab(paneId, btn) {
+        document.querySelectorAll('.admin-pane').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+        const target = document.getElementById(paneId);
+        if (target) target.classList.add('active');
+        if (btn) btn.classList.add('active');
+        sessionStorage.setItem('activeAdminTab', paneId);
+        if (paneId === 'pane-venues' && window.adminLeafletMap) {
+            setTimeout(() => window.adminLeafletMap.invalidateSize(), 150);
+        }
+    }
 
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchType = urlParams.get('type');
+        if (searchType) {
+            const tabBtn = document.getElementById('tab-btn-' + searchType);
+            if (tabBtn) {
+                switchAdminTab('pane-' + searchType, tabBtn);
+                return;
+            }
+        }
+        const savedTab = sessionStorage.getItem('activeAdminTab');
+        if (savedTab && document.getElementById(savedTab)) {
+            const btn = document.querySelector(`.admin-tab-btn[onclick*="${savedTab}"]`);
+            if (btn) switchAdminTab(savedTab, btn);
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const mapEl = document.getElementById('admin-map');
+        if (!mapEl) return;
+        const map = L.map('admin-map').setView([42.846, -2.671], 13);
+        window.adminLeafletMap = map;
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '© OpenStreetMap'
         }).addTo(map);
-
-        var marker = null;
-
+        let marker = null;
         map.on('click', function(e) {
-            var lat = e.latlng.lat;
-            var lng = e.latlng.lng;
-            
-            document.getElementById('latitude').value = lat;
-            document.getElementById('longitude').value = lng;
-            
-            if (marker) {
-                map.removeLayer(marker);
-            }
-            marker = L.marker([lat, lng]).addTo(map);
+            document.getElementById('latitude').value = e.latlng.lat.toFixed(6);
+            document.getElementById('longitude').value = e.latlng.lng.toFixed(6);
+            if (marker) map.removeLayer(marker);
+            marker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
         });
-
-        // Try to get user's location to center map
-        map.locate({setView: true, maxZoom: 15});
-    </script>
+    });
+</script>
 {% endblock %}

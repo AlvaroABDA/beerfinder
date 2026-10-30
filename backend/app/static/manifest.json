@@ -1,0 +1,32 @@
+{
+    "name": "BeerMap",
+    "short_name": "BeerMap",
+    "description": "Encuentra cervezas especiales cerca de ti y descubre bares con tu gusto.",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#1F1E1D",
+    "theme_color": "#1F1E1D",
+    "lang": "es",
+    "icons": [
+        {
+            "src": "/static/icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/static/icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/static/icons/icon-512-maskable.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}

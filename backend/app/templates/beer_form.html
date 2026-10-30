@@ -1,22 +1,47 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+    .tag-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.45rem 0.9rem;
+        border-radius: 20px;
+        background: var(--bg-panel);
+        border: 2px solid var(--border-color);
+        cursor: pointer;
+        user-select: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: all 0.15s ease;
+    }
+    .tag-chip input { display: none; }
+    .tag-chip:has(input:checked) {
+        background: var(--color-primary);
+        border-color: var(--color-primary);
+        color: #1a1a1a;
+    }
+    .tag-chip-icon { font-size: 1.15rem; line-height: 1; }
+</style>
 <div class="card">
     <h2>{% if beer %}Editar Cerveza: {{ beer.name }}{% else %}Añadir Cerveza{% endif %}</h2>
     <form method="POST" action="{% if beer %}{{ url_for('routes.edit_beer', id=beer.id) }}{% else %}{{ url_for('routes.beer_new') }}{% endif %}" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
         <label>Nombre</label>
         <input type="text" name="name" value="{{ beer.name if beer else '' }}" required>
-        
+
         <label>Fabricante (Cervecera)</label>
-        <input type="text" name="brewery" list="fabricantes-list" placeholder="Selecciona o escribe uno nuevo..." value="{{ beer.brewery if beer else '' }}" required>
+        <input type="text" name="brewery" list="fabricantes-list" placeholder="Selecciona o escribe uno nuevo..." value="{{ beer.brewery if beer else request.args.get('brewery', '') }}" required>
         <datalist id="fabricantes-list">
             {% for f in fabricantes %}
             <option value="{{ f.name }}"></option>
             {% endfor %}
         </datalist>
-        
-        <div style="display:flex; gap:1rem;">
-            <div style="flex:1;">
+
+        <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+            <div style="flex:1; min-width:140px;">
                 <label>Familia</label>
                 <select id="family-select" name="family_id">
                     <option value="">Selecciona Familia...</option>
@@ -25,9 +50,14 @@
                     {% endfor %}
                 </select>
             </div>
-            <div style="flex:1;">
-                <label>Estilo</label>
-                <select id="style-select" name="style_id">
+            <div style="flex:1; min-width:140px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.2rem;">
+                    <label style="margin:0;">Estilo</label>
+                    <button type="button" id="btn-style-help" onclick="showSelectedStyleInfo()" class="style-info-btn" style="font-size:0.7rem; display:none;">
+                        ℹ️ Ver guía
+                    </button>
+                </div>
+                <select id="style-select" name="style_id" onchange="updateStyleHelpBtn(this.value)">
                     <option value="" data-family="">Selecciona Estilo...</option>
                     {% for s in styles %}
                     <option value="{{ s.id }}" data-family="{{ s.family_id }}" {% if beer and beer.style_id == s.id %}selected{% endif %}>{{ s.name }}</option>
@@ -35,55 +65,81 @@
                 </select>
             </div>
         </div>
-        
+
         <label>Graduación (ABV %)</label>
-        <input type="text" name="abv" value="{{ beer.abv if beer else '' }}">
-        
+        <input type="text" name="abv" value="{{ beer.abv if beer else '' }}" placeholder="Ej: 6.2">
+
         <label>Descripción</label>
-        <textarea name="description" rows="4">{{ beer.description if beer else '' }}</textarea>
+        <textarea name="description" rows="4" placeholder="Aroma, amargor, lúpulos o notas principales...">{{ beer.description if beer else '' }}</textarea>
 
         <label>Tags (Características)</label>
         <div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem;">
             {% for t in tags %}
-            <label style="display:flex; align-items:center; gap:0.3rem; margin:0; background:var(--bg-panel); border:1px solid var(--border-color); padding:0.3rem 0.6rem; border-radius:4px; font-weight:normal;">
-                <input type="checkbox" name="tags" value="{{ t.id }}" style="margin:0;" {% if beer and t.id in beer_tag_ids %}checked{% endif %}> {{ t.name }}
+            <label class="tag-chip">
+                <input type="checkbox" name="tags" value="{{ t.id }}" {% if beer and t.id in beer_tag_ids %}checked{% endif %}>
+                <span class="tag-chip-icon">{{ t.icon or '🏷️' }}</span>
+                <span>{{ t.name }}</span>
             </label>
             {% endfor %}
         </div>
 
         <script>
-            // Dependent dropdown logic
-            document.getElementById('family-select').addEventListener('change', function() {
-                var familyId = this.value;
-                var styleSelect = document.getElementById('style-select');
-                styleSelect.value = ""; // reset
-                
-                for (var i = 0; i < styleSelect.options.length; i++) {
-                    var opt = styleSelect.options[i];
-                    if (opt.getAttribute('data-family') === "") continue; // skip default option
-                    
-                    if (familyId === "" || opt.getAttribute('data-family') === familyId) {
-                        opt.style.display = '';
-                    } else {
-                        opt.style.display = 'none';
+            (function() {
+                const familySelect = document.getElementById('family-select');
+                const styleSelect = document.getElementById('style-select');
+
+                function filterStyles(preserveCurrent) {
+                    const familyId = familySelect.value;
+                    const currentVal = styleSelect.value;
+                    let currentStillValid = false;
+
+                    for (let i = 0; i < styleSelect.options.length; i++) {
+                        const opt = styleSelect.options[i];
+                        const optFam = opt.getAttribute('data-family');
+                        if (optFam === "") continue;
+                        if (familyId === "" || optFam === familyId) {
+                            opt.style.display = '';
+                            if (opt.value === currentVal) currentStillValid = true;
+                        } else {
+                            opt.style.display = 'none';
+                        }
                     }
+
+                    if (!preserveCurrent || !currentStillValid) {
+                        styleSelect.value = currentStillValid && preserveCurrent ? currentVal : "";
+                    }
+                    updateStyleHelpBtn(styleSelect.value);
                 }
-            });
-            // trigger on load
-            document.getElementById('family-select').dispatchEvent(new Event('change'));
+
+                familySelect.addEventListener('change', function() {
+                    filterStyles(false);
+                });
+
+                filterStyles(true);
+            })();
+
+            function updateStyleHelpBtn(val) {
+                const btn = document.getElementById('btn-style-help');
+                if (btn) btn.style.display = val ? 'inline-flex' : 'none';
+            }
+
+            function showSelectedStyleInfo() {
+                const sel = document.getElementById('style-select');
+                if (sel && sel.value) showStyleInfo(sel.value);
+            }
         </script>
 
-        <label>Foto de la Cerveza (dejar vacío para mantener la actual)</label>
+        <label>Foto de la Cerveza {% if beer %}(dejar vacío para mantener la actual){% endif %}</label>
         {% if beer and beer.image %}
         <div style="margin-bottom: 0.5rem;">
-            <img src="{{ url_for('static', filename='images/beers/' + beer.image) }}" alt="Logo" style="height: 60px; border-radius:8px;">
+            <img src="{{ resolve_media_url('beers', beer.image) }}" alt="{{ beer.name }}" style="height: 64px; border-radius:8px;">
         </div>
         {% endif %}
         <input type="file" name="image" accept="image/*">
-        
+
         <div style="display:flex; gap:1rem; margin-top:1rem;">
             <button type="submit" class="btn">Guardar Cerveza</button>
-            <a href="{{ url_for('routes.admin', type='beers') }}" class="btn btn-outline">Cancelar</a>
+            <a href="{{ url_for('routes.beer_view', id=beer.id) if beer else url_for('routes.index') }}" class="btn btn-outline">Cancelar</a>
         </div>
     </form>
 </div>

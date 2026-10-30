@@ -1,33 +1,37 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="card">
-    <h2>Editar Usuario: {{ user.username }}</h2>
-    
-    <form method="POST" action="{{ url_for('routes.edit_user', id=user.id) }}">
-        <label>Nombre de usuario</label>
-        <input type="text" name="username" value="{{ user.username }}" required>
-        
-        <label>Email</label>
-        <input type="email" name="email" value="{{ user.email }}" required>
-        
-        <label>Rol</label>
-        <select name="role">
-            <option value="USER" {% if user.role == 'USER' %}selected{% endif %}>Usuario (USER)</option>
-            <option value="ADMIN" {% if user.role == 'ADMIN' %}selected{% endif %}>Administrador (ADMIN)</option>
-        </select>
+<div style="max-width: 620px; margin: 1.5rem auto;">
+    <div class="card" style="padding: 1.8rem;">
+        <h2 style="margin-top:0; margin-bottom:1.2rem; font-size:1.35rem; display:flex; align-items:center; gap:0.5rem;">
+            {{ icon('user') }} Editar Usuario: <span style="color:var(--color-primary);">{{ user.username }}</span>
+        </h2>
 
-        <label>Estado</label>
-        <select name="status">
-            <option value="ACTIVE" {% if user.status == 'ACTIVE' %}selected{% endif %}>Activo</option>
-            <option value="INACTIVE" {% if user.status == 'INACTIVE' %}selected{% endif %}>Inactivo</option>
-            <option value="PENDING" {% if user.status == 'PENDING' %}selected{% endif %}>Pendiente</option>
-        </select>
-        
-        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-            <button type="submit" class="btn">Guardar Cambios</button>
-            <a href="{{ url_for('routes.admin', type='users') }}" class="btn btn-outline">Cancelar</a>
-        </div>
-    </form>
+        <form method="POST" action="{{ url_for('routes.edit_user', id=user.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label>Nombre de usuario</label>
+            <input type="text" name="username" value="{{ user.username }}" required>
+
+            <label>Email</label>
+            <input type="email" name="email" value="{{ user.email }}" required>
+
+            <label>Rol</label>
+            <select name="role">
+                <option value="USER" {% if user.role == 'USER' %}selected{% endif %}>Usuario (USER)</option>
+                <option value="ADMIN" {% if user.role == 'ADMIN' %}selected{% endif %}>Administrador (ADMIN)</option>
+            </select>
+
+            <label>Estado</label>
+            <select name="status">
+                <option value="ACTIVE" {% if user.status == 'ACTIVE' %}selected{% endif %}>Activo</option>
+                <option value="INACTIVE" {% if user.status == 'INACTIVE' %}selected{% endif %}>Inactivo</option>
+            </select>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                <button type="submit" class="btn">Guardar Cambios</button>
+                <a href="{{ url_for('routes.admin', type='users') }}" class="btn btn-outline">Cancelar</a>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}

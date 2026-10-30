@@ -2,42 +2,162 @@
 
 {% block content %}
 <style>
-    .pref-section {
+    .profile-header-card {
         background: var(--bg-panel);
-        padding: 1.5rem;
-        border-radius: var(--radius-card);
         border: 1px solid var(--border-color);
-        margin-bottom: 2rem;
+        border-radius: var(--radius-card);
+        padding: 1.25rem;
+        margin-bottom: 1.1rem;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.25);
     }
-    .pref-title {
-        margin-top: 0;
-        margin-bottom: 1rem;
-        font-size: 1.3rem;
-        color: var(--color-primary);
+    .profile-identity {
         display: flex;
         align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    .profile-avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+        color: #0E1015;
+        font-size: 1.5rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .profile-info { flex: 1; min-width: 0; }
+    .profile-info h2 {
+        margin: 0 0 0.15rem 0;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--text-main);
+        word-break: break-word;
+    }
+    .profile-info p {
+        margin: 0;
+        font-size: 0.84rem;
+        color: var(--text-secondary);
+    }
+    .quick-actions-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
         gap: 0.5rem;
+        padding-top: 0.8rem;
+        border-top: 1px solid var(--border-color);
+    }
+    .quick-action-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.25rem;
+        padding: 0.55rem 0.4rem;
+        background: var(--bg-body);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-button);
+        color: var(--text-main);
+        text-decoration: none;
+        font-size: 0.76rem;
+        font-weight: 600;
+        text-align: center;
+        transition: all 0.15s ease;
+    }
+    .quick-action-btn:hover {
+        background: rgba(245, 158, 11, 0.12);
+        border-color: var(--color-primary);
+        color: var(--color-primary);
+    }
+    .profile-tabs-scroll {
+        display: flex;
+        gap: 0.45rem;
+        overflow-x: auto;
+        padding: 0.2rem 0 0.8rem 0;
+        margin-bottom: 1.1rem;
+        scrollbar-width: none;
+    }
+    .profile-tabs-scroll::-webkit-scrollbar { display: none; }
+    .profile-tab-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.6rem 1rem;
+        background: var(--bg-panel);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-pill);
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        font-weight: 600;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+    .profile-tab-btn.active {
+        background: rgba(245, 158, 11, 0.15);
+        color: var(--color-primary);
+        border-color: rgba(245, 158, 11, 0.45);
+    }
+    .tab-badge {
+        background: rgba(255, 255, 255, 0.1);
+        color: inherit;
+        font-size: 0.72rem;
+        padding: 1px 6px;
+        border-radius: 10px;
+    }
+    .profile-tab-btn.active .tab-badge {
+        background: var(--color-primary);
+        color: #0E1015;
+        font-weight: 700;
+    }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+    .entity-sub-card {
+        background: var(--bg-panel);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-card);
+        padding: 1rem;
+        margin-bottom: 0.85rem;
+    }
+    .empty-state-box {
+        text-align: center;
+        padding: 1.6rem 1rem;
+        background: var(--bg-panel);
+        border: 1px dashed var(--border-color);
+        border-radius: var(--radius-card);
+        margin-bottom: 1.1rem;
+    }
+    .pref-section {
+        background: var(--bg-panel);
+        padding: 1.15rem;
+        border-radius: var(--radius-card);
+        border: 1px solid var(--border-color);
+        margin-bottom: 1.1rem;
+    }
+    .pref-title {
+        margin: 0 0 0.75rem 0;
+        font-size: 1.05rem;
+        color: var(--color-primary);
     }
     .chip-container {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.8rem;
+        gap: 0.55rem;
     }
     .pref-chip {
-        padding: 0.6rem 1.2rem;
+        padding: 0.45rem 0.95rem;
         border-radius: 2rem;
-        font-weight: 500;
-        font-size: 0.95rem;
+        font-weight: 600;
+        font-size: 0.85rem;
         cursor: pointer;
         user-select: none;
-        transition: all 0.2s ease;
-        border: 2px solid transparent;
-        display: flex;
+        border: 1.5px solid transparent;
+        display: inline-flex;
         align-items: center;
-        gap: 0.4rem;
+        gap: 0.35rem;
     }
-    
-    /* Estados de los chips */
     .pref-chip.neutral {
         background: var(--bg-body);
         color: var(--text-main);
@@ -45,190 +165,473 @@
     }
     .pref-chip.like {
         background: var(--color-primary);
-        color: black;
+        color: #0E1015;
         border-color: var(--color-primary);
     }
     .pref-chip.dislike {
         background: var(--bg-body);
-        color: var(--text-secondary);
+        color: var(--text-muted);
         border-color: var(--color-red);
         text-decoration: line-through;
-        opacity: 0.8;
+        opacity: 0.75;
     }
-
-    /* Accordion para Estilos */
     .accordion-btn {
         width: 100%;
         text-align: left;
         background: var(--bg-body);
         border: 1px solid var(--border-color);
-        padding: 1rem;
+        padding: 0.8rem 1rem;
         border-radius: 8px;
         color: var(--text-main);
-        font-weight: bold;
+        font-weight: 700;
+        font-size: 0.9rem;
         cursor: pointer;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.4rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
     .accordion-content {
         display: none;
-        padding: 1rem;
+        padding: 0.85rem;
         border: 1px solid var(--border-color);
         border-top: none;
         border-radius: 0 0 8px 8px;
-        margin-top: -0.5rem;
-        margin-bottom: 1rem;
+        margin-top: -0.4rem;
+        margin-bottom: 0.8rem;
         background: var(--bg-body);
     }
-    .accordion-content.active {
-        display: block;
-    }
-    
-    .legend {
-        display: flex;
-        gap: 1rem;
-        font-size: 0.9rem;
-        color: var(--text-secondary);
-        margin-bottom: 1.5rem;
-        justify-content: center;
-    }
+    .accordion-content.active { display: block; }
 </style>
 
 <div>
-    <h2 style="margin-bottom: 0.5rem;">Mi Perfil Cervecero</h2>
-    <p style="color: var(--text-secondary); margin-bottom: 2rem;">Cuéntame qué tipo de birra te gusta. Toca para marcar como favorito, vuelve a tocar para evitar, y una vez más para neutral.</p>
+    <!-- 1. IDENTIDAD Y VERIFICACIÓN DE EMAIL -->
+    <div class="profile-header-card">
+        <div class="profile-identity">
+            <div class="profile-avatar">
+                {{ user.username[0]|upper if user.username else '🍺' }}
+            </div>
+            <div class="profile-info">
+                <h2>{{ user.username }}</h2>
+                <p>{{ user.email }}</p>
+                <div style="display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap; margin-top:0.35rem;">
+                    {% if user.role == 'ADMIN' %}
+                        <span class="pill" style="margin:0; background:rgba(239, 68, 68, 0.2); color:#FCA5A5; border-color:rgba(239, 68, 68, 0.4); font-size:11px;">Administrador</span>
+                    {% endif %}
+                    {% if user.email_verified %}
+                        <span class="pill" style="margin:0; background:rgba(16, 185, 129, 0.15); color:#6EE7B7; border-color:rgba(16, 185, 129, 0.35); font-size:11px;">✓ Email verificado</span>
+                    {% else %}
+                        <span class="pill" style="margin:0; background:rgba(245, 158, 11, 0.15); color:#FCD34D; border-color:rgba(245, 158, 11, 0.35); font-size:11px;">⏳ Email sin verificar</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
 
-    <div class="legend">
-        <span>❤️ Me gusta</span>
-        <span>❌ Prefiero evitar</span>
+        {% if not user.email_verified %}
+        <div style="background:var(--bg-body); border:1px solid rgba(245, 158, 11, 0.4); border-radius:10px; padding:0.85rem; margin-bottom:0.9rem;">
+            <div style="font-size:0.84rem; font-weight:700; color:var(--color-primary); margin-bottom:0.25rem;">
+                ✉️ Verifica tu correo para reclamar marcas o locales
+            </div>
+            <p style="margin:0 0 0.6rem 0; font-size:0.78rem; color:var(--text-secondary);">
+                Introduce el código de 6 dígitos enviado a <strong>{{ user.email }}</strong> o solicita uno nuevo.
+            </p>
+            <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+                <form method="POST" action="{{ url_for('routes.confirm_email_verification') }}" style="display:flex; gap:0.4rem; align-items:center; margin:0;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="text" name="otp_code" maxlength="6" pattern="[0-9]{6}" placeholder="Código 6 díg." required style="margin:0; width:130px; padding:0.45rem 0.6rem; text-align:center; font-weight:700;">
+                    <button type="submit" class="btn" style="width:auto; padding:0.48rem 0.9rem; font-size:0.8rem;">Confirmar</button>
+                </form>
+                <form method="POST" action="{{ url_for('routes.send_email_verification') }}" style="margin:0;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-outline" style="width:auto; padding:0.48rem 0.85rem; font-size:0.78rem;">Reenviar código</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Acciones rápidas colaborativas -->
+        <div class="quick-actions-grid">
+            <a href="{{ url_for('routes.beer_new') }}" class="quick-action-btn">
+                <span style="font-size:1.15rem;">🍺</span>
+                <span>+ Cerveza</span>
+            </a>
+            <a href="{{ url_for('routes.venue_new') }}" class="quick-action-btn">
+                <span style="font-size:1.15rem;">🏪</span>
+                <span>+ Bar / Local</span>
+            </a>
+            <a href="{{ url_for('routes.fabricante_new') }}" class="quick-action-btn">
+                <span style="font-size:1.15rem;">🏭</span>
+                <span>+ Marca</span>
+            </a>
+        </div>
     </div>
 
-    <!-- Bloque Tu Paladar (Preparado para el futuro) -->
-    <div class="pref-section" style="border-color: var(--color-secondary);">
-        <h3 class="pref-title" style="color: var(--color-secondary);">🧠 TU PALADAR</h3>
-        <p style="color: var(--text-secondary); font-size: 0.9rem;">
-            <em>Aún no tenemos suficientes datos de BeerMatch para perfilar tu paladar. ¡Sigue descubriendo cervezas!</em>
-        </p>
-        <!-- Estructura futura (oculta) -->
-        <div style="display: none;">
-            <p>Según las cervezas que has probado:</p>
+    <!-- 2. PESTAÑAS LIMPIAS: MI PALADAR | MIS ENTIDADES | VERIFICACIONES -->
+    <div class="profile-tabs-scroll">
+        <button type="button" class="profile-tab-btn active" onclick="switchProfileTab('tab-taste', this)">
+            <span>🧠 Mi Paladar</span>
+            {% if radar_count > 0 %}
+            <span class="tab-badge">📡 {{ radar_count }}</span>
+            {% endif %}
+        </button>
+        <button type="button" class="profile-tab-btn" onclick="switchProfileTab('tab-entities', this)">
+            <span>🏢 Mis Entidades</span>
+            <span class="tab-badge">{{ my_venues|length + my_brands|length + my_beers|length }}</span>
+        </button>
+        <button type="button" class="profile-tab-btn" onclick="switchProfileTab('tab-claims', this)">
+            <span>🛡️ Verificaciones</span>
+            {% set pending_count = my_claims|selectattr('status', 'equalto', 'PENDING')|list|length %}
+            {% if pending_count > 0 %}
+                <span class="tab-badge" style="background:#F59E0B; color:#0E1015; font-weight:700;">{{ pending_count }}</span>
+            {% else %}
+                <span class="tab-badge">{{ my_claims|length }}</span>
+            {% endif %}
+        </button>
+    </div>
+
+    <!-- PESTAÑA 1: MI PALADAR & RADAR -->
+    <div id="tab-taste" class="tab-pane active">
+        <!-- Resumen de gustos y radar -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.65rem; margin-bottom:1.1rem;">
+            <a href="{{ url_for('beermatch.history_view') }}?tab=liked" class="entity-sub-card" style="margin:0; text-decoration:none; display:flex; align-items:center; justify-content:space-between;">
+                <div>
+                    <div style="font-size:0.75rem; color:var(--text-secondary);">Me gustan</div>
+                    <div style="font-size:1.25rem; font-weight:800; color:var(--text-main);">❤️ {{ likes_count }}</div>
+                </div>
+                <span style="color:var(--color-primary); font-size:0.85rem;">Ver →</span>
+            </a>
+            <a href="{{ url_for('beermatch.history_view') }}?tab=radar" class="entity-sub-card" style="margin:0; text-decoration:none; display:flex; align-items:center; justify-content:space-between; border-color:rgba(245, 158, 11, 0.35);">
+                <div>
+                    <div style="font-size:0.75rem; color:var(--text-secondary);">En mi Radar</div>
+                    <div style="font-size:1.25rem; font-weight:800; color:#FCD34D;">📡 {{ radar_count }}</div>
+                </div>
+                <span style="color:var(--color-primary); font-size:0.85rem;">Ver →</span>
+            </a>
+        </div>
+
+        <!-- Radio de Búsqueda -->
+        <div class="pref-section" style="border-color: rgba(245, 158, 11, 0.4);">
+            <h3 class="pref-title">📍 Radio de Búsqueda Cercana</h3>
+            <p style="color: var(--text-secondary); font-size: 0.82rem; margin: 0 0 0.8rem 0;">
+                Distancia máxima para sugerirte cervezas, locales y coincidencias silenciosas de tu radar.
+            </p>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <input type="range" id="max-distance-slider" min="1" max="50" step="1" value="{{ user.get('max_distance', 20)|int }}" style="flex: 1; margin:0;" oninput="updateDistanceLabel(this.value)">
+                <span id="max-distance-label" style="font-weight: 700; width: 60px; text-align: right; color:var(--color-primary);">{{ user.get('max_distance', 20)|int }} km</span>
+            </div>
+        </div>
+
+        <div style="margin-bottom:0.8rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="margin:0; font-size:1.05rem; color:var(--color-primary);">🧠 Afinidad por Estilos y Sabores</h3>
+                <div style="display:flex; gap:0.6rem; font-size:0.78rem; color:var(--text-secondary);">
+                    <span>❤️ Me gusta</span>
+                    <span>❌ Evitar</span>
+                </div>
+            </div>
+            <p style="margin:0.25rem 0 0.8rem 0; font-size:0.8rem; color:var(--text-secondary);">
+                Toca una vez para ❤️ favorito, dos veces para ❌ descartar, y tres para neutro.
+            </p>
+        </div>
+
+        <!-- Familias -->
+        <div class="pref-section">
+            <h3 class="pref-title">Familias cerveceras</h3>
             <div class="chip-container">
-                <span class="pref-chip like">🔥 Hoppy</span>
+                {% for f in families %}
+                    {% set pref = user_prefs.get('FAMILY', {}).get(f.id, 'NEUTRAL') %}
+                    <div class="pref-chip {{ pref|lower }}"
+                         data-type="FAMILY"
+                         data-id="{{ f.id }}"
+                         data-state="{{ pref }}"
+                         onclick="togglePreference(this)">
+                        {{ f.name }}
+                    </div>
+                {% endfor %}
             </div>
         </div>
-    </div>
 
-    <!-- Familias -->
-    <div class="pref-section">
-        <h3 class="pref-title">¿Qué familias te gustan?</h3>
-        <div class="chip-container">
-            {% for f in families %}
-                {% set pref = user_prefs.get('FAMILY', {}).get(f.id, 'NEUTRAL') %}
-                <div class="pref-chip {{ pref|lower }}" 
-                     data-type="FAMILY" 
-                     data-id="{{ f.id }}"
-                     data-state="{{ pref }}"
-                     onclick="togglePreference(this)">
-                    {{ f.name }}
+        <!-- Estilos -->
+        <div class="pref-section">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:0.8rem;">
+                <h3 class="pref-title" style="margin:0;">Estilos específicos</h3>
+                <button type="button" onclick="openStyleGuideModal()" class="style-info-btn">
+                    📖 Ver Guía BJCP
+                </button>
+            </div>
+            {% for f_id, styles in styles_by_family.items() %}
+                {% set fam_obj = (families | selectattr("id", "equalto", f_id) | first) %}
+                {% if fam_obj %}
+                <button type="button" class="accordion-btn" onclick="toggleAccordion('acc-{{ f_id }}')">
+                    <span>🍺 {{ fam_obj.name }}</span>
+                    <span>▼</span>
+                </button>
+                <div class="accordion-content" id="acc-{{ f_id }}">
+                    <div class="chip-container">
+                        {% for s in styles %}
+                            {% set pref = user_prefs.get('STYLE', {}).get(s.id, 'NEUTRAL') %}
+                            <div class="pref-chip {{ pref|lower }}"
+                                 data-type="STYLE"
+                                 data-id="{{ s.id }}"
+                                 data-state="{{ pref }}"
+                                 onclick="togglePreference(this)">
+                                {{ s.name }}
+                            </div>
+                        {% endfor %}
+                    </div>
                 </div>
+                {% endif %}
             {% endfor %}
         </div>
+
+        <!-- Tags -->
+        <div class="pref-section">
+            <h3 class="pref-title">Notas y sensaciones</h3>
+            <div class="chip-container">
+                {% for t in tags %}
+                    {% set pref = user_prefs.get('TAG', {}).get(t.id, 'NEUTRAL') %}
+                    <div class="pref-chip {{ pref|lower }}"
+                         data-type="TAG"
+                         data-id="{{ t.id }}"
+                         data-state="{{ pref }}"
+                         onclick="togglePreference(this)">
+                        {{ t.icon or '' }} {{ t.name }}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <button id="btn-save-prefs" class="btn" style="position: sticky; bottom: calc(var(--bottom-nav-height) + 15px); width: 100%; padding: 0.9rem; font-size: 0.95rem; z-index: 90;" onclick="saveAllPreferences()">
+            💾 Guardar cambios de paladar
+        </button>
     </div>
 
-    <!-- Estilos -->
-    <div class="pref-section">
-        <h3 class="pref-title">Explora por Estilos</h3>
-        {% for f_id, styles in styles_by_family.items() %}
-            {% set fam_name = (families | selectattr("id", "equalto", f_id) | first).name %}
-            <button class="accordion-btn" onclick="toggleAccordion('acc-{{ f_id }}')">
-                🍺 {{ fam_name }}
-                <span>▼</span>
-            </button>
-            <div class="accordion-content" id="acc-{{ f_id }}">
-                <div class="chip-container">
-                    {% for s in styles %}
-                        {% set pref = user_prefs.get('STYLE', {}).get(s.id, 'NEUTRAL') %}
-                        <div class="pref-chip {{ pref|lower }}" 
-                             data-type="STYLE" 
-                             data-id="{{ s.id }}"
-                             data-state="{{ pref }}"
-                             onclick="togglePreference(this)">
-                            {{ s.name }}
+    <!-- PESTAÑA 2: MIS ENTIDADES (COLABORACIONES Y PROPIEDADES VERIFICADAS) -->
+    <div id="tab-entities" class="tab-pane">
+        <!-- BARES -->
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:0.6rem;">
+            <h3 style="margin:0; font-size:1rem;">🏪 Locales ({{ my_venues|length }})</h3>
+            <a href="{{ url_for('routes.venue_new') }}" style="font-size:0.8rem; color:var(--color-primary); text-decoration:none; font-weight:600;">+ Añadir local</a>
+        </div>
+
+        {% if my_venues %}
+            {% for v in my_venues %}
+            <div class="entity-sub-card">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.5rem; margin-bottom:0.5rem;">
+                    <div>
+                        <h4 style="margin:0 0 0.2rem 0; font-size:1.02rem;">
+                            <a href="{{ url_for('routes.venue_view', id=v.id) }}" style="color:var(--text-main); text-decoration:none;">{{ v.name }}</a>
+                        </h4>
+                        <p style="margin:0; font-size:0.8rem; color:var(--text-secondary);">
+                            📍 {{ v.address }}{% if v.city %}, {{ v.city }}{% endif %}
+                        </p>
+                    </div>
+                    {% if v.is_owner %}
+                        <span class="pill" style="margin:0; background:rgba(16, 185, 129, 0.15); color:#6EE7B7; border-color:rgba(16, 185, 129, 0.35); font-size:0.7rem;">👑 Verificado</span>
+                    {% else %}
+                        <span class="pill" style="margin:0; background:rgba(255, 255, 255, 0.06); color:var(--text-secondary); font-size:0.7rem;">📝 Colaborador</span>
+                    {% endif %}
+                </div>
+
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-top:0.65rem; padding-top:0.6rem; border-top:1px solid var(--border-color); flex-wrap:wrap; gap:0.45rem;">
+                    <span style="font-size:0.8rem; color:var(--color-primary); font-weight:600;">🍺 {{ v.tap_count }} en pizarra</span>
+                    <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+                        <a href="{{ url_for('routes.venue_view', id=v.id) }}" class="btn btn-outline" style="padding:0.32rem 0.65rem; font-size:0.76rem; width:auto;">
+                            {% if not v.is_owner and not v.owner_user_id %}🛡️ Ver / Reclamar{% else %}📋 Pizarra{% endif %}
+                        </a>
+                        {% if v.is_owner or user.role == 'ADMIN' %}
+                        <a href="{{ url_for('routes.venue_tv', id=v.id) }}" target="_blank" class="btn btn-outline" style="padding:0.32rem 0.65rem; font-size:0.76rem; width:auto;">📺 TV</a>
+                        <a href="{{ url_for('routes.venue_qr_poster', id=v.id) }}" target="_blank" class="btn btn-outline" style="padding:0.32rem 0.65rem; font-size:0.76rem; width:auto;">📱 QR</a>
+                        {% endif %}
+                        {% if v.is_owner or user.role == 'ADMIN' or not v.owner_user_id %}
+                        <a href="{{ url_for('routes.edit_venue', id=v.id) }}" class="btn btn-outline" style="padding:0.32rem 0.65rem; font-size:0.76rem; width:auto;">✏️ Editar</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state-box">
+                <p style="margin:0; font-size:0.85rem; color:var(--text-secondary);">Aún no has registrado ni reclamado ningún establecimiento.</p>
+            </div>
+        {% endif %}
+
+        <!-- MARCAS -->
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin:1.3rem 0 0.6rem 0;">
+            <h3 style="margin:0; font-size:1rem;">🏭 Marcas / Cerveceras ({{ my_brands|length }})</h3>
+            <a href="{{ url_for('routes.fabricante_new') }}" style="font-size:0.8rem; color:var(--color-primary); text-decoration:none; font-weight:600;">+ Añadir marca</a>
+        </div>
+
+        {% if my_brands %}
+            {% for f in my_brands %}
+            <div class="entity-sub-card">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.5rem;">
+                    <div>
+                        <h4 style="margin:0 0 0.2rem 0; font-size:1.02rem;">
+                            <a href="{{ url_for('routes.fabricante_view', id=f.id) }}" style="color:var(--text-main); text-decoration:none;">{{ f.name }}</a>
+                        </h4>
+                        <p style="margin:0; font-size:0.8rem; color:var(--text-secondary);">📍 {{ f.country or 'Origen no especificado' }} · 🍺 {{ f.beer_count }} cervezas</p>
+                    </div>
+                    {% if f.is_owner %}
+                        <span class="pill" style="margin:0; background:rgba(16, 185, 129, 0.15); color:#6EE7B7; border-color:rgba(16, 185, 129, 0.35); font-size:0.7rem;">👑 Verificada</span>
+                    {% else %}
+                        <span class="pill" style="margin:0; background:rgba(255, 255, 255, 0.06); color:var(--text-secondary); font-size:0.7rem;">📝 Colaborador</span>
+                    {% endif %}
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:0.4rem; margin-top:0.65rem; padding-top:0.6rem; border-top:1px solid var(--border-color);">
+                    <a href="{{ url_for('routes.fabricante_view', id=f.id) }}" class="btn btn-outline" style="padding:0.32rem 0.7rem; font-size:0.76rem; width:auto;">
+                        {% if not f.is_owner and not f.owner_user_id %}🛡️ Ver / Reclamar{% else %}Ver catálogo{% endif %}
+                    </a>
+                    {% if f.is_owner or user.role == 'ADMIN' or not f.owner_user_id %}
+                    <a href="{{ url_for('routes.edit_fabricante', id=f.id) }}" class="btn btn-outline" style="padding:0.32rem 0.7rem; font-size:0.76rem; width:auto;">✏️ Editar</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state-box">
+                <p style="margin:0; font-size:0.85rem; color:var(--text-secondary);">Aún no has registrado ni reclamado ninguna cervecera.</p>
+            </div>
+        {% endif %}
+
+        <!-- CERVEZAS -->
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin:1.3rem 0 0.6rem 0;">
+            <h3 style="margin:0; font-size:1rem;">🍺 Cervezas ({{ my_beers|length }})</h3>
+            <a href="{{ url_for('routes.beer_new') }}" style="font-size:0.8rem; color:var(--color-primary); text-decoration:none; font-weight:600;">+ Añadir cerveza</a>
+        </div>
+
+        {% if my_beers %}
+            {% for b in my_beers %}
+            <div class="entity-sub-card">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:0.6rem;">
+                    <div style="display:flex; align-items:center; gap:0.7rem; min-width:0;">
+                        <div class="card-img" style="width:40px; height:40px; border-radius:8px; font-size:1.2rem; flex-shrink:0; {% if b.image_url %}background-image:url('{{ b.image_url }}'); background-size:cover; background-position:center;{% endif %}">
+                            {% if not b.image_url %}🍺{% endif %}
                         </div>
-                    {% endfor %}
+                        <div style="min-width:0;">
+                            <h4 style="margin:0; font-size:0.95rem;">
+                                <a href="{{ url_for('routes.beer_view', id=b.id) }}" style="color:var(--text-main); text-decoration:none;">{{ b.name }}</a>
+                            </h4>
+                            <p style="margin:0.15rem 0 0; font-size:0.78rem; color:var(--text-secondary);">
+                                {{ b.brewery }}{% if b.style_name %} · {{ b.style_name }}{% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:0.4rem; flex-shrink:0;">
+                        {% if b.is_owner %}
+                            <span class="pill" style="margin:0; background:rgba(16, 185, 129, 0.15); color:#6EE7B7; border-color:rgba(16, 185, 129, 0.35); font-size:0.7rem;">👑 Oficial</span>
+                        {% endif %}
+                        {% if b.is_owner or user.role == 'ADMIN' or not b.owner_user_id %}
+                        <a href="{{ url_for('routes.edit_beer', id=b.id) }}" class="btn btn-outline" style="padding:0.32rem 0.65rem; font-size:0.76rem; width:auto;">✏️</a>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
-        {% endfor %}
-    </div>
-
-    <!-- Tags -->
-    <div class="pref-section">
-        <h3 class="pref-title">Características y Sabores</h3>
-        <div class="chip-container">
-            {% for t in tags %}
-                {% set pref = user_prefs.get('TAG', {}).get(t.id, 'NEUTRAL') %}
-                <div class="pref-chip {{ pref|lower }}" 
-                     data-type="TAG" 
-                     data-id="{{ t.id }}"
-                     data-state="{{ pref }}"
-                     onclick="togglePreference(this)">
-                    {{ t.name }}
-                </div>
             {% endfor %}
-        </div>
+        {% else %}
+            <div class="empty-state-box">
+                <p style="margin:0; font-size:0.85rem; color:var(--text-secondary);">No has añadido ni adoptado cervezas todavía.</p>
+            </div>
+        {% endif %}
     </div>
 
-    <!-- Ajustes de Búsqueda -->
-    <div class="pref-section" style="border-color: var(--color-primary);">
-        <h3 class="pref-title">📍 Radio de Búsqueda</h3>
-        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
-            Distancia máxima para descubrir cervezas y bares en BeerMatch y Descubre.
-        </p>
-        <div style="display: flex; align-items: center; gap: 1rem;">
-            <input type="range" id="max-distance-slider" min="1" max="50" step="1" value="{{ user.get('max_distance', 20) }}" style="flex: 1;" oninput="updateDistanceLabel(this.value)">
-            <span id="max-distance-label" style="font-weight: bold; width: 60px; text-align: right;">{{ user.get('max_distance', 20) }} km</span>
+    <!-- PESTAÑA 3: VERIFICACIONES DE PROPIEDAD -->
+    <div id="tab-claims" class="tab-pane">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.9rem;">
+            <div>
+                <h3 style="margin:0 0 0.2rem 0; font-size:1.05rem; color:var(--color-primary);">🛡️ Mis Verificaciones</h3>
+                <p style="margin:0; font-size:0.8rem; color:var(--text-secondary);">Solicitudes de propiedad sobre marcas, locales y cervezas.</p>
+            </div>
+            <a href="{{ url_for('routes.my_claims') }}" class="btn btn-outline" style="width:auto; padding:0.4rem 0.85rem; font-size:0.8rem;">
+                Panel completo →
+            </a>
         </div>
+
+        {% if my_claims %}
+            {% for c in my_claims %}
+            <div class="entity-sub-card">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.5rem;">
+                    <div>
+                        <span class="pill" style="margin:0 0 0.3rem 0; font-size:0.68rem;">{{ c.entity_type|upper }} · {{ c.verification_method }}</span>
+                        <h4 style="margin:0; font-size:1rem;">
+                            <a href="{{ c.entity_url }}" style="color:var(--text-main); text-decoration:none;">{{ c.entity_name }}</a>
+                        </h4>
+                    </div>
+                    {% if c.status == 'PENDING' %}
+                        <a href="{{ url_for('routes.my_claims') }}" class="pill" style="margin:0; text-decoration:none; background:rgba(245, 158, 11, 0.16); color:#FCD34D; border-color:rgba(245, 158, 11, 0.45); font-size:0.72rem; font-weight:700;">
+                            ⏳ Completar / Ver →
+                        </a>
+                    {% elif c.status == 'APPROVED' %}
+                        <span class="pill" style="margin:0; background:rgba(16, 185, 129, 0.2); color:#6EE7B7; border-color:rgba(16, 185, 129, 0.4); font-size:0.72rem;">👑 Aprobada</span>
+                    {% else %}
+                        <span class="pill" style="margin:0; background:rgba(239, 68, 68, 0.2); color:#FCA5A5; border-color:rgba(239, 68, 68, 0.4); font-size:0.72rem;">❌ Rechazada</span>
+                    {% endif %}
+                </div>
+                {% if c.resolution_note %}
+                <p style="margin:0.5rem 0 0; font-size:0.8rem; color:var(--text-secondary);">Nota: {{ c.resolution_note }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state-box">
+                <p style="margin:0; font-size:0.85rem; color:var(--text-secondary);">
+                    Si eres dueño de una marca o bar, abre su ficha y pulsa <strong>«Reclamar / Verificar»</strong> para desbloquear su gestión oficial.
+                </p>
+            </div>
+        {% endif %}
     </div>
 
-    <button id="btn-save-prefs" class="btn" style="position: sticky; bottom: 1rem; width: 100%; padding: 1rem; font-size: 1.05rem; z-index: 100;" onclick="saveAllPreferences()">
-        💾 Guardar cambios
-    </button>
-
+    <!-- 4. CUENTA Y CIERRE DE SESIÓN -->
+    <div style="margin-top:2rem; padding-top:1.1rem; border-top:1px solid var(--border-color); display:flex; flex-direction:column; gap:0.6rem;">
+        {% if user.role == 'ADMIN' %}
+        <a href="{{ url_for('routes.admin') }}" class="btn btn-outline" style="border-color:rgba(239, 68, 68, 0.5); color:#FCA5A5;">
+            ⚙️ Panel de Administración
+        </a>
+        {% endif %}
+        <a href="{{ url_for('routes.logout') }}" class="btn btn-outline" style="border-color:var(--border-color); color:var(--text-secondary);">
+            🚪 Cerrar Sesión
+        </a>
+    </div>
 </div>
 
 <script>
+    function switchProfileTab(tabId, btn) {
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.profile-tab-btn').forEach(b => b.classList.remove('active'));
+
+        const target = document.getElementById(tabId);
+        if (target) target.classList.add('active');
+        if (btn) btn.classList.add('active');
+
+        sessionStorage.setItem('activeProfileTab', tabId);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const savedTab = sessionStorage.getItem('activeProfileTab');
+        if (savedTab && document.getElementById(savedTab)) {
+            const btn = document.querySelector(`.profile-tab-btn[onclick*="${savedTab}"]`);
+            if (btn) switchProfileTab(savedTab, btn);
+        }
+    });
+
     function updateDistanceLabel(val) {
         document.getElementById('max-distance-label').innerText = val + ' km';
         scheduleAutoSave();
     }
 
-    // Lógica del Acordeón
     function toggleAccordion(id) {
         const content = document.getElementById(id);
-        content.classList.toggle('active');
+        if (content) content.classList.toggle('active');
     }
 
-    // Lógica de 3 Estados (Neutral -> Like -> Dislike -> Neutral)
     function togglePreference(element) {
-        let currentState = element.getAttribute('data-state');
+        const currentState = element.getAttribute('data-state');
         let newState = 'NEUTRAL';
+        if (currentState === 'NEUTRAL') newState = 'LIKE';
+        else if (currentState === 'LIKE') newState = 'DISLIKE';
 
-        // Determinar siguiente estado
-        if (currentState === 'NEUTRAL') {
-            newState = 'LIKE';
-        } else if (currentState === 'LIKE') {
-            newState = 'DISLIKE';
-        } else {
-            newState = 'NEUTRAL';
-        }
-
-        // Actualizar UI localmente
         element.setAttribute('data-state', newState);
         element.className = `pref-chip ${newState.toLowerCase()}`;
-
-        // Autosave: cada toggle dispara un guardado (debounced) además del botón manual
         scheduleAutoSave();
     }
 
@@ -239,10 +642,8 @@
     }
 
     function collectPreferencesPayload() {
-        const chips = document.querySelectorAll('.pref-chip[data-type]');
         const payload = [];
-
-        chips.forEach(chip => {
+        document.querySelectorAll('.pref-chip[data-type]').forEach(chip => {
             const state = chip.getAttribute('data-state');
             if (state === 'LIKE' || state === 'DISLIKE') {
                 payload.push({
@@ -252,7 +653,6 @@
                 });
             }
         });
-
         return payload;
     }
 
@@ -260,43 +660,41 @@
         const btn = document.getElementById('btn-save-prefs');
         const payload = collectPreferencesPayload();
         const maxDistance = document.getElementById('max-distance-slider').value;
+        const originalText = btn ? btn.innerHTML : '';
 
-        const originalText = btn.innerHTML;
-        if (!silent) {
+        if (!silent && btn) {
             btn.disabled = true;
             btn.innerHTML = 'Guardando...';
         }
 
-        // Guardar preferencias (tags, estilos)
-        const prefsPromise = fetch('/api/user/preferences', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        // Guardar settings (distancia máxima)
-        const settingsPromise = fetch('/api/user/settings', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ max_distance: maxDistance })
-        });
-
-        Promise.all([prefsPromise, settingsPromise])
+        Promise.all([
+            fetch('/api/user/preferences', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }),
+            fetch('/api/user/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ max_distance: maxDistance })
+            })
+        ])
         .then(responses => {
-            for (let res of responses) {
+            for (const res of responses) {
                 if (!res.ok) throw new Error('HTTP ' + res.status);
             }
-            if (!silent) {
+            if (!silent && btn) {
                 btn.disabled = false;
                 btn.innerHTML = '✅ Guardado';
                 setTimeout(() => btn.innerHTML = originalText, 1500);
             }
         })
-        .catch(err => {
-            console.error('Error guardando:', err);
-            btn.disabled = false;
-            btn.innerHTML = 'Error al guardar';
-            setTimeout(() => btn.innerHTML = originalText, 1500);
+        .catch(() => {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = 'Error al guardar';
+                setTimeout(() => btn.innerHTML = originalText, 1500);
+            }
         });
     }
 </script>

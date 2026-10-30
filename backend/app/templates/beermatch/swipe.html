@@ -4,56 +4,55 @@
 
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
     <h2 style="margin: 0; font-size: 1.5rem;">🍺 BeerMatch</h2>
-    <a href="{{ url_for('beermatch.history_view') }}" class="btn btn-outline" style="width: auto; padding: 0.5rem 1rem; font-size: 0.9rem;">Ver Historial</a>
+    <a href="{{ url_for('beermatch.history_view') }}" class="btn btn-outline" style="width: auto; padding: 0.5rem 1rem; font-size: 0.88rem;">Mis Cervezas 📡</a>
 </div>
 
-<!-- Search Bar -->
 <div id="swipe-search-bar" style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
     <div style="flex: 1; position: relative;">
         <input type="text" id="swipe-search-input" placeholder="Buscar cerveza, estilo, cervecería..."
-            style="width: 100%; padding: 0.7rem 1rem 0.7rem 2.5rem; border-radius: var(--radius-card); border: 1px solid var(--border-color); background: var(--bg-panel); color: var(--text-main); font-size: 0.95rem; font-family: inherit; outline: none;">
+            style="width: 100%; margin:0; padding: 0.7rem 1rem 0.7rem 2.5rem; border-radius: var(--radius-card); border: 1px solid var(--border-color); background: var(--bg-panel); color: var(--text-main); font-size: 0.95rem;">
         <span style="position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 1rem;">🔍</span>
     </div>
-    <button id="swipe-search-clear" style="display: none; padding: 0.7rem 1rem; border-radius: var(--radius-card); border: 1px solid var(--border-color); background: var(--bg-panel); color: var(--text-secondary); cursor: pointer; font-size: 0.9rem; font-family: inherit;">✕</button>
+    <button id="swipe-search-clear" style="display: none; padding: 0.7rem 1rem; border-radius: var(--radius-card); border: 1px solid var(--border-color); background: var(--bg-panel); color: var(--text-secondary); cursor: pointer;">✕</button>
 </div>
 
 <div id="geoWarning" class="alert alert-warning" style="display:none;"></div>
 
-<div id="beermatch-container" style="position: relative; width: 100%; height: 60vh; max-height: 480px; perspective: 1000px; display: flex; justify-content: center; align-items: center;">
-    
+<div id="beermatch-container" style="position: relative; width: 100%; height: 58vh; max-height: 460px; perspective: 1000px; display: flex; justify-content: center; align-items: center;">
     <div id="loading-indicator" style="text-align: center; color: var(--text-secondary);">
         <p style="font-size: 2rem; margin: 0;">🍻</p>
         <p>Buscando cervezas...</p>
     </div>
 
-    <!-- Cards will be injected here via JS -->
-    <div id="card-stack" style="position: absolute; width: 100%; height: 100%; display: none; align-items: center; justify-content: center;">
-        <!-- Single Card Example Structure (handled by JS) -->
-    </div>
+    <div id="card-stack" style="position: absolute; width: 100%; height: 100%; display: none; align-items: center; justify-content: center;"></div>
 
     <div id="empty-state" style="display: none; text-align: center; color: var(--text-secondary); background: var(--bg-panel); padding: 2rem; border-radius: var(--radius-card); border: 1px solid var(--border-color); width: 100%; max-width: 320px;">
         <p style="font-size: 3rem; margin: 0 0 1rem 0;">🎉</p>
-        <h3 id="empty-title" style="margin-top: 0; color: var(--text-main);">¡Has visto todas!</h3>
-        <p id="empty-msg">No nos quedan más cervezas por mostrarte en este momento. Vuelve más tarde.</p>
-        <a href="{{ url_for('routes.index') }}" class="btn" style="margin-top: 1rem;">Volver al inicio</a>
+        <h3 id="empty-title" style="margin-top: 0; color: var(--text-main);">¡Al día!</h3>
+        <p id="empty-msg">Ya has clasificado todas las cervezas disponibles.</p>
+        <a href="{{ url_for('beermatch.history_view') }}" class="btn" style="margin-top: 1rem;">Ver mis cervezas y radar</a>
     </div>
-
 </div>
 
-<!-- Botones fijos para cuando no se use swipe -->
-<div id="action-buttons" style="display: none; justify-content: center; gap: 2rem; margin-top: 1.5rem;">
-    <button id="btn-dislike" style="width: 70px; height: 70px; border-radius: 50%; background: var(--bg-panel); border: 2px solid var(--color-tertiary); font-size: 2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.1s;">
+<!-- Selector Variante B: 3 acciones limpias (Descartar | Quiero probar en Radar | Me gusta) -->
+<div id="action-buttons" style="display: none; justify-content: center; align-items: center; gap: 1.4rem; margin-top: 1.4rem;">
+    <button id="btn-dislike" title="No es para mí" style="width: 64px; height: 64px; border-radius: 50%; background: var(--bg-panel); border: 2px solid rgba(239, 68, 68, 0.45); font-size: 1.7rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.1s;">
         ❌
     </button>
-    <button id="btn-like" style="width: 70px; height: 70px; border-radius: 50%; background: var(--bg-panel); border: 2px solid var(--color-primary); font-size: 2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.1s;">
+    <button id="btn-wishlist" title="Quiero probarla (activar en mi Radar)" style="width: 56px; height: 56px; border-radius: 50%; background: rgba(245, 158, 11, 0.14); border: 2px solid var(--color-primary); font-size: 1.45rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 14px rgba(245,158,11,0.25); transition: transform 0.1s;">
+        📡
+    </button>
+    <button id="btn-like" title="Me gusta" style="width: 64px; height: 64px; border-radius: 50%; background: var(--bg-panel); border: 2px solid rgba(16, 185, 129, 0.55); font-size: 1.7rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.1s;">
         ❤️
     </button>
 </div>
+<p id="swipe-legend" style="display:none; text-align:center; font-size:0.75rem; color:var(--text-muted); margin-top:0.55rem;">
+    ← Descartar · ↑ 📡 Quiero probar (Radar) · → ❤️ Me gusta
+</p>
 
-<!-- Feedback Overlay -->
 <div id="feedback-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; transition: opacity 0.2s;">
-    <div id="feedback-text" style="background: rgba(0,0,0,0.8); padding: 1rem 2rem; border-radius: 30px; font-size: 1.5rem; font-weight: bold; transform: scale(0.8); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
-        ❤️ ¡Match!
+    <div id="feedback-text" style="background: rgba(0,0,0,0.85); padding: 0.9rem 1.8rem; border-radius: 30px; font-size: 1.35rem; font-weight: bold; transform: scale(0.8); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+        ❤️ ¡Me gusta!
     </div>
 </div>
 
@@ -66,6 +65,7 @@
         background: var(--bg-panel);
         border-radius: 20px;
         border: 1px solid var(--color-tertiary);
+        border-top: 4px solid var(--color-tertiary);
         box-shadow: 0 10px 20px rgba(0,0,0,0.4);
         overflow: hidden;
         display: flex;
@@ -73,9 +73,8 @@
         transition: transform 0.3s ease, opacity 0.3s ease;
         transform-origin: 50% 100%;
         will-change: transform;
-        touch-action: none; /* Previene scroll durante el swipe */
+        touch-action: none;
     }
-
     .beermatch-card-img {
         flex: 1;
         background-color: var(--color-tertiary);
@@ -87,7 +86,6 @@
         font-size: 4rem;
         position: relative;
     }
-
     .beermatch-card-img::after {
         content: '';
         position: absolute;
@@ -95,23 +93,19 @@
         height: 50%;
         background: linear-gradient(to top, var(--bg-panel), transparent);
     }
-
     .beermatch-card-content {
-        padding: 1.5rem;
+        padding: 1.4rem;
         position: relative;
         z-index: 2;
-        margin-top: -3rem; /* Subimos el contenido sobre el gradiente */
+        margin-top: -2.8rem;
     }
-
-    .bm-title { margin: 0 0 0.2rem 0; font-size: 1.6rem; color: var(--text-main); font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-    .bm-brewery { margin: 0 0 0.8rem 0; font-size: 1.1rem; color: var(--color-primary); font-weight: 600; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-    .bm-info-row { display: flex; justify-content: space-between; align-items: flex-end; gap: 0.5rem; }
-    .bm-info { margin: 0; font-size: 1rem; color: var(--text-secondary); display: flex; gap: 0.5rem; align-items: center; }
+    .bm-title { margin: 0 0 0.2rem 0; font-size: 1.5rem; color: var(--text-main); font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+    .bm-brewery { margin: 0 0 0.6rem 0; font-size: 1.05rem; color: var(--color-primary); font-weight: 600; }
+    .bm-info { margin: 0; font-size: 0.95rem; color: var(--text-secondary); display: flex; gap: 0.5rem; align-items: center; }
     .bm-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.6rem 0 0 0; }
     .bm-tag { background: rgba(255,255,255,0.1); border: 1px solid var(--color-tertiary); color: var(--text-secondary); font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 1rem; }
-    .bm-distance { flex-shrink: 0; font-size: 0.85rem; font-weight: 700; color: var(--color-primary); white-space: nowrap; }
+    .bm-reason { margin: 0.5rem 0 0 0; font-size: 0.8rem; color: var(--color-secondary); }
 
-    /* Badge de ubicación — parte superior de la imagen */
     .bm-location-badge {
         position: absolute;
         top: 0.75rem;
@@ -120,45 +114,28 @@
         display: flex;
         align-items: center;
         gap: 0.35rem;
-        background: rgba(0, 0, 0, 0.62);
+        background: rgba(0, 0, 0, 0.65);
         backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
         border-radius: 20px;
         padding: 0.3rem 0.65rem 0.3rem 0.5rem;
         max-width: calc(100% - 1.5rem);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.35);
     }
-    .bm-location-icon { font-size: 0.85rem; flex-shrink: 0; }
-    .bm-location-name {
-        font-size: 0.78rem;
-        font-weight: 600;
-        color: #ffffff;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 160px;
-    }
-    .bm-location-dist {
-        font-size: 0.75rem;
-        font-weight: 700;
-        color: var(--color-secondary);
-        white-space: nowrap;
-        flex-shrink: 0;
-    }
+    .bm-location-name { font-size: 0.78rem; font-weight: 600; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+    .bm-location-dist { font-size: 0.75rem; font-weight: 700; color: var(--color-secondary); white-space: nowrap; }
     .bm-location-dist::before { content: '·'; margin-right: 0.3rem; color: rgba(255,255,255,0.4); }
 
+    .card-swipe-right { transform: translateX(100vw) rotate(28deg) !important; opacity: 0; }
+    .card-swipe-left { transform: translateX(-100vw) rotate(-28deg) !important; opacity: 0; }
+    .card-swipe-up { transform: translateY(-100vh) scale(0.92) !important; opacity: 0; }
 
-    /* Efectos de Swipe */
-    .card-swipe-right { transform: translateX(100vw) rotate(30deg) !important; opacity: 0; }
-    .card-swipe-left { transform: translateX(-100vw) rotate(-30deg) !important; opacity: 0; }
-    
     .badge-swipe {
         position: absolute; top: 2rem;
-        padding: 0.5rem 1rem; border-radius: 10px; font-weight: 900; font-size: 2rem;
+        padding: 0.45rem 0.9rem; border-radius: 10px; font-weight: 900; font-size: 1.6rem;
         border: 4px solid; opacity: 0; z-index: 10; text-transform: uppercase;
     }
-    .badge-like { right: 2rem; color: var(--color-green); border-color: var(--color-green); transform: rotate(15deg); }
-    .badge-dislike { left: 2rem; color: var(--color-red); border-color: var(--color-red); transform: rotate(-15deg); }
+    .badge-like { right: 1.5rem; color: var(--color-green); border-color: var(--color-green); transform: rotate(15deg); }
+    .badge-dislike { left: 1.5rem; color: var(--color-red); border-color: var(--color-red); transform: rotate(-15deg); }
+    .badge-wishlist { left: 50%; transform: translateX(-50%); color: var(--color-primary); border-color: var(--color-primary); }
 </style>
 
 <script>
@@ -168,14 +145,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let userLat = null;
     let userLon = null;
     let currentQuery = '';
-    
+
     const stack = document.getElementById('card-stack');
     const loading = document.getElementById('loading-indicator');
     const emptyState = document.getElementById('empty-state');
     const emptyTitle = document.getElementById('empty-title');
     const emptyMsg = document.getElementById('empty-msg');
     const actionButtons = document.getElementById('action-buttons');
+    const swipeLegend = document.getElementById('swipe-legend');
     const btnLike = document.getElementById('btn-like');
+    const btnWishlist = document.getElementById('btn-wishlist');
     const btnDislike = document.getElementById('btn-dislike');
     const feedbackOverlay = document.getElementById('feedback-overlay');
     const feedbackText = document.getElementById('feedback-text');
@@ -183,25 +162,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchClear = document.getElementById('swipe-search-clear');
 
     function fetchBeers(lat, lon, query) {
-        // Reset state
         currentIndex = 0;
         stack.innerHTML = '';
         stack.style.display = 'none';
         actionButtons.style.display = 'none';
+        swipeLegend.style.display = 'none';
         emptyState.style.display = 'none';
         loading.style.display = 'block';
-        loading.innerHTML = '<p style="font-size: 2rem; margin: 0;">🍻</p><p>Buscando cervezas...</p>';
 
         let params = new URLSearchParams();
         if (lat != null && lon != null) {
             params.set('lat', lat);
             params.set('lon', lon);
         }
-        if (query) {
-            params.set('q', query);
-        }
-        let url = '/beermatch/api/beers';
-        if (params.toString()) url += '?' + params.toString();
+        if (query) params.set('q', query);
+        let url = '/beermatch/api/beers' + (params.toString() ? '?' + params.toString() : '');
 
         fetch(url)
             .then(res => res.json())
@@ -212,42 +187,30 @@ document.addEventListener('DOMContentLoaded', () => {
                     renderCards();
                     stack.style.display = 'flex';
                     actionButtons.style.display = 'flex';
+                    swipeLegend.style.display = 'block';
                     setupInteractions();
                 } else {
-                    if (query) {
-                        emptyTitle.textContent = 'Sin resultados';
-                        emptyMsg.textContent = `No se encontraron cervezas para "${query}". Prueba otro término.`;
-                    } else {
-                        emptyTitle.textContent = '¡Has visto todas!';
-                        emptyMsg.textContent = 'No nos quedan más cervezas por mostrarte en este momento. Vuelve más tarde.';
-                    }
+                    emptyTitle.textContent = query ? 'Sin resultados' : '¡Al día!';
+                    emptyMsg.textContent = query
+                        ? `No se encontraron cervezas sin valorar para "${query}".`
+                        : 'Ya has clasificado todas las cervezas disponibles por ahora.';
                     emptyState.style.display = 'block';
                 }
             })
-            .catch(err => {
+            .catch(() => {
                 loading.innerHTML = '<p style="color:var(--color-red)">Error al cargar. Inténtalo de nuevo.</p>';
             });
     }
 
-    // Search bar logic
     let searchTimeout = null;
     searchInput.addEventListener('input', () => {
         const q = searchInput.value.trim();
         searchClear.style.display = q ? 'block' : 'none';
-        
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
             currentQuery = q;
             fetchBeers(userLat, userLon, q);
         }, 400);
-    });
-
-    searchInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            clearTimeout(searchTimeout);
-            currentQuery = searchInput.value.trim();
-            fetchBeers(userLat, userLon, currentQuery);
-        }
     });
 
     searchClear.addEventListener('click', () => {
@@ -257,8 +220,6 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchBeers(userLat, userLon, '');
     });
 
-    // Pedimos ubicación para poder priorizar cervezas cercanas; si el usuario la deniega
-    // seguimos sin proximidad, solo con afinidad de gustos.
     window.getAppLocation(
         pos => {
             userLat = pos.coords.latitude;
@@ -267,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         msg => {
             const warning = document.getElementById('geoWarning');
-            warning.textContent = '📍 ' + msg + ' Mostrando recomendaciones sin proximidad.';
+            warning.textContent = '📍 ' + msg + ' Mostrando recomendaciones por afinidad.';
             warning.style.display = 'block';
             fetchBeers(null, null, currentQuery);
         }
@@ -279,179 +240,159 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const i = currentIndex;
         const b = beers[i];
-
         const card = document.createElement('div');
         card.className = 'beermatch-card';
         card.id = `card-${i}`;
+        if (b.style_color) card.style.borderTopColor = b.style_color;
 
-        const imgUrl = b.image && b.image !== 'default_beer.png' ? `/static/images/beers/${b.image}` : null;
-        const bgStyle = imgUrl ? `background-image: url('${imgUrl}');` : '';
-        const fallbackEmoji = imgUrl ? '' : '🍺';
-
+        const bgStyle = b.image_url ? `background-image: url('${b.image_url}');` : '';
+        const fallbackEmoji = b.image_url ? '' : '🍺';
         const tagsHtml = (b.tags && b.tags.length)
-            ? `<div class="bm-tags">${b.tags.map(t => `<span class="bm-tag">${t}</span>`).join('')}</div>`
+            ? `<div class="bm-tags">${b.tags.map(t => `<span class="bm-tag">${escapeHtml(t)}</span>`).join('')}</div>`
             : '';
+        const reasonHtml = b.reason ? `<p class="bm-reason">💡 ${escapeHtml(b.reason)}</p>` : '';
 
-        // Badge de ubicación: venue + distancia en la parte SUPERIOR de la imagen
-        const distStr = b.distance_str || (b.distance_km != null ? b.distance_km + ' km' : null);
+        const distStr = escapeHtml(b.distance_str || (b.distance_km != null ? b.distance_km + ' km' : ''));
+        const venueName = escapeHtml(b.nearest_venue_name);
         const locationBadge = b.nearest_venue_name
             ? `<div class="bm-location-badge">
-                 <span class="bm-location-icon">📍</span>
-                 <span class="bm-location-name">${b.nearest_venue_name}</span>
+                 <span>📍</span>
+                 <span class="bm-location-name">${venueName}</span>
                  ${distStr ? `<span class="bm-location-dist">${distStr}</span>` : ''}
                </div>`
-            : (distStr ? `<div class="bm-location-badge"><span class="bm-location-icon">📍</span><span class="bm-location-dist">${distStr}</span></div>` : '');
+            : '';
 
         card.innerHTML = `
-            <div class="badge-swipe badge-like" id="badge-like-${i}">LIKE</div>
-            <div class="badge-swipe badge-dislike" id="badge-dislike-${i}">NOPE</div>
+            <div class="badge-swipe badge-like" id="badge-like-${i}">ME GUSTA</div>
+            <div class="badge-swipe badge-dislike" id="badge-dislike-${i}">DESCARTAR</div>
+            <div class="badge-swipe badge-wishlist" id="badge-wishlist-${i}">RADAR 📡</div>
             <div class="beermatch-card-img" style="${bgStyle}">
                 ${fallbackEmoji}
                 ${locationBadge}
             </div>
             <div class="beermatch-card-content">
-                <h3 class="bm-title">${b.name}</h3>
-                <p class="bm-brewery">${b.brewery}</p>
-                <div class="bm-info-row">
-                    <p class="bm-info"><span>${b.style}</span> &bull; <span>${b.abv}%</span></p>
-                </div>
+                <h3 class="bm-title">${escapeHtml(b.name)}</h3>
+                <p class="bm-brewery">${escapeHtml(b.brewery)}</p>
+                <p class="bm-info"><span>${escapeHtml(b.style)}</span>${b.abv ? ' &bull; <span>' + escapeHtml(b.abv) + '%</span>' : ''}</p>
+                ${reasonHtml}
                 ${tagsHtml}
             </div>
         `;
-
         stack.appendChild(card);
     }
 
     function showFeedback(type) {
         if (type === 'LIKE') {
-            feedbackText.innerHTML = '❤️ ¡Match!';
-            feedbackText.style.color = 'var(--text-main)';
+            feedbackText.innerHTML = '❤️ ¡Me gusta!';
+            feedbackText.style.color = '#6EE7B7';
+        } else if (type === 'WISHLIST') {
+            feedbackText.innerHTML = '📡 ¡Añadida a tu Radar!';
+            feedbackText.style.color = '#FCD34D';
         } else {
-            feedbackText.innerHTML = '❌ Pasamos de esta.';
-            feedbackText.style.color = '#ff9999';
+            feedbackText.innerHTML = '❌ Descartada';
+            feedbackText.style.color = '#FCA5A5';
         }
-        
         feedbackOverlay.style.opacity = '1';
         feedbackText.style.transform = 'scale(1)';
-        
         setTimeout(() => {
             feedbackOverlay.style.opacity = '0';
             feedbackText.style.transform = 'scale(0.8)';
-        }, 800);
-    }
-
-    function savePreference(beerId, preference) {
-        fetch('/beermatch/api/preferences', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ beer_id: beerId, preference: preference })
-        });
+        }, 750);
     }
 
     function handleAction(action) {
         if (currentIndex >= beers.length) return;
-        
         const currentCard = document.getElementById(`card-${currentIndex}`);
         const beerId = beers[currentIndex].id;
-        
-        // Animación de salida
-        currentCard.style.transition = 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.5s';
-        if (action === 'LIKE') {
-            currentCard.classList.add('card-swipe-right');
-        } else {
-            currentCard.classList.add('card-swipe-left');
-        }
+
+        currentCard.style.transition = 'transform 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.45s';
+        if (action === 'LIKE') currentCard.classList.add('card-swipe-right');
+        else if (action === 'WISHLIST') currentCard.classList.add('card-swipe-up');
+        else currentCard.classList.add('card-swipe-left');
 
         showFeedback(action);
-        savePreference(beerId, action);
-        
+        fetch('/beermatch/api/preferences', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ beer_id: beerId, preference: action })
+        });
+
         currentIndex++;
-        
-        // Actualizar visualmente la pila
         setTimeout(() => {
             if (currentCard) currentCard.remove();
             if (currentIndex >= beers.length) {
                 stack.style.display = 'none';
                 actionButtons.style.display = 'none';
+                swipeLegend.style.display = 'none';
                 emptyState.style.display = 'block';
             } else {
                 renderCards();
-                setupInteractions(); // Setup touch on new top card
+                setupInteractions();
             }
-        }, 300); // Dar un poco de tiempo para que empiece la animación antes de repintar
+        }, 280);
     }
 
-    btnLike.addEventListener('click', () => {
-        btnLike.style.transform = 'scale(0.9)';
-        setTimeout(() => btnLike.style.transform = 'scale(1)', 100);
-        handleAction('LIKE');
-    });
-    
-    btnDislike.addEventListener('click', () => {
-        btnDislike.style.transform = 'scale(0.9)';
-        setTimeout(() => btnDislike.style.transform = 'scale(1)', 100);
-        handleAction('DISLIKE');
-    });
+    btnLike.addEventListener('click', () => handleAction('LIKE'));
+    btnWishlist.addEventListener('click', () => handleAction('WISHLIST'));
+    btnDislike.addEventListener('click', () => handleAction('DISLIKE'));
 
-    // Touch logic
     function setupInteractions() {
-        if (currentIndex >= beers.length) return;
-        
         const card = document.getElementById(`card-${currentIndex}`);
         if (!card) return;
 
         let startX = 0, startY = 0, moveX = 0, moveY = 0;
         let isDragging = false;
-        const threshold = 100; // px to trigger action
+        const threshold = 95;
 
         const badgeLike = document.getElementById(`badge-like-${currentIndex}`);
         const badgeDislike = document.getElementById(`badge-dislike-${currentIndex}`);
+        const badgeWishlist = document.getElementById(`badge-wishlist-${currentIndex}`);
 
         card.addEventListener('touchstart', e => {
             isDragging = true;
             startX = e.touches[0].clientX;
             startY = e.touches[0].clientY;
-            card.style.transition = 'none'; // Disable transition while dragging
+            card.style.transition = 'none';
         });
 
         card.addEventListener('touchmove', e => {
             if (!isDragging) return;
-            e.preventDefault(); // Prevent scrolling
-            
+            e.preventDefault();
             moveX = e.touches[0].clientX - startX;
             moveY = e.touches[0].clientY - startY;
-            
-            // Rotation based on X movement
-            const rotate = moveX * 0.05;
-            
-            card.style.transform = `translate(${moveX}px, ${moveY}px) rotate(${rotate}deg)`;
-            
-            // Badges opacity
-            if (moveX > 0) {
+            card.style.transform = `translate(${moveX}px, ${moveY}px) rotate(${moveX * 0.05}deg)`;
+
+            if (moveY < -40 && Math.abs(moveY) > Math.abs(moveX)) {
+                badgeWishlist.style.opacity = Math.min(Math.abs(moveY) / threshold, 1);
+                badgeLike.style.opacity = 0;
+                badgeDislike.style.opacity = 0;
+            } else if (moveX > 0) {
                 badgeLike.style.opacity = Math.min(moveX / threshold, 1);
                 badgeDislike.style.opacity = 0;
+                badgeWishlist.style.opacity = 0;
             } else {
                 badgeDislike.style.opacity = Math.min(Math.abs(moveX) / threshold, 1);
                 badgeLike.style.opacity = 0;
+                badgeWishlist.style.opacity = 0;
             }
         });
 
         card.addEventListener('touchend', () => {
             if (!isDragging) return;
             isDragging = false;
-            
-            if (moveX > threshold) {
+            if (moveY < -threshold && Math.abs(moveY) > Math.abs(moveX)) {
+                handleAction('WISHLIST');
+            } else if (moveX > threshold) {
                 handleAction('LIKE');
             } else if (moveX < -threshold) {
                 handleAction('DISLIKE');
             } else {
-                // Return to center
                 card.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
                 card.style.transform = 'translate(0px, 0px) rotate(0deg)';
                 badgeLike.style.opacity = 0;
                 badgeDislike.style.opacity = 0;
+                badgeWishlist.style.opacity = 0;
             }
-            
             moveX = 0; moveY = 0;
         });
     }

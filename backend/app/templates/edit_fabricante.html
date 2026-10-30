@@ -3,47 +3,57 @@
 {% block content %}
 <div class="card">
     <h2>Editar Fabricante: {{ fabricante.name }}</h2>
-    
+
     <form method="POST" action="{{ url_for('routes.edit_fabricante', id=fabricante.id) }}" enctype="multipart/form-data">
-        <div style="display: flex; gap: 1rem;">
-            <div style="flex:2;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <div style="flex:2; min-width:180px;">
                 <label>Nombre del Fabricante</label>
                 <input type="text" name="name" value="{{ fabricante.name }}" required>
             </div>
-            <div style="flex:1;">
+            <div style="flex:1; min-width:140px;">
                 <label>País / Origen</label>
                 <input type="text" name="country" value="{{ fabricante.country }}" required>
             </div>
         </div>
-        
-        <label>Sitio Web</label>
-        <input type="url" name="website" value="{{ fabricante.website or '' }}" placeholder="https://ejemplo.com">
-        
-        <div style="display: flex; gap: 1rem;">
-            <div style="flex:1;">
+
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <div style="flex:1; min-width:200px;">
+                <label>Sitio Web Oficial</label>
+                <input type="url" name="website" value="{{ fabricante.website or '' }}" placeholder="https://ejemplo.com">
+            </div>
+            <div style="flex:1; min-width:160px;">
+                <label>Instagram Oficial</label>
+                <input type="text" name="instagram_handle" value="{{ fabricante.instagram_handle or '' }}" placeholder="@cervecera">
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <div style="flex:1; min-width:180px;">
                 <label>Email de Contacto</label>
                 <input type="email" name="email" value="{{ fabricante.email or '' }}" placeholder="info@ejemplo.com">
             </div>
-            <div style="flex:1;">
+            <div style="flex:1; min-width:140px;">
                 <label>Número de Teléfono</label>
                 <input type="tel" name="phone" value="{{ fabricante.phone or '' }}" placeholder="+34 123 456 789">
             </div>
         </div>
-        
+
         <label>Descripción Breve</label>
         <textarea name="description" rows="3">{{ fabricante.description }}</textarea>
-        
+
         <label>Logotipo (dejar vacío para mantener el actual)</label>
-        {% if fabricante.logo %}
+        {% set fab_logo_url = resolve_media_url('fabricantes', fabricante.logo) %}
+        {% if fab_logo_url %}
         <div style="margin-bottom:0.5rem;">
-            <img src="{{ url_for('static', filename='images/fabricantes/' + fabricante.logo) }}" alt="Logo" style="max-height: 60px; border-radius:8px;">
+            <img src="{{ fab_logo_url }}" alt="Logo" style="max-height: 60px; border-radius:8px;">
         </div>
         {% endif %}
         <input type="file" name="logo" accept="image/*">
-        
+
         <div style="display: flex; gap: 1rem; margin-top: 1rem;">
             <button type="submit" class="btn">Guardar Cambios</button>
-            <a href="{{ url_for('routes.admin', type='fabricantes') }}" class="btn btn-outline">Cancelar</a>
+            <a href="{{ url_for('routes.fabricante_view', id=fabricante.id) }}" class="btn btn-outline">Cancelar</a>
         </div>
     </form>
 </div>

@@ -1,0 +1,31 @@
+# Secrets & Environment
+backend/.secret_key
+.env
+
+# Private Verification Uploads (never commit sensitive docs)
+backend/private_uploads/
+
+# Local SQLite Databases & Journals
+backend/data/*.db
+backend/data/*.db-journal
+backend/data/*.db-wal
+backend/data/*.db-shm
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Python bytecode & build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+backend/venv/
+
+# IDE & OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

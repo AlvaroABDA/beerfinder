@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cartelería QR para Mesas · {{ venue.name }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <style>
+        :root {
+            --bg-page: #0C0F17;
+            --color-gold: #F59E0B;
+            --color-gold-glow: rgba(245, 158, 11, 0.35);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            font-family: 'Outfit', sans-serif;
+            color: #FFFFFF;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem 4rem 1rem;
+        }
+
+        /* Top Action Bar (hidden when printing) */
+        .action-bar {
+            width: 100%;
+            max-width: 520px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.4rem;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.92rem;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+        .btn-print {
+            background: linear-gradient(135deg, #F59E0B, #D97706);
+            color: #0E1015;
+            box-shadow: 0 4px 18px var(--color-gold-glow);
+        }
+        .btn-print:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px var(--color-gold-glow);
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #94A3B8;
+        }
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #FFFFFF;
+        }
+
+        /* TABLE TENT / POSTER CONTAINER */
+        .poster-container {
+            width: 100%;
+            max-width: 460px;
+            background: #FFFFFF;
+            color: #0E1015;
+            border-radius: 28px;
+            padding: 3rem 2.5rem;
+            text-align: center;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+            border: 8px solid #F59E0B;
+            position: relative;
+        }
+
+        .poster-badge-top {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #0E1015;
+            color: #F59E0B;
+            font-size: 0.82rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 0.4rem 1.1rem;
+            border-radius: 9999px;
+            margin-bottom: 1.5rem;
+        }
+
+        .venue-name {
+            font-size: 2.3rem;
+            font-weight: 900;
+            color: #0E1015;
+            line-height: 1.1;
+            margin-bottom: 0.3rem;
+            letter-spacing: -0.5px;
+        }
+
+        .venue-location {
+            font-size: 1.05rem;
+            color: #64748B;
+            font-weight: 600;
+            margin-bottom: 2rem;
+        }
+
+        /* QR CODE FRAME */
+        .qr-frame {
+            background: #F8FAFC;
+            border: 3px dashed #CBD5E1;
+            border-radius: 24px;
+            padding: 1.8rem;
+            margin: 0 auto 2rem auto;
+            width: fit-content;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        #qrCodeCanvas img, #qrCodeCanvas canvas {
+            display: block;
+            margin: 0 auto;
+        }
+
+        .poster-cta-title {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #0E1015;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+        }
+
+        .poster-cta-desc {
+            font-size: 0.95rem;
+            color: #475569;
+            line-height: 1.45;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            padding: 0 0.5rem;
+        }
+
+        .poster-footer {
+            border-top: 2px solid #F1F5F9;
+            padding-top: 1.2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #94A3B8;
+            font-weight: 600;
+        }
+
+        .poster-footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: #0E1015;
+            font-weight: 800;
+        }
+
+        /* PRINT STYLES */
+        @media print {
+            body {
+                background: #FFFFFF !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .action-bar {
+                display: none !important;
+            }
+            .poster-container {
+                box-shadow: none !important;
+                border: 6px solid #F59E0B !important;
+                max-width: 100% !important;
+                width: 90% !important;
+                margin: 20px auto !important;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ACTION BAR -->
+    <div class="action-bar">
+        <a href="{{ url_for('routes.venue_view', id=venue.id) }}" class="btn-action btn-back">
+            ← Volver al Bar
+        </a>
+        <div style="display:flex; gap:0.6rem;">
+            <button onclick="downloadQr()" class="btn-action btn-back" style="color:#FFFFFF;">
+                ⬇️ Descargar PNG
+            </button>
+            <button onclick="window.print()" class="btn-action btn-print">
+                🖨️ Imprimir Cartel
+            </button>
+        </div>
+    </div>
+
+    <!-- POSTER / TABLE TENT -->
+    <div class="poster-container" id="printablePoster">
+        <div class="poster-badge-top">
+            <span>🍺 Carta Digital en Vivo</span>
+        </div>
+
+        <h1 class="venue-name">{{ venue.name }}</h1>
+        <div class="venue-location">{{ venue.address }}{% if venue.city %} · {{ venue.city }}{% endif %}</div>
+
+        <!-- QR BOX -->
+        <div class="qr-frame">
+            <div id="qrCodeCanvas"></div>
+        </div>
+
+        <h3 class="poster-cta-title">
+            <span>📱</span> ¿Qué tenemos pinchado hoy?
+        </h3>
+        <p class="poster-cta-desc">
+            Escanea este código con tu cámara para consultar nuestra <strong>pizarra de grifos en tiempo real</strong>, estilos, alérgenos y notas de cata.
+        </p>
+
+        <div class="poster-footer">
+            <div class="poster-footer-brand">
+                <span>🍺</span> BeerMap
+            </div>
+            <div>Actualización al instante</div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.getElementById('qrCodeCanvas');
+            const venueUrl = window.location.origin + "{{ url_for('routes.venue_view', id=venue.id) }}";
+
+            new QRCode(container, {
+                text: venueUrl,
+                width: 220,
+                height: 220,
+                colorDark: "#0E1015",
+                colorLight: "#F8FAFC",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        });
+
+        function downloadQr() {
+            const img = document.querySelector('#qrCodeCanvas img');
+            if (img && img.src) {
+                const link = document.createElement('a');
+                link.download = "QR_{{ venue.name|replace(' ', '_') }}.png";
+                link.href = img.src;
+                link.click();
+            } else {
+                const canvas = document.querySelector('#qrCodeCanvas canvas');
+                if (canvas) {
+                    const link = document.createElement('a');
+                    link.download = "QR_{{ venue.name|replace(' ', '_') }}.png";
+                    link.href = canvas.toDataURL("image/png");
+                    link.click();
+                }
+            }
+        }
+    </script>
+</body>
+</html>

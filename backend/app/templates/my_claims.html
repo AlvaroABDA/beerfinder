@@ -1,54 +1,132 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="card" style="border: none; background: transparent; padding: 0;">
-    <h2 style="margin-top:0; margin-bottom: 1.5rem;">Mis Reclamaciones</h2>
-    
-    {% if claims %}
-        <div style="display: flex; flex-direction: column; gap: 1rem;">
-        {% for c in claims %}
-            <div class="card" style="padding: 1.5rem;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
-                    <div>
-                        <span class="pill" style="margin-bottom: 0.5rem; display: inline-block;">{{ c.entity_type|upper }}</span>
-                        <h3 style="margin: 0; font-size: 1.2rem;">{{ c.entity_name }}</h3>
-                        <small style="color: var(--text-secondary);">Enviada: {{ c.created_at[:10] }}</small>
-                    </div>
-                    <div>
-                        {% if c.status == 'PENDING' %}
-                            <span class="pill" style="background: var(--color-tertiary); color: var(--text-main);">EN REVISIÓN</span>
-                        {% elif c.status == 'APPROVED' %}
-                            <span class="pill" style="background: rgba(46, 204, 113, 0.2); color: #2ecc71; border: 1px solid #2ecc71;">APROBADA</span>
-                        {% elif c.status == 'REJECTED' %}
-                            <span class="pill" style="background: rgba(231, 76, 60, 0.2); color: #e74c3c; border: 1px solid #e74c3c;">RECHAZADA</span>
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
+    <div>
+        <h2 style="margin:0 0 0.2rem 0;">🛡️ Mis Verificaciones de Propiedad</h2>
+        <p style="margin:0; font-size:0.85rem; color:var(--text-secondary);">Completa tus pruebas técnicas o consulta el estado de tus solicitudes.</p>
+    </div>
+    <a href="{{ url_for('routes.profile') }}" class="btn btn-outline" style="width:auto; padding:0.45rem 0.9rem; font-size:0.82rem;">← Mi Perfil</a>
+</div>
+
+{% if claims %}
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
+    {% for c in claims %}
+        <div class="card" style="padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.85rem; flex-wrap:wrap;">
+                <div>
+                    <div style="display:flex; gap:0.4rem; align-items:center; flex-wrap:wrap; margin-bottom:0.35rem;">
+                        <span class="pill" style="margin:0; font-size:0.7rem;">
+                            {% if c.entity_type == 'venue' %}🏪 LOCAL{% elif c.entity_type == 'brand' %}🏭 MARCA{% else %}🍺 CERVEZA{% endif %}
+                        </span>
+                        <span class="pill" style="margin:0; font-size:0.7rem; background:rgba(255,255,255,0.06);">
+                            {{ c.verification_method or 'MANUAL' }}
+                        </span>
+                        {% if c.is_dispute %}
+                        <span class="pill" style="margin:0; font-size:0.7rem; background:rgba(239, 68, 68, 0.18); color:#FCA5A5; border-color:rgba(239, 68, 68, 0.4);">⚖️ DISPUTA</span>
                         {% endif %}
                     </div>
+                    <h3 style="margin: 0; font-size: 1.15rem;">
+                        <a href="{{ c.entity_url }}" style="color:var(--text-main); text-decoration:none;">{{ c.entity_name }}</a>
+                    </h3>
+                    <small style="color: var(--text-secondary);">Enviada el {{ (c.created_at or '')[:10] }}</small>
                 </div>
-                
-                {% if c.note %}
-                <div style="background: var(--bg-body); padding: 1rem; border-radius: var(--radius-card); margin-top: 1rem;">
-                    <strong>Nota:</strong> {{ c.note }}
-                </div>
-                {% endif %}
-                
-                {% if c.status == 'APPROVED' %}
-                <div style="margin-top: 1rem;">
-                    {% if c.entity_type == 'beer' %}
-                        <a href="{{ url_for('routes.beer_view', id=c.entity_id) }}" class="btn btn-outline" style="width: auto;">Ver Entidad</a>
-                    {% elif c.entity_type == 'venue' %}
-                        <a href="{{ url_for('routes.venue_view', id=c.entity_id) }}" class="btn btn-outline" style="width: auto;">Ver Entidad</a>
-                    {% elif c.entity_type == 'brand' %}
-                        <a href="{{ url_for('routes.fabricante_view', id=c.entity_id) }}" class="btn btn-outline" style="width: auto;">Ver Entidad</a>
+
+                <div>
+                    {% if c.status == 'PENDING' %}
+                        <span class="pill" style="margin:0; background: rgba(245, 158, 11, 0.16); color: #FCD34D; border-color: rgba(245, 158, 11, 0.45);">⏳ EN PROCESO</span>
+                    {% elif c.status == 'APPROVED' %}
+                        <span class="pill" style="margin:0; background: rgba(16, 185, 129, 0.2); color: #6EE7B7; border-color: rgba(16, 185, 129, 0.45);">👑 VERIFICADA</span>
+                    {% elif c.status == 'REJECTED' %}
+                        <span class="pill" style="margin:0; background: rgba(239, 68, 68, 0.2); color: #FCA5A5; border-color: rgba(239, 68, 68, 0.45);">❌ RECHAZADA</span>
                     {% endif %}
                 </div>
-                {% endif %}
             </div>
-        {% endfor %}
+
+            {% if c.status == 'PENDING' %}
+                {% if c.verification_status == 'PROOF_VERIFIED' %}
+                <div style="background:rgba(16, 185, 129, 0.12); border:1px solid rgba(16, 185, 129, 0.35); border-radius:10px; padding:0.8rem 1rem; margin-bottom:0.85rem; font-size:0.85rem; color:#6EE7B7;">
+                    ✅ <strong>Prueba técnica superada.</strong> Tu solicitud está en validación final de seguridad por el equipo de moderación.
+                </div>
+
+                {% elif c.verification_method == 'DOMAIN_EMAIL' %}
+                <div style="background:var(--bg-body); border:1px solid rgba(245, 158, 11, 0.4); border-radius:10px; padding:0.95rem; margin-bottom:0.85rem;">
+                    <div style="font-weight:700; font-size:0.9rem; color:var(--color-primary); margin-bottom:0.35rem;">
+                        ✉️ Introduce el código OTP enviado a {{ c.verification_target }}
+                    </div>
+                    <p style="margin:0 0 0.65rem 0; font-size:0.8rem; color:var(--text-secondary);">
+                        Revisa la bandeja de entrada de tu correo corporativo e introduce el código de 6 dígitos (caduca en 30 min).
+                    </p>
+                    <form method="POST" action="{{ url_for('routes.verify_claim_otp', claim_id=c.id) }}" style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="text" name="otp_code" maxlength="6" pattern="[0-9]{6}" placeholder="123456" required
+                               style="margin:0; width:140px; text-align:center; font-size:1.1rem; font-weight:800; letter-spacing:3px;">
+                        <button type="submit" class="btn" style="width:auto; padding:0.65rem 1.2rem; font-size:0.85rem;">
+                            Confirmar código
+                        </button>
+                    </form>
+                </div>
+
+                {% elif c.verification_method == 'DNS_META' %}
+                <div style="background:var(--bg-body); border:1px solid rgba(245, 158, 11, 0.4); border-radius:10px; padding:0.95rem; margin-bottom:0.85rem;">
+                    <div style="font-weight:700; font-size:0.9rem; color:var(--color-primary); margin-bottom:0.35rem;">
+                        🌐 Verificación automática en tu sitio web ({{ c.entity_website or c.verification_target }})
+                    </div>
+                    <p style="margin:0 0 0.5rem 0; font-size:0.8rem; color:var(--text-secondary);">
+                        Añade esta etiqueta dentro del <code>&lt;head&gt;</code> de la portada de tu web oficial (o publica el token en <code>/.well-known/beerfinder-verify.txt</code>):
+                    </p>
+                    <pre style="background:var(--bg-panel); padding:0.6rem 0.8rem; border-radius:8px; border:1px solid var(--border-color); overflow-x:auto; font-size:0.78rem; color:#FCD34D; margin:0 0 0.7rem 0;">&lt;meta name="beerfinder-verify" content="{{ c.verification_token }}"&gt;</pre>
+                    <form method="POST" action="{{ url_for('routes.verify_claim_web', claim_id=c.id) }}" style="margin:0;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn" style="width:auto; padding:0.55rem 1.1rem; font-size:0.84rem;">
+                            🔍 Comprobar mi web ahora
+                        </button>
+                    </form>
+                </div>
+
+                {% elif c.verification_method == 'SOCIAL_TOKEN' %}
+                <div style="background:var(--bg-body); border:1px solid rgba(245, 158, 11, 0.4); border-radius:10px; padding:0.95rem; margin-bottom:0.85rem;">
+                    <div style="font-weight:700; font-size:0.9rem; color:var(--color-primary); margin-bottom:0.35rem;">
+                        📱 Verificación por Red Social Oficial ({{ c.verification_target }})
+                    </div>
+                    <p style="margin:0; font-size:0.82rem; color:var(--text-secondary); line-height:1.45;">
+                        Añade temporalmente el código <strong style="color:#FCD34D; font-family:monospace; font-size:0.95rem;">{{ c.verification_token }}</strong> en la biografía de tu perfil oficial hasta que un moderador confirme la titularidad.
+                    </p>
+                </div>
+
+                {% elif c.verification_method == 'DOCUMENT_UPLOAD' and c.evidence_file %}
+                <div style="background:var(--bg-body); border:1px solid var(--border-color); border-radius:10px; padding:0.75rem 0.95rem; margin-bottom:0.85rem; font-size:0.82rem; color:var(--text-secondary);">
+                    🔒 <strong>Documento acreditativo recibido de forma privada.</strong> Solo el equipo de administración puede revisarlo.
+                </div>
+                {% endif %}
+            {% endif %}
+
+            {% if c.justification %}
+            <div style="background: var(--bg-body); padding: 0.75rem 0.95rem; border-radius: 10px; font-size: 0.85rem; color: var(--text-secondary);">
+                <strong style="color:var(--text-main);">Tu nota:</strong> “{{ c.justification }}”
+            </div>
+            {% endif %}
+
+            {% if c.resolution_note %}
+            <div style="background: rgba(245, 158, 11, 0.08); border-left: 3px solid var(--color-primary); padding: 0.75rem 0.95rem; border-radius: 6px; margin-top: 0.75rem; font-size: 0.85rem;">
+                <strong>Resolución:</strong> {{ c.resolution_note }}
+            </div>
+            {% endif %}
+
+            <div style="margin-top: 0.9rem; display:flex; justify-content:flex-end;">
+                <a href="{{ c.entity_url }}" class="btn btn-outline" style="width: auto; padding:0.4rem 0.9rem; font-size:0.82rem;">
+                    Abrir ficha →
+                </a>
+            </div>
         </div>
-    {% else %}
-        <div class="card" style="text-align: center; padding: 3rem;">
-            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">No has realizado ninguna reclamación de propiedad todavía.</p>
-        </div>
-    {% endif %}
-</div>
+    {% endfor %}
+    </div>
+{% else %}
+    <div class="card" style="text-align: center; padding: 2.5rem 1.5rem;">
+        <p style="color: var(--text-secondary); margin: 0 0 1rem 0;">No tienes ninguna solicitud de verificación abierta.</p>
+        <p style="font-size:0.84rem; color:var(--text-muted); margin:0;">
+            Puedes reclamar la propiedad oficial de cualquier bar, cervecera o cerveza desde su propia ficha.
+        </p>
+    </div>
+{% endif %}
 {% endblock %}

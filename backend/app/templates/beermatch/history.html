@@ -2,30 +2,31 @@
 
 {% block content %}
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-    <h2 style="margin: 0; font-size: 1.5rem;">🍺 Historial BeerMatch</h2>
-    <a href="{{ url_for('beermatch.swipe_view') }}" class="btn btn-outline" style="width: auto; padding: 0.5rem 1rem; font-size: 0.9rem;">Volver a Swipe</a>
+    <h2 style="margin: 0; font-size: 1.4rem;">🍻 Mis Cervezas y Radar</h2>
+    <a href="{{ url_for('beermatch.swipe_view') }}" class="btn btn-outline" style="width: auto; padding: 0.45rem 0.9rem; font-size: 0.85rem;">Ir a Match</a>
 </div>
 
-<div class="tabs" style="display: flex; margin-bottom: 0.5rem; border-bottom: 1px solid var(--border-color);">
-    <button class="tab-btn active" id="tab-likes" onclick="switchTab('likes')" style="flex: 1; padding: 1rem; background: transparent; border: none; color: var(--text-main); font-weight: bold; border-bottom: 2px solid var(--color-primary); cursor: pointer;">❤️ ME GUSTAN</button>
-    <button class="tab-btn" id="tab-dislikes" onclick="switchTab('dislikes')" style="flex: 1; padding: 1rem; background: transparent; border: none; color: var(--text-secondary); font-weight: bold; border-bottom: 2px solid transparent; cursor: pointer;">❌ NO ME GUSTAN</button>
+<div class="tabs" style="display: flex; margin-bottom: 0.9rem; border-bottom: 1px solid var(--border-color); gap:0.2rem;">
+    <button class="tab-btn" id="tab-likes" onclick="switchTab('likes')" style="flex: 1; padding: 0.8rem 0.3rem; background: transparent; border: none; color: var(--text-main); font-weight: 700; font-size:0.84rem; border-bottom: 2px solid var(--color-primary); cursor: pointer;">❤️ Me gustan</button>
+    <button class="tab-btn" id="tab-radar" onclick="switchTab('radar')" style="flex: 1; padding: 0.8rem 0.3rem; background: transparent; border: none; color: var(--text-secondary); font-weight: 700; font-size:0.84rem; border-bottom: 2px solid transparent; cursor: pointer;">📡 En mi Radar</button>
+    <button class="tab-btn" id="tab-dislikes" onclick="switchTab('dislikes')" style="flex: 1; padding: 0.8rem 0.3rem; background: transparent; border: none; color: var(--text-secondary); font-weight: 700; font-size:0.84rem; border-bottom: 2px solid transparent; cursor: pointer;">❌ Descartadas</button>
 </div>
 
-<!-- Search Bar -->
 <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
     <div style="flex: 1; position: relative;">
-        <input type="text" id="history-search-input" placeholder="Buscar en tu historial..."
-            style="width: 100%; padding: 0.7rem 1rem 0.7rem 2.5rem; border-radius: var(--radius-card); border: 1px solid var(--border-color); background: var(--bg-panel); color: var(--text-main); font-size: 0.95rem; font-family: inherit; outline: none;">
-        <span style="position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 1rem;">🔍</span>
+        <input type="text" id="history-search-input" placeholder="Filtrar mis cervezas..."
+            style="width: 100%; margin:0; padding: 0.7rem 1rem 0.7rem 2.5rem; border-radius: var(--radius-card); border: 1px solid var(--border-color); background: var(--bg-panel); color: var(--text-main); font-size: 0.92rem;">
+        <span style="position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary);">🔍</span>
     </div>
-    <button id="history-search-clear" style="display: none; padding: 0.7rem 1rem; border-radius: var(--radius-card); border: 1px solid var(--border-color); background: var(--bg-panel); color: var(--text-secondary); cursor: pointer; font-size: 0.9rem; font-family: inherit;">✕</button>
+    <button id="history-search-clear" style="display: none; padding: 0.7rem 1rem; border-radius: var(--radius-card); border: 1px solid var(--border-color); background: var(--bg-panel); color: var(--text-secondary); cursor: pointer;">✕</button>
 </div>
 
 <div id="loading" style="text-align: center; color: var(--text-secondary); margin-top: 2rem;">
-    <p>Cargando historial...</p>
+    <p>Cargando tus cervezas...</p>
 </div>
 
 <div id="list-likes" style="display: none;"></div>
+<div id="list-radar" style="display: none;"></div>
 <div id="list-dislikes" style="display: none;"></div>
 
 <script>
@@ -37,14 +38,41 @@
 
     function switchTab(tab) {
         activeTab = tab;
-        document.getElementById('tab-likes').style.color = tab === 'likes' ? 'var(--text-main)' : 'var(--text-secondary)';
-        document.getElementById('tab-likes').style.borderBottomColor = tab === 'likes' ? 'var(--color-primary)' : 'transparent';
-        
-        document.getElementById('tab-dislikes').style.color = tab === 'dislikes' ? 'var(--text-main)' : 'var(--text-secondary)';
-        document.getElementById('tab-dislikes').style.borderBottomColor = tab === 'dislikes' ? 'var(--color-primary)' : 'transparent';
-        
-        document.getElementById('list-likes').style.display = tab === 'likes' ? 'block' : 'none';
-        document.getElementById('list-dislikes').style.display = tab === 'dislikes' ? 'block' : 'none';
+        ['likes', 'radar', 'dislikes'].forEach(t => {
+            const btn = document.getElementById('tab-' + t);
+            const list = document.getElementById('list-' + t);
+            if (btn) {
+                btn.style.color = t === tab ? 'var(--text-main)' : 'var(--text-secondary)';
+                btn.style.borderBottomColor = t === tab ? 'var(--color-primary)' : 'transparent';
+            }
+            if (list) list.style.display = t === tab ? 'block' : 'none';
+        });
+    }
+
+    function toggleRadarBell(event, beerId) {
+        event.preventDefault();
+        event.stopPropagation();
+        fetch('/beermatch/api/radar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ beer_id: beerId })
+        })
+        .then(r => r.json())
+        .then(() => reloadHistory());
+    }
+
+    function reloadHistory() {
+        fetch('/beermatch/api/history')
+            .then(res => res.json())
+            .then(data => {
+                historyData = data;
+                document.getElementById('loading').style.display = 'none';
+                renderLists(histSearchInput.value.trim());
+                switchTab(activeTab);
+            })
+            .catch(() => {
+                document.getElementById('loading').innerHTML = '<p style="color:var(--color-red)">Error al cargar tus cervezas.</p>';
+            });
     }
 
     histSearchInput.addEventListener('input', () => {
@@ -60,65 +88,72 @@
     });
 
     document.addEventListener('DOMContentLoaded', () => {
-        fetch('/beermatch/api/history')
-            .then(res => res.json())
-            .then(data => {
-                historyData = data;
-                document.getElementById('loading').style.display = 'none';
-                renderLists('');
-                switchTab('likes');
-            })
-            .catch(err => {
-                document.getElementById('loading').innerHTML = '<p style="color:var(--color-red)">Error al cargar historial.</p>';
-            });
+        const params = new URLSearchParams(window.location.search);
+        if (['likes', 'radar', 'dislikes'].includes(params.get('tab'))) {
+            activeTab = params.get('tab');
+        }
+        reloadHistory();
     });
 
+    function renderCard(item, showBellToggle) {
+        const imgStyle = item.image_url ? `background-image: url('${item.image_url}'); background-size: cover; background-position: center;` : '';
+        const emojiFallback = item.image_url ? '' : '🍺';
+
+        let statusLine = '';
+        if (item.preference === 'WISHLIST') {
+            statusLine = `<span style="color:var(--color-primary); font-weight:700; font-size:0.82rem;">📡 Quiero probarla · Radar activo</span>`;
+        } else if (item.preference === 'LIKE') {
+            statusLine = `<span style="color:var(--color-green); font-weight:700; font-size:0.82rem;">❤️ Me gusta${item.notify_nearby ? ' · 🔔 Radar activo' : ''}</span>`;
+        } else {
+            statusLine = `<span style="color:var(--color-red); font-weight:700; font-size:0.82rem;">❌ No es para mí</span>`;
+        }
+
+        const bellBtn = showBellToggle
+            ? `<button onclick="toggleRadarBell(event, ${item.beer_id})" title="${item.notify_nearby ? 'Desactivar aviso de cercanía' : 'Avisarme cuando esté cerca'}"
+                style="background:${item.notify_nearby ? 'rgba(245,158,11,0.2)' : 'rgba(255,255,255,0.05)'}; border:1px solid ${item.notify_nearby ? 'var(--color-primary)' : 'var(--border-color)'}; color:${item.notify_nearby ? 'var(--color-primary)' : 'var(--text-secondary)'}; border-radius:10px; padding:0.4rem 0.65rem; font-size:0.82rem; font-weight:700; cursor:pointer; flex-shrink:0;">
+                ${item.notify_nearby ? '🔔 Activo' : '🔕 Avisar'}
+               </button>`
+            : '';
+
+        return `
+        <a href="/beer/${encodeURIComponent(item.beer_id)}" class="beer-card" style="margin-bottom: 0.8rem;">
+            <div class="card-header">
+                <div class="card-img" style="${imgStyle}">${emojiFallback}</div>
+                <div class="card-info">
+                    <h3 class="card-title">${escapeHtml(item.name)}</h3>
+                    <p class="card-subtitle">${escapeHtml(item.brewery)}${item.style ? ' · ' + escapeHtml(item.style) : ''}${item.abv ? ' · ' + escapeHtml(item.abv) + '%' : ''}</p>
+                    <div>${statusLine}</div>
+                </div>
+                ${bellBtn}
+            </div>
+        </a>`;
+    }
+
     function renderLists(query) {
-        const listLikes = document.getElementById('list-likes');
-        const listDislikes = document.getElementById('list-dislikes');
-        
         const q = (query || '').toLowerCase();
         const filtered = q
-            ? historyData.filter(item => item.name.toLowerCase().includes(q) || item.style.toLowerCase().includes(q))
+            ? historyData.filter(item =>
+                item.name.toLowerCase().includes(q)
+                || (item.style || '').toLowerCase().includes(q)
+                || (item.brewery || '').toLowerCase().includes(q)
+            )
             : historyData;
-        
-        let likesHtml = '';
-        let dislikesHtml = '';
-        
-        filtered.forEach(item => {
-            const dateStr = item.updated_at ? new Date(item.updated_at).toLocaleDateString() : '';
-            const imgStyle = item.image && item.image !== 'default_beer.png' ? `background-image: url('/static/images/beers/${item.image}'); background-size: cover; background-position: center;` : '';
-            const emojiFallback = imgStyle ? '' : '🍺';
-            const feedbackText = item.preference === 'LIKE' ? '❤️ Te gustó' : '❌ No te gustó';
-            
-            const cardHtml = `
-            <a href="/beer/${item.beer_id}" class="beer-card" style="margin-bottom: 0.8rem;">
-                <div class="card-header">
-                    <div class="card-img" style="${imgStyle}">${emojiFallback}</div>
-                    <div class="card-info">
-                        <h3 class="card-title">${item.name}</h3>
-                        <p class="card-subtitle">${item.style} · ${item.abv}%</p>
-                        <p style="margin: 0; font-size: 0.85rem; color: ${item.preference === 'LIKE' ? 'var(--color-green)' : 'var(--color-red)'}; font-weight: bold;">
-                            ${feedbackText}
-                            <span style="color: var(--text-secondary); font-weight: normal; margin-left: 0.5rem;">📅 ${dateStr}</span>
-                        </p>
-                    </div>
-                </div>
-            </a>
-            `;
-            
-            if (item.preference === 'LIKE') {
-                likesHtml += cardHtml;
-            } else {
-                dislikesHtml += cardHtml;
-            }
-        });
-        
-        if (!likesHtml) likesHtml = `<p style="text-align:center; color:var(--text-secondary); margin-top:2rem;">${q ? 'Sin resultados para "' + q + '".' : 'Aún no tienes cervezas favoritas.'}</p>`;
-        if (!dislikesHtml) dislikesHtml = `<p style="text-align:center; color:var(--text-secondary); margin-top:2rem;">${q ? 'Sin resultados para "' + q + '".' : 'No has rechazado ninguna cerveza.'}</p>`;
-        
-        listLikes.innerHTML = likesHtml;
-        listDislikes.innerHTML = dislikesHtml;
+
+        const likes = filtered.filter(i => i.preference === 'LIKE');
+        const radar = filtered.filter(i => i.notify_nearby);
+        const dislikes = filtered.filter(i => i.preference === 'DISLIKE');
+
+        document.getElementById('list-likes').innerHTML = likes.length
+            ? likes.map(i => renderCard(i, true)).join('')
+            : '<p style="text-align:center; color:var(--text-secondary); margin-top:2rem;">Aún no has marcado cervezas con ❤️ Me gusta.</p>';
+
+        document.getElementById('list-radar').innerHTML = radar.length
+            ? `<p style="font-size:0.8rem; color:var(--text-secondary); margin:0 0 0.8rem 0;">Cuando alguna de estas cervezas esté pinchada cerca de ti, aparecerá automáticamente destacada en Inicio y en el Mapa sin generar ruido.</p>` + radar.map(i => renderCard(i, true)).join('')
+            : '<p style="text-align:center; color:var(--text-secondary); margin-top:2rem;">Tu radar está tranquilo. Marca "📡 Quiero probar" en cualquier cerveza o activa 🔔 en tus favoritas.</p>';
+
+        document.getElementById('list-dislikes').innerHTML = dislikes.length
+            ? dislikes.map(i => renderCard(i, false)).join('')
+            : '<p style="text-align:center; color:var(--text-secondary); margin-top:2rem;">No tienes cervezas descartadas.</p>';
     }
 </script>
 

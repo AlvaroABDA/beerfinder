@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2 style="margin-top:0;">🏭 Añadir una Marca</h2>
+    <p style="font-size:0.9rem; color:var(--text-secondary); margin-bottom:1.5rem;">
+        ¿Conoces una cervecera que todavía no está en BeerMap? Añádela para que sus cervezas puedan asociarse a ella.
+        Si eres tú quien la representa, luego podrás reclamarla desde su ficha.
+    </p>
+
+    <form method="POST" action="{{ url_for('routes.fabricante_new') }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label>Nombre de la marca *</label>
+        <input type="text" name="name" placeholder="Ej: Basqueland" required>
+
+        <label>País / Origen</label>
+        <input type="text" name="country" placeholder="Ej: España">
+
+        <label>Descripción (opcional)</label>
+        <textarea name="description" rows="3" placeholder="Breve descripción de la cervecera, estilo, historia..."></textarea>
+
+        <label>Sitio web (opcional)</label>
+        <input type="url" name="website" placeholder="https://...">
+
+        <label>Instagram oficial (opcional)</label>
+        <input type="text" name="instagram_handle" placeholder="@cervecera">
+
+        <label>Email de contacto (opcional)</label>
+        <input type="email" name="email" placeholder="contacto@marca.com">
+
+        <label>Teléfono (opcional)</label>
+        <input type="text" name="phone" placeholder="Ej: 600 000 000">
+
+        <label>Logo (opcional)</label>
+        <input type="file" name="logo" accept="image/*">
+
+        <div style="display:flex; gap:1rem; margin-top:0.5rem;">
+            <button type="submit" class="btn">Añadir Marca</button>
+            <a href="{{ url_for('routes.index') }}" class="btn btn-outline">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

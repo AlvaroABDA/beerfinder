@@ -2,69 +2,216 @@
 
 {% block content %}
 <div class="card">
-    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-        <div style="font-size: 3rem;">🏪</div>
-        <div>
-            <h2 style="margin: 0;">{{ venue.name }}</h2>
-<p style="margin: 0; color: #86868b;">📍 {{ venue.address }}, {{ venue.city }}</p>
+    <div style="display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 0.9rem;">
+        <div class="card-img" style="width: 56px; height: 56px; color: var(--color-primary); flex-shrink:0;">{{ icon('store') }}</div>
+        <div style="flex:1; min-width:0;">
+            <h2 style="margin: 0 0 0.25rem 0;">{{ venue.name }}</h2>
+            <p class="text-sm text-secondary" style="margin: 0; display:flex; align-items:center; gap:0.3rem;">
+                {{ icon('map-pin') }} {{ venue.address }}{% if venue.city %}, {{ venue.city }}{% endif %}
+            </p>
+            {% if venue.website or venue.instagram_handle or venue.phone %}
+            <div style="display:flex; flex-wrap:wrap; gap:0.75rem; margin-top:0.4rem; font-size:0.82rem;">
+                {% if venue.website %}
+                <a href="{{ venue.website }}" target="_blank" rel="noopener" style="color:var(--color-primary); text-decoration:underline;">🌐 Web oficial ↗</a>
+                {% endif %}
+                {% if venue.instagram_handle %}
+                <span style="color:var(--text-secondary);">📱 {{ venue.instagram_handle }}</span>
+                {% endif %}
+                {% if venue.phone %}
+                <span style="color:var(--text-secondary);">📞 {{ venue.phone }}</span>
+                {% endif %}
+            </div>
+            {% endif %}
         </div>
     </div>
-    
-    <p>{{ venue.description }}</p>
-    
-    <div style="margin-top: 1rem;">
-        <a href="{{ url_for('routes.map_view') }}" class="btn btn-outline">Ver en Mapa</a>
+
+    {% if venue.description %}
+    <p style="margin: 0 0 0.9rem 0;">{{ venue.description }}</p>
+    {% endif %}
+
+    {% if venue.owner_user_id %}
+    <span class="badge badge-green" style="margin-bottom: 0.5rem; display: inline-flex; align-items:center; gap:0.3rem;">
+        {{ icon('check-circle') }} Local verificado oficialmente
+    </span>
+    {% else %}
+    <span class="badge" style="background:#2A2E39; color:var(--text-secondary); margin-bottom: 0.5rem; display: inline-block;">
+        Colaborativo · Sin propietario verificado
+    </span>
+    {% endif %}
+
+    <div style="margin-top: 0.9rem; display: flex; gap: 0.75rem;">
+        <a href="{{ url_for('routes.map_view') }}" class="btn btn-outline" style="flex: 1;">Ver en Mapa</a>
+        {% if can_edit %}
+        <a href="{{ url_for('routes.edit_venue', id=venue.id) }}" class="btn" style="flex: 1; display:flex; align-items:center; justify-content:center; gap:0.4rem;">
+            {{ icon('edit') }} Editar
+        </a>
+        {% endif %}
     </div>
-    {% if not venue.owner_user_id and session.get('user_id') and session.get('user_id') != venue.created_by %}
-    <div style="margin-top: 1.5rem; text-align: center;">
-        <form method="POST" action="{{ url_for('routes.claim_entity', entity_type='venue', entity_id=venue.id) }}" style="margin: 0;">
-            <button type="submit" style="background: none; border: none; padding: 0; color: var(--text-secondary); text-decoration: underline; cursor: pointer; font-size: 0.8rem;" onclick="return confirm('¿Solicitar la propiedad de este local?');">Reclamar este establecimiento</button>
-        </form>
+
+    {% if can_b2b %}
+    <!-- Herramientas exclusivas B2B para propietario verificado / ADMIN -->
+    <div style="margin-top: 0.9rem; padding-top: 0.85rem; border-top: 1px solid var(--border-color);">
+        <div style="font-size:0.76rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--color-primary); margin-bottom:0.5rem;">
+            👑 Herramientas para tu Local Verificado
+        </div>
+        <div style="display: flex; gap: 0.6rem;">
+            <a href="{{ url_for('routes.venue_tv', id=venue.id) }}" target="_blank" class="btn btn-outline" style="flex: 1; display:flex; align-items:center; justify-content:center; gap:0.4rem; font-size:0.82rem;">
+                📺 Modo TV
+            </a>
+            <a href="{{ url_for('routes.venue_qr_poster', id=venue.id) }}" target="_blank" class="btn btn-outline" style="flex: 1; display:flex; align-items:center; justify-content:center; gap:0.4rem; font-size:0.82rem;">
+                📱 Cartel QR Mesas
+            </a>
+        </div>
+        {% if radar_demand_count > 0 %}
+        <div style="margin-top:0.65rem; padding:0.55rem 0.8rem; border-radius:10px; background:rgba(245, 158, 11, 0.12); border:1px solid rgba(245, 158, 11, 0.35); font-size:0.8rem; color:#FCD34D;">
+            📡 <strong>{{ radar_demand_count }} {{ 'usuario tiene' if radar_demand_count == 1 else 'usuarios tienen' }}</strong> cervezas de tu pizarra activa en su radar.
+        </div>
+        {% endif %}
     </div>
+    {% endif %}
+
+    {% if session.get('user_id') %}
+        {% if has_pending_claim %}
+        <div style="margin-top:1rem; padding-top:0.8rem; border-top:1px solid var(--border-color); font-size:0.82rem;">
+            ⏳ Tienes una reclamación activa sobre este local ·
+            <a href="{{ url_for('routes.my_claims') }}" style="color:var(--color-primary); font-weight:700;">Completar verificación →</a>
+        </div>
+        {% elif not venue.owner_user_id %}
+        <details style="margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid var(--border-color);">
+            <summary style="color: var(--color-primary); cursor: pointer; font-size: 0.84rem; font-weight:600;">
+                🛡️ ¿Gestionas este establecimiento? Reclámalo y activa herramientas B2B (TV + QR)
+            </summary>
+            <form method="POST" action="{{ url_for('routes.claim_entity', entity_type='venue', entity_id=venue.id) }}" enctype="multipart/form-data" style="margin-top: 0.75rem;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <label style="font-size:0.82rem;">Método de verificación</label>
+                <select name="verification_method" onchange="toggleVenueClaimFields(this.value)">
+                    {% if venue.website %}
+                    <option value="DOMAIN_EMAIL">✉️ Email corporativo del dominio del local (OTP automático)</option>
+                    <option value="DNS_META">🌐 Etiqueta Meta / archivo en la web del local</option>
+                    {% endif %}
+                    <option value="SOCIAL_TOKEN">📱 Código temporal en bio de Instagram ({{ venue.instagram_handle or '@tulocal' }})</option>
+                    <option value="DOCUMENT_UPLOAD">📄 Documento privado (licencia, recibo o CIF — confidencial)</option>
+                    {% if not venue.website %}
+                    <option value="DOMAIN_EMAIL">✉️ Email corporativo propio</option>
+                    <option value="DNS_META">🌐 Etiqueta Meta en web oficial</option>
+                    {% endif %}
+                    <option value="MANUAL">📝 Solicitud manual con enlace y explicación</option>
+                </select>
+
+                <div id="venue-claim-target-box">
+                    <label id="venue-claim-target-label" style="font-size:0.82rem;">
+                        {% if venue.website %}Email corporativo del dominio{% else %}Cuenta de Instagram / Red oficial{% endif %}
+                    </label>
+                    <input type="text" name="verification_target" placeholder="{% if venue.website %}encargado@tudominio.com{% else %}@nombre_del_bar{% endif %}">
+                </div>
+
+                <div id="venue-claim-doc-box" style="display:none;">
+                    <label style="font-size:0.82rem;">Documento acreditativo privado (PDF/JPG/PNG)</label>
+                    <input type="file" name="evidence_file" accept=".pdf,.png,.jpg,.jpeg,.webp">
+                </div>
+
+                <label style="font-size:0.82rem;">Enlace de respaldo (Google Maps, Instagram o web)</label>
+                <input type="url" name="evidence_url" placeholder="https://...">
+
+                <label style="font-size:0.82rem;">Cuéntanos brevemente tu vínculo con el local</label>
+                <textarea name="justification" rows="2" required placeholder="Ej: Soy propietario / encargado de barra..."></textarea>
+
+                <button type="submit" class="btn btn-outline">Iniciar verificación del local</button>
+            </form>
+        </details>
+        {% elif not can_b2b %}
+        <details style="margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid var(--border-color);">
+            <summary style="color: var(--text-muted); cursor: pointer; font-size: 0.78rem;">
+                ⚖️ ¿Eres el titular real de este local? Disputar propiedad
+            </summary>
+            <form method="POST" action="{{ url_for('routes.claim_entity', entity_type='venue', entity_id=venue.id) }}" enctype="multipart/form-data" style="margin-top: 0.65rem;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="is_dispute" value="1">
+                <input type="hidden" name="verification_method" value="DOCUMENT_UPLOAD">
+                <label style="font-size:0.8rem;">Documento acreditativo oficial (confidencial)</label>
+                <input type="file" name="evidence_file" accept=".pdf,.png,.jpg,.jpeg,.webp">
+                <label style="font-size:0.8rem;">Justificación de la disputa</label>
+                <textarea name="justification" rows="2" required placeholder="Aporta datos verificables sobre la titularidad..."></textarea>
+                <button type="submit" class="btn btn-outline" style="font-size:0.82rem;">Enviar disputa</button>
+            </form>
+        </details>
+        {% endif %}
     {% endif %}
 </div>
 
 <div class="section-title">
-    <span>🍺 Cervezas Disponibles</span>
+    <span>🍺 Pizarra de Cervezas</span>
+    {% if is_verified_venue %}
+    <span style="font-size:0.76rem; color:#6EE7B7; font-weight:600;">👑 Pizarra oficial</span>
+    {% endif %}
 </div>
 
 {% for beer in available_beers %}
-<div class="beer-card" style="display: block; cursor: pointer;" onclick="window.location.href='{{ url_for('routes.beer_view', id=beer.id) }}'">
+<div class="beer-card" style="display: block; cursor: pointer; {% if beer.style_color %}border-left-color: {{ beer.style_color }};{% endif %}" onclick="window.location.href='{{ url_for('routes.beer_view', id=beer.id) }}'">
     <div class="card-header" style="align-items: center;">
-        <div class="card-img" {% if beer.image %}style="width: 100px; height: 100px; background-image: url('{{ url_for('static', filename='images/beers/' + beer.image) }}'); background-size: cover; background-position: center; border-radius: 12px; flex-shrink: 0;"{% else %}style="width: 100px; height: 100px; flex-shrink: 0; font-size: 2.5rem;"{% endif %}>
-            {% if not beer.image %}🍺{% endif %}
+        <div class="card-img" {% if beer.image_url %}style="width: 84px; height: 84px; background-image: url('{{ beer.image_url }}'); background-size: cover; background-position: center; border-radius: 12px; flex-shrink: 0;"{% else %}style="width: 84px; height: 84px; flex-shrink: 0; font-size: 2.2rem;"{% endif %}>
+            {% if not beer.image_url %}🍺{% endif %}
         </div>
-        <div class="card-info" style="flex: 1;">
-            <h3 class="card-title">{{ beer.name }}</h3>
-            <p class="card-subtitle">{{ beer.style }} · {{ beer.abv }}%</p>
+        <div class="card-info" style="flex: 1; min-width: 0;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.4rem;">
+                <h3 class="card-title" style="margin:0;">
+                    {% if beer.tap_number %}<span style="color:var(--color-primary);">#{{ beer.tap_number }}</span> · {% endif %}{{ beer.name }}
+                </h3>
+                {% if beer.price %}
+                <span style="font-weight:800; color:var(--text-main); font-size:0.92rem; flex-shrink:0;">{{ "%.2f"|format(beer.price) }}€</span>
+                {% endif %}
+            </div>
+            <p class="card-subtitle">{{ beer.brewery }} · {{ beer.style_name or beer.style }}{% if beer.abv %} · {{ beer.abv }}%{% endif %}</p>
 
-            <div style="margin-bottom: 0.5rem;" onclick="event.stopPropagation(); toggleHistory(event, 'history-{{ beer.id }}')">
+            <div style="display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap; margin-top:0.3rem;" onclick="event.stopPropagation(); toggleHistory(event, 'history-{{ beer.id }}')">
                 {% if beer.status == 'AVAILABLE' %}
-                    <span class="badge badge-green" style="cursor: pointer;">🟢 Disponible</span>
+                    <span class="status status-green" style="cursor: pointer;"><span class="status-dot"></span> Disponible</span>
                 {% else %}
-                    <span class="badge" style="background:#ffebee; color:#f44336; cursor: pointer;">🔴 Agotada</span>
+                    <span class="status status-red" style="cursor: pointer;"><span class="status-dot"></span> Agotada</span>
+                {% endif %}
+
+                {% if beer.in_user_radar and beer.status == 'AVAILABLE' %}
+                    <span class="pill" style="margin:0; font-size:0.72rem; background:rgba(245, 158, 11, 0.2); color:#FCD34D; border-color:#F59E0B;">📡 En tu radar</span>
+                {% endif %}
+
+                {% if beer.community_soldout_reports and beer.community_soldout_reports > 0 and beer.status == 'AVAILABLE' %}
+                    <span class="pill" style="margin:0; font-size:0.72rem; background:rgba(239, 68, 68, 0.15); color:#FCA5A5; border-color:rgba(239, 68, 68, 0.4);">
+                        ⚠️ {{ beer.community_soldout_reports }} {{ 'aviso agotada' if beer.community_soldout_reports == 1 else 'avisos agotada' }}
+                    </span>
                 {% endif %}
             </div>
 
-            {% if session.get('user_id') %}
-            <div style="display: flex; gap: 0.3rem; margin-top: 0.5rem;" onclick="event.stopPropagation();">
-                <form action="{{ url_for('routes.update_status', venue_id=venue.id, beer_id=beer.id) }}" method="POST" style="flex: 1;">
+            {% if can_manage_taplist %}
+            <div style="display: flex; gap: 0.35rem; margin-top: 0.55rem;" onclick="event.stopPropagation();">
+                <form action="{{ url_for('routes.update_status', venue_id=venue.id, beer_id=beer.id) }}" method="POST" style="flex: 1; margin:0;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="status" value="AVAILABLE">
-                    <button type="submit" class="btn" style="padding: 0.2rem 0.4rem; font-size: 0.7rem; width: 100%; background: #4caf50;">✅ Disp.</button>
+                    <button type="submit" class="btn" style="padding: 0.35rem 0.4rem; font-size: 0.72rem; width: 100%; background: var(--color-green); display:flex; align-items:center; justify-content:center; gap:0.25rem;">{{ icon('check-circle') }} Disp.</button>
                 </form>
-                <form action="{{ url_for('routes.update_status', venue_id=venue.id, beer_id=beer.id) }}" method="POST" style="flex: 1;">
+                <form action="{{ url_for('routes.update_status', venue_id=venue.id, beer_id=beer.id) }}" method="POST" style="flex: 1; margin:0;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="status" value="SOLD_OUT">
-                    <button type="submit" class="btn" style="padding: 0.2rem 0.4rem; font-size: 0.7rem; width: 100%; background: #f44336;">❌ Agot.</button>
+                    <button type="submit" class="btn" style="padding: 0.35rem 0.4rem; font-size: 0.72rem; width: 100%; background: var(--color-red); display:flex; align-items:center; justify-content:center; gap:0.25rem;">{{ icon('x') }} Agot.</button>
+                </form>
+            </div>
+            {% elif is_verified_venue and session.get('user_id') and beer.status == 'AVAILABLE' %}
+            <div style="margin-top:0.5rem;" onclick="event.stopPropagation();">
+                <form action="{{ url_for('routes.report_venue_beer_soldout', venue_id=venue.id, beer_id=beer.id) }}" method="POST" style="margin:0;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-outline" style="padding:0.28rem 0.65rem; font-size:0.72rem; width:auto; color:var(--text-secondary);">
+                        ¿Barril agotado? Avisar al local
+                    </button>
                 </form>
             </div>
             {% endif %}
 
             {% if beer.history %}
-            <div id="history-{{ beer.id }}" style="display: none; margin-top: 1rem; font-size: 0.75rem; color: #86868b; background: #f9f9f9; padding: 0.5rem; border-radius: 8px;" onclick="event.stopPropagation();">
-                <strong>Últimas actualizaciones:</strong>
-                <ul style="margin: 0; padding-left: 1.2rem;">
+            <div id="history-{{ beer.id }}" style="display: none; margin-top: 0.75rem; font-size: 0.75rem; color: var(--text-secondary); background: var(--bg-body); padding: 0.5rem 0.7rem; border-radius: 8px;" onclick="event.stopPropagation();">
+                <strong>Última actividad:</strong>
+                <ul style="margin: 0.25rem 0 0; padding-left: 1.1rem;">
                 {% for log in beer.history %}
-                    <li>{{ "Disponible" if log.status == 'AVAILABLE' else "Agotada" }} ({{ log.last_updated.split('T')[0] }})</li>
+                    <li>{{ "Disponible" if log.status == 'AVAILABLE' else "Agotada" }} ({{ (log.last_updated or '')[:10] }})</li>
                 {% endfor %}
                 </ul>
             </div>
@@ -73,18 +220,21 @@
     </div>
 </div>
 {% else %}
-<p>Este establecimiento no ha añadido cervezas a su catálogo todavía.</p>
+<div class="card" style="text-align:center; color:var(--text-secondary);">
+    <p style="margin:0;">Este establecimiento aún no tiene cervezas activas en su pizarra.</p>
+</div>
 {% endfor %}
 
-{% if session.get('user_id') %}
+{% if can_manage_taplist %}
 <div class="card" style="margin-top: 1rem; border: 1px dashed var(--border-color); background: transparent;">
-    <h3 style="margin-top: 0;">Añadir cerveza a este bar</h3>
-    <form action="{{ url_for('routes.venue_add_beer', venue_id=venue.id) }}" method="POST" id="add-beer-form" style="display: flex; gap: 0.5rem; align-items: flex-start; flex-direction: column;">
+    <h3 style="margin-top: 0; font-size:1.05rem;">{% if can_b2b %}🍺 Añadir cerveza a tu pizarra oficial{% else %}🍺 Colaborar añadiendo una cerveza a este bar{% endif %}</h3>
+    <form action="{{ url_for('routes.venue_add_beer', venue_id=venue.id) }}" method="POST" id="add-beer-form" style="display: flex; gap: 0.6rem; align-items: flex-start; flex-direction: column;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div style="position: relative; width: 100%;" id="beer-autocomplete-wrap">
             <input
                 type="text"
                 id="beer-search-input"
-                placeholder="Escribe el nombre de la cerveza..."
+                placeholder="Escribe el nombre o cervecera..."
                 autocomplete="off"
                 style="width: 100%; margin: 0; padding: 0.7rem 1rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-panel); color: var(--text-main); font-size: 0.95rem; font-family: inherit; outline: none; box-sizing: border-box;"
             >
@@ -93,25 +243,43 @@
                  style="display:none; position:absolute; top:calc(100% + 4px); left:0; right:0; background:var(--bg-panel); border:1px solid var(--border-color); border-radius:10px; max-height:220px; overflow-y:auto; z-index:500; box-shadow:0 8px 24px rgba(0,0,0,0.4);">
             </div>
         </div>
-        <button type="submit" class="btn" id="add-beer-btn" disabled style="width: 100%; opacity: 0.5;">Añadir al catálogo</button>
+
+        {% if can_b2b %}
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0.5rem; width:100%;">
+            <div>
+                <label style="font-size:0.75rem; color:var(--text-secondary);">Formato</label>
+                <select name="serving_type" style="margin:0; padding:0.5rem; font-size:0.84rem;">
+                    <option value="DRAFT">Grifo</option>
+                    <option value="CAN">Lata</option>
+                    <option value="BOTTLE">Botella</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-size:0.75rem; color:var(--text-secondary);">Nº Grifo</label>
+                <input type="number" name="tap_number" min="1" max="99" placeholder="Ej: 1" style="margin:0; padding:0.5rem; font-size:0.84rem;">
+            </div>
+            <div>
+                <label style="font-size:0.75rem; color:var(--text-secondary);">Precio (€)</label>
+                <input type="number" name="price" step="0.10" min="0" placeholder="Ej: 5.50" style="margin:0; padding:0.5rem; font-size:0.84rem;">
+            </div>
+        </div>
+        {% endif %}
+
+        <button type="submit" class="btn" id="add-beer-btn" disabled style="width: 100%; opacity: 0.5;">Pinchar en catálogo</button>
     </form>
-    <p style="font-size: 0.8rem; margin-top: 0.5rem;">¿No está en la lista? <a href="{{ url_for('routes.beer_new') }}" style="color: var(--color-primary); text-decoration: underline;">Crea una nueva</a>.</p>
+    <p style="font-size: 0.8rem; margin: 0.6rem 0 0; color:var(--text-secondary);">
+        ¿No aparece en el buscador? <a href="{{ url_for('routes.beer_new') }}" style="color: var(--color-primary); text-decoration: underline;">Añádela al catálogo global</a>.
+    </p>
 </div>
 
 <script>
 (function() {
-    // Datos de todas las cervezas embebidos desde el servidor
     const allBeers = {{ all_beers | tojson }};
-
     const searchInput = document.getElementById('beer-search-input');
     const hiddenInput = document.getElementById('beer-id-input');
     const suggestionsBox = document.getElementById('beer-suggestions');
     const addBtn = document.getElementById('add-beer-btn');
     const form = document.getElementById('add-beer-form');
-
-    // Construir mapa de estilos (style_id -> name) si está disponible
-    // all_beers ya tiene style como campo en el objeto si el template lo pasa
-    // Usaremos brewery como subtítulo
 
     function normalize(str) {
         return (str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -119,118 +287,104 @@
 
     function renderSuggestions(query) {
         const q = normalize(query.trim());
-        if (!q || q.length < 1) {
+        if (!q) {
             suggestionsBox.style.display = 'none';
             suggestionsBox.innerHTML = '';
             return;
         }
 
         const matches = allBeers.filter(b => {
-            return normalize(b.name).includes(q)
-                || normalize(b.brewery || '').includes(q);
-        }).slice(0, 12); // Máximo 12 sugerencias
+            return normalize(b.name).includes(q) || normalize(b.brewery || '').includes(q);
+        }).slice(0, 12);
 
         if (matches.length === 0) {
-            suggestionsBox.innerHTML = '<p style="padding:0.8rem 1rem; color:var(--text-secondary); font-size:0.88rem; margin:0;">Sin resultados para "' + query.trim() + '"</p>';
+            suggestionsBox.innerHTML = '<p style="padding:0.8rem 1rem; color:var(--text-secondary); font-size:0.88rem; margin:0;">Sin resultados para "' + escapeHtml(query.trim()) + '"</p>';
             suggestionsBox.style.display = 'block';
             return;
         }
 
         suggestionsBox.innerHTML = matches.map(b => {
-            const highlight = (text) => {
-                const idx = normalize(text).indexOf(q);
-                if (idx === -1) return text;
-                return text.slice(0, idx) + '<strong>' + text.slice(idx, idx + q.length) + '</strong>' + text.slice(idx + q.length);
-            };
-            return `<div class="beer-suggestion-item" data-id="${b.id}" data-name="${b.name}"
-                style="padding:0.7rem 1rem; cursor:pointer; border-bottom:1px solid var(--border-color); display:flex; flex-direction:column; gap:0.1rem; transition: background 0.15s;">
-                <span style="font-size:0.95rem; font-weight:600; color:var(--text-main);">${highlight(b.name)}</span>
-                <span style="font-size:0.78rem; color:var(--text-secondary);">${b.brewery || ''}${b.brewery && b.abv ? ' · ' : ''}${b.abv ? b.abv + '%' : ''}</span>
+            const brewery = escapeHtml(b.brewery || '');
+            return `<div class="beer-suggestion-item" data-id="${b.id}" data-name="${escapeHtml(b.name)}"
+                style="padding:0.7rem 1rem; cursor:pointer; border-bottom:1px solid var(--border-color); display:flex; flex-direction:column; gap:0.1rem;">
+                <span style="font-size:0.95rem; font-weight:600; color:var(--text-main);">${escapeHtml(b.name)}</span>
+                <span style="font-size:0.78rem; color:var(--text-secondary);">${brewery}${b.brewery && b.abv ? ' · ' : ''}${b.abv ? escapeHtml(b.abv) + '%' : ''}</span>
             </div>`;
         }).join('');
 
         suggestionsBox.style.display = 'block';
 
-        // Hover effect y click
         suggestionsBox.querySelectorAll('.beer-suggestion-item').forEach(item => {
             item.addEventListener('mouseenter', () => item.style.background = 'var(--color-tertiary)');
             item.addEventListener('mouseleave', () => item.style.background = 'transparent');
             item.addEventListener('mousedown', (e) => {
-                e.preventDefault(); // Evita que el input pierda el foco antes del click
-                selectBeer(item.dataset.id, item.dataset.name);
+                e.preventDefault();
+                hiddenInput.value = item.dataset.id;
+                searchInput.value = item.dataset.name;
+                suggestionsBox.style.display = 'none';
+                addBtn.disabled = false;
+                addBtn.style.opacity = '1';
+                searchInput.style.borderColor = 'var(--color-primary)';
             });
         });
     }
 
-    function selectBeer(id, name) {
-        hiddenInput.value = id;
-        searchInput.value = name;
-        suggestionsBox.style.display = 'none';
-        suggestionsBox.innerHTML = '';
-        addBtn.disabled = false;
-        addBtn.style.opacity = '1';
-        searchInput.style.borderColor = 'var(--color-primary)';
-    }
-
-    function clearSelection() {
+    searchInput.addEventListener('input', () => {
         hiddenInput.value = '';
         addBtn.disabled = true;
         addBtn.style.opacity = '0.5';
-        searchInput.style.borderColor = 'var(--border-color)';
-    }
-
-    searchInput.addEventListener('input', () => {
-        clearSelection();
         renderSuggestions(searchInput.value);
     });
 
-    searchInput.addEventListener('focus', () => {
-        if (searchInput.value.trim().length > 0 && !hiddenInput.value) {
-            renderSuggestions(searchInput.value);
-        }
-    });
-
-    // Cerrar al hacer click fuera
     document.addEventListener('mousedown', (e) => {
-        if (!document.getElementById('beer-autocomplete-wrap').contains(e.target)) {
+        const wrap = document.getElementById('beer-autocomplete-wrap');
+        if (wrap && !wrap.contains(e.target)) {
             suggestionsBox.style.display = 'none';
         }
     });
 
-    // Tecla Escape cierra
-    searchInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            suggestionsBox.style.display = 'none';
-        }
-    });
-
-    // Validar que se haya seleccionado una cerveza de la lista antes de enviar
     form.addEventListener('submit', (e) => {
         if (!hiddenInput.value) {
             e.preventDefault();
             searchInput.style.borderColor = 'var(--color-red)';
-            searchInput.placeholder = 'Selecciona una cerveza de la lista';
         }
     });
 })();
 </script>
+{% elif is_verified_venue %}
+<p style="font-size:0.8rem; color:var(--text-secondary); text-align:center; margin-top:0.8rem;">
+    🔒 La pizarra de este establecimiento está gestionada directamente por su propietario verificado.
+</p>
 {% endif %}
 
-
-<div style="margin-top:2rem;">
+<div style="margin-top:1.5rem;">
     <a href="{{ url_for('routes.index') }}" class="btn btn-outline">← Volver al Inicio</a>
 </div>
 
 <script>
 function toggleHistory(event, elementId) {
     event.preventDefault();
-    var el = document.getElementById(elementId);
+    const el = document.getElementById(elementId);
     if (el) {
-        if (el.style.display === 'none') {
-            el.style.display = 'block';
-        } else {
-            el.style.display = 'none';
-        }
+        el.style.display = (el.style.display === 'none') ? 'block' : 'none';
+    }
+}
+
+function toggleVenueClaimFields(method) {
+    const targetBox = document.getElementById('venue-claim-target-box');
+    const targetLabel = document.getElementById('venue-claim-target-label');
+    const docBox = document.getElementById('venue-claim-doc-box');
+    if (!targetBox || !docBox) return;
+
+    docBox.style.display = (method === 'DOCUMENT_UPLOAD') ? 'block' : 'none';
+    if (method === 'DOMAIN_EMAIL') {
+        targetBox.style.display = 'block';
+        targetLabel.textContent = 'Email corporativo del dominio del local';
+    } else if (method === 'SOCIAL_TOKEN') {
+        targetBox.style.display = 'block';
+        targetLabel.textContent = 'Cuenta de Instagram / Red oficial del local';
+    } else {
+        targetBox.style.display = 'none';
     }
 }
 </script>
