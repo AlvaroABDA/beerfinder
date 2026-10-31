@@ -4,20 +4,22 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
-<div class="card" style="padding: 0; overflow: hidden; border: none;">
-    <div id="map" style="height: 62vh; width: 100%;"></div>
+<div class="card" style="padding: 0; overflow: hidden; border: 1px solid var(--border-color);">
+    <div id="map" style="height: 64vh; width: 100%;"></div>
 </div>
 
-<div class="card" id="venue-info-card" style="display: none; position: absolute; bottom: 80px; left: 10px; right: 10px; z-index: 1000; box-shadow: 0 -4px 20px rgba(0,0,0,0.45);">
+<div class="card" id="venue-info-card" style="display: none; position: absolute; bottom: 82px; left: 12px; right: 12px; z-index: 1000; box-shadow: 0 -6px 24px rgba(0,0,0,0.38);">
     <div class="card-header">
-        <div class="card-img" id="venue-card-icon">🏪</div>
+        <div class="card-img" id="venue-card-icon">{{ icon('store') }}</div>
         <div class="card-info">
             <h3 class="card-title" id="venue-name">Nombre Bar</h3>
-            <p class="card-subtitle" id="venue-address">📍 Dirección</p>
-            <div id="venue-radar-note" style="display:none; margin:0.35rem 0; font-size:0.8rem; color:#FCD34D; font-weight:700;"></div>
-            <a href="#" id="venue-link" class="btn" style="margin-top: 0.5rem; padding: 0.5rem;">Ver pizarra</a>
+            <p class="card-subtitle" style="display:flex; align-items:center; gap:0.3rem;">
+                {{ icon('map-pin', 'icon-sm') }} <span id="venue-address">Dirección</span>
+            </p>
+            <div id="venue-radar-note" class="notice-amber" style="display:none; margin:0.4rem 0; padding:0.45rem 0.7rem; font-size:0.78rem; font-weight:700;"></div>
+            <a href="#" id="venue-link" class="btn" style="margin-top: 0.5rem; padding: 0.55rem;">Ver pizarra</a>
         </div>
-        <button onclick="closeVenueCard()" style="background:none; border:none; color:var(--text-secondary); font-size:1.5rem; cursor:pointer; align-self:flex-start;">✕</button>
+        <button onclick="closeVenueCard()" class="menu-btn" style="width:32px; height:32px; align-self:flex-start;">{{ icon('x', 'icon-sm') }}</button>
     </div>
 </div>
 
@@ -33,17 +35,17 @@
     var bounds = [];
 
     var beerIcon = L.divIcon({
-        html: '<div style="font-size:20px; background:#161920; border:2px solid #94A3B8; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,0.45);">🏪</div>',
+        html: '<div style="background:#161920; color:#F8FAFC; border:2px solid #94A3B8; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 10px rgba(0,0,0,0.45);">' + lucideSvg('store', 'icon-sm') + '</div>',
         className: 'custom-div-icon',
-        iconSize: [34, 34],
-        iconAnchor: [17, 17]
+        iconSize: [36, 36],
+        iconAnchor: [18, 18]
     });
 
     var radarIcon = L.divIcon({
-        html: '<div style="font-size:20px; background:#F59E0B; border:2px solid #FFFFFF; border-radius:50%; width:38px; height:38px; display:flex; align-items:center; justify-content:center; box-shadow:0 0 18px rgba(245,158,11,0.85);">📡</div>',
+        html: '<div style="background:#E8BC6A; color:#14161E; border:2px solid #FFFFFF; border-radius:50%; width:40px; height:40px; display:flex; align-items:center; justify-content:center; box-shadow:0 0 18px rgba(232,188,106,0.85);">' + lucideSvg('radar', 'icon-sm') + '</div>',
         className: 'custom-div-icon',
-        iconSize: [38, 38],
-        iconAnchor: [19, 19]
+        iconSize: [40, 40],
+        iconAnchor: [20, 20]
     });
 
     venues.forEach(function(venue) {
@@ -54,13 +56,13 @@
 
             marker.on('click', function() {
                 document.getElementById('venue-name').innerText = venue.name;
-                document.getElementById('venue-address').innerText = '📍 ' + venue.address + (venue.city ? ', ' + venue.city : '');
+                document.getElementById('venue-address').innerText = venue.address + (venue.city ? ', ' + venue.city : '');
                 document.getElementById('venue-link').href = '/venue/' + venue.id;
-                document.getElementById('venue-card-icon').innerText = hasRadar ? '📡' : '🏪';
+                document.getElementById('venue-card-icon').innerHTML = hasRadar ? lucideSvg('radar') : lucideSvg('store');
                 var radarNote = document.getElementById('venue-radar-note');
                 if (hasRadar) {
-                    radarNote.innerText = '📡 En tu radar aquí: ' + venue.radar_beers.join(', ');
-                    radarNote.style.display = 'block';
+                    radarNote.innerHTML = lucideSvg('radar', 'icon-sm') + ' <span>En tu radar aquí: ' + escapeHtml(venue.radar_beers.join(', ')) + '</span>';
+                    radarNote.style.display = 'flex';
                 } else {
                     radarNote.style.display = 'none';
                 }

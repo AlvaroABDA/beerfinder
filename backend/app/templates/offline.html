@@ -233,28 +233,37 @@
 <body>
     <div class="offline-container">
         <div class="offline-hero">
-            <span class="offline-badge">📡 Modo Sin Conexión</span>
-            <div style="font-size: 2.8rem; line-height: 1; margin-bottom: 0.6rem;">🍺</div>
+            <span class="offline-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19.07 4.93A10 10 0 0 0 6.99 3.34"/><path d="M4 6h.01"/><path d="M2.29 9.62A10 10 0 1 0 21.31 8.35"/><path d="M16.24 7.76A6 6 0 1 0 8.23 16.67"/><path d="M12 18h.01"/><path d="M17.99 11.66A6 6 0 0 1 15.77 16.67"/><circle cx="12" cy="12" r="2"/><path d="m13.41 10.59 5.66-5.66"/></svg>
+                Modo Sin Conexión
+            </span>
+            <div style="color: var(--color-primary); margin-bottom: 0.6rem; display: flex; justify-content: center;">
+                <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 11h1a3 3 0 0 1 0 6h-1"/><path d="M9 12v6"/><path d="M13 12v6"/><path d="M14 7.5c-1 0-1.44.5-3 .5s-2-.5-3-.5-1.72.5-2.5.5a2.5 2.5 0 0 1 0-5c.78 0 1.57.5 2.5.5S9.44 2 11 2s2 1.5 3 1.5 1.72-.5 2.5-.5a2.5 2.5 0 0 1 0 5c-.78 0-1.5-.5-2.5-.5Z"/><path d="M5 8v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8"/></svg>
+            </div>
             <h1>¿Sin cobertura en el bar?</h1>
             <p>
                 No te preocupes, suele pasar en los mejores sótanos cerveceros. La <strong>Guía de Estilos BJCP</strong> sigue disponible en tu dispositivo para que puedas consultar qué pedirte.
             </p>
             <button class="btn-retry" onclick="window.location.reload()">
-                🔄 Reintentar conexión
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+                Reintentar conexión
             </button>
         </div>
 
         <section class="guide-section">
             <div class="guide-header">
-                <h2>📖 Biblia Cervecera Offline</h2>
-                <span style="font-size: 0.78rem; color: var(--text-muted);">Caché PWA v2</span>
+                <h2>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
+                    Biblia Cervecera Offline
+                </h2>
+                <span style="font-size: 0.78rem; color: var(--text-muted);">Caché PWA v3</span>
             </div>
             
             <input 
                 type="text" 
                 id="offlineSearch" 
                 class="guide-search" 
-                placeholder="🔍 Buscar estilo (IPA, Stout, Sour, Pilsner...)" 
+                placeholder="Buscar estilo (IPA, Stout, Sour, Pilsner...)" 
                 oninput="filterStyles()"
             />
 
@@ -290,7 +299,7 @@
                 return `
                     <div class="family-card" data-family="${escapeHtml(f.family_name.toLowerCase())}">
                         <div class="family-title">
-                            <span>🏛️ ${escapeHtml(f.family_name)}</span>
+                            <span>${escapeHtml(f.family_name)}</span>
                             <span style="font-size: 0.75rem; opacity: 0.7;">${f.styles.length} estilos</span>
                         </div>
                         <div>${stylesHtml}</div>

@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pizarra de Grifos en Vivo · {{ venue.name }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
     <!-- QRCode.js para generar QR nítido en TV -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
@@ -31,7 +33,7 @@
 
         body {
             background-color: var(--bg-tv);
-            background-image: 
+            background-image:
                 radial-gradient(circle at 10% 15%, rgba(245, 158, 11, 0.06) 0%, transparent 40%),
                 radial-gradient(circle at 90% 85%, rgba(16, 185, 129, 0.04) 0%, transparent 40%);
             color: var(--text-main);
@@ -124,9 +126,20 @@
         }
 
         @keyframes pulseLive {
-            0% { transform: scale(0.9); opacity: 0.7; }
-            50% { transform: scale(1.3); opacity: 1; }
-            100% { transform: scale(0.9); opacity: 0.7; }
+            0% {
+                transform: scale(0.9);
+                opacity: 0.7;
+            }
+
+            50% {
+                transform: scale(1.3);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(0.9);
+                opacity: 0.7;
+            }
         }
 
         .tv-clock {
@@ -148,6 +161,7 @@
             cursor: pointer;
             transition: all 0.2s ease;
         }
+
         .tv-btn-fullscreen:hover {
             background: rgba(255, 255, 255, 0.16);
             color: #FFFFFF;
@@ -179,7 +193,7 @@
             align-items: center;
             justify-content: space-between;
             gap: 1.5rem;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
             transition: transform 0.2s ease, border-color 0.2s ease;
         }
 
@@ -347,7 +361,7 @@
             display: flex;
             align-items: center;
             gap: 1.3rem;
-            box-shadow: 0 16px 48px rgba(0,0,0,0.7), 0 0 24px var(--color-gold-glow);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 24px var(--color-gold-glow);
             z-index: 200;
             animation: fadeIn 0.4s ease;
         }
@@ -390,6 +404,7 @@
             padding: 6rem 2rem;
             color: var(--text-muted);
         }
+
         .tv-empty h3 {
             font-size: 2rem;
             color: #FFFFFF;
@@ -407,24 +422,48 @@
             gap: 0.4rem;
             transition: color 0.2s;
         }
+
         .back-link:hover {
             color: #FFFFFF;
         }
     </style>
 </head>
+
 <body>
 
     <!-- TV HEADER -->
     <header class="tv-header">
         <div class="tv-brand">
             <a href="{{ url_for('routes.venue_view', id=venue.id) }}" class="back-link" title="Volver al Bar">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>
             </a>
-            <div class="tv-logo-badge">🍺</div>
+            <div class="tv-logo-badge" style="color:#07080B;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 11h1a3 3 0 0 1 0 6h-1" />
+                    <path d="M9 12v6" />
+                    <path d="M13 12v6" />
+                    <path
+                        d="M14 7.5c-1 0-1.44.5-3 .5s-2-.5-3-.5-1.72.5-2.5.5a2.5 2.5 0 0 1 0-5c.78 0 1.57.5 2.5.5S9.44 2 11 2s2 1.5 3 1.5 1.72-.5 2.5-.5a2.5 2.5 0 0 1 0 5c-.78 0-1.5-.5-2.5-.5Z" />
+                    <path d="M5 8v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8" />
+                </svg>
+            </div>
             <div class="tv-venue-info">
                 <h1>
                     {{ venue.name }}
-                    {% if venue.owner_user_id %}<span title="Verificado" style="font-size:1.4rem;">👑</span>{% endif %}
+                    {% if venue.owner_user_id %}
+                    <span title="Verificado" style="color:#10B981; display:inline-flex; align-items:center;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" />
+                            <path d="m9 12 2 2 4-4" />
+                        </svg>
+                    </span>
+                    {% endif %}
                 </h1>
                 <p>{{ venue.address }}{% if venue.city %} · {{ venue.city }}{% endif %} — Pizarra Digital de Grifos</p>
             </div>
@@ -447,7 +486,8 @@
         {% if beers %}
         <div class="tv-taps-grid" id="tapsGrid">
             {% for b in beers %}
-            <div class="tap-card {% if b.status != 'AVAILABLE' %}sold-out{% endif %}" style="border-left-color: {{ b.style_color }};">
+            <div class="tap-card {% if b.status != 'AVAILABLE' %}sold-out{% endif %}"
+                style="border-left-color: {{ b.style_color }};">
                 <div class="tap-card-left">
                     <div class="tap-num-box" style="border-color: {{ b.style_color }};">
                         <span class="tap-label">GRIFO</span>
@@ -473,20 +513,20 @@
 
                 <div class="tap-card-right">
                     {% if b.status == 'AVAILABLE' %}
-                        <span class="tap-status-badge status-available">
-                            ● Pinchado
-                        </span>
+                    <span class="tap-status-badge status-available">
+                        ● Pinchado
+                    </span>
                     {% else %}
-                        <span class="tap-status-badge status-soldout">
-                            ✕ Agotado
-                        </span>
+                    <span class="tap-status-badge status-soldout">
+                        ✕ Agotado
+                    </span>
                     {% endif %}
 
                     {% if b.price %}
-                        <div class="tap-price">{{ "%.2f"|format(b.price) }}€</div>
-                        <div class="tap-price-sub">Pinta / Media</div>
+                    <div class="tap-price">{{ "%.2f"|format(b.price) }}€</div>
+                    <div class="tap-price-sub">Pinta / Media</div>
                     {% else %}
-                        <div class="tap-price-sub" style="font-size:0.9rem; color:var(--text-muted);">Consultar barra</div>
+                    <div class="tap-price-sub" style="font-size:0.9rem; color:var(--text-muted);">Consultar barra</div>
                     {% endif %}
                 </div>
             </div>
@@ -504,7 +544,14 @@
     <div class="tv-floating-qr">
         <div class="tv-qr-box" id="tvQrCanvas"></div>
         <div class="tv-qr-text">
-            <h4>📱 Carta en tu Móvil</h4>
+            <h4>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-gold)" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="14" height="20" x="5" y="2" rx="2" ry="2" />
+                    <path d="M12 18h.01" />
+                </svg>
+                Carta en tu Móvil
+            </h4>
             <p>Escanea este código para ver notas de cata, alérgenos y guardar tus cervezas favoritas.</p>
         </div>
     </div>
@@ -524,7 +571,7 @@
         // 2. Fullscreen Toggle
         function toggleFullscreen() {
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(() => {});
+                document.documentElement.requestFullscreen().catch(() => { });
                 document.getElementById('fsBtn').textContent = '✕ Salir';
             } else {
                 if (document.exitFullscreen) {
@@ -538,7 +585,7 @@
         });
 
         // 3. Generate High-Res QR Code for the Venue
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const qrContainer = document.getElementById('tvQrCanvas');
             if (qrContainer && typeof QRCode !== 'undefined') {
                 const venueUrl = window.location.origin + "{{ url_for('routes.venue_view', id=venue.id) }}";
@@ -557,7 +604,7 @@
         const venueId = {{ venue.id }};
         const initialSignature = [
             {% for b in beers %}
-            "{{ b.id }}:{{ b.availability_id }}:{{ b.status }}:{{ b.price if b.price is not none else '' }}:{{ b.tap_number if b.tap_number is not none else '' }}",
+        "{{ b.id }}:{{ b.availability_id }}:{{ b.status }}:{{ b.price if b.price is not none else '' }}:{{ b.tap_number if b.tap_number is not none else '' }}",
             {% endfor %}
         ].join('|');
 
@@ -565,7 +612,7 @@
             return items.map(b => `${b.id}:${b.availability_id}:${b.status}:${b.price ?? ''}:${b.tap_number ?? ''}`).join('|');
         }
 
-        setInterval(function() {
+        setInterval(function () {
             if (document.hidden) return;
             fetch(`/api/venue/${venueId}/taplist`, { cache: 'no-store' })
                 .then(r => r.ok ? r.json() : null)
@@ -575,8 +622,9 @@
                         window.location.reload();
                     }
                 })
-                .catch(() => {});
+                .catch(() => { });
         }, 600000);
     </script>
 </body>
+
 </html>

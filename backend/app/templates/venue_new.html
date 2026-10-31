@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="card">
-    <h2 style="margin-top:0;">🏪 Añadir un Bar</h2>
+    <h2 style="margin-top:0; display:flex; align-items:center; gap:0.5rem;">{{ icon('store') }} Añadir un Bar</h2>
     <p style="font-size:0.9rem; color:var(--text-secondary); margin-bottom:1.5rem;">
         ¿Conoces un bar con buena selección de cervezas? Añádelo para que aparezca en el mapa. Si es tu negocio, luego podrás verificar su propiedad desde su ficha.
     </p>
@@ -33,8 +33,8 @@
         </div>
 
         <details style="margin-bottom:1rem;">
-            <summary style="font-size:0.85rem; color:var(--text-secondary); cursor:pointer; user-select:none;">
-                ⚙️ Coordenadas precisas (opcional — se calculan automáticamente desde la dirección)
+            <summary style="font-size:0.85rem; color:var(--text-secondary); cursor:pointer; user-select:none; display:inline-flex; align-items:center; gap:0.35rem;">
+                {{ icon('sliders', 'icon-sm') }} Coordenadas precisas (opcional — se calculan automáticamente desde la dirección)
             </summary>
             <div style="margin-top:0.8rem; display:flex; gap:0.8rem;">
                 <div style="flex:1;">
@@ -47,7 +47,7 @@
                 </div>
             </div>
             <button type="button" onclick="useMyLocation()" class="btn btn-outline" style="margin-top:0.8rem; font-size:0.85rem; padding:0.5rem 1rem; width:auto;">
-                📍 Usar mi ubicación actual
+                {{ icon('map-pin', 'icon-sm') }} Usar mi ubicación actual
             </button>
         </details>
 

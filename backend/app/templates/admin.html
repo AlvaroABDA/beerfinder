@@ -54,8 +54,8 @@
         border-color: rgba(245, 158, 11, 0.35);
     }
     .admin-kpi-card.alert-highlight {
-        border-color: rgba(245, 158, 11, 0.55);
-        background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(22, 25, 32, 0.9) 100%);
+        border-color: var(--color-primary);
+        background: var(--bg-panel-raised);
     }
     .admin-kpi-top {
         display: flex;
@@ -101,20 +101,20 @@
         transition: all 0.15s ease;
     }
     .admin-tab-btn.active {
-        background: rgba(245, 158, 11, 0.16);
+        background: var(--color-primary-glow);
         color: var(--color-primary);
-        border-color: rgba(245, 158, 11, 0.5);
+        border-color: var(--color-primary);
     }
     .admin-tab-badge {
         font-size: 0.72rem;
         padding: 1px 7px;
         border-radius: 10px;
-        background: rgba(255,255,255,0.08);
+        background: var(--bg-panel-raised);
         color: var(--text-secondary);
     }
     .admin-tab-btn.active .admin-tab-badge {
         background: var(--color-primary);
-        color: #0E1015;
+        color: var(--btn-primary-fg);
         font-weight: 700;
     }
     .admin-tab-badge.badge-alert {
@@ -195,10 +195,10 @@
             <p>Supervisión global de usuarios, catálogo, locales y verificación de propiedad multi-vía.</p>
         </div>
         <div class="admin-header-actions">
-            <a href="{{ url_for('routes.beer_new') }}" class="btn btn-outline" style="width:auto; padding:0.5rem 0.9rem; font-size:0.85rem;">🍺 + Cerveza</a>
-            <a href="{{ url_for('routes.venue_new') }}" class="btn btn-outline" style="width:auto; padding:0.5rem 0.9rem; font-size:0.85rem;">🏪 + Local</a>
-            <a href="{{ url_for('routes.fabricante_new') }}" class="btn btn-outline" style="width:auto; padding:0.5rem 0.9rem; font-size:0.85rem;">🏭 + Marca</a>
-            <a href="{{ url_for('routes.index') }}" class="btn" style="width:auto; padding:0.5rem 1rem; font-size:0.85rem;">{{ icon('home') }} Volver a la App</a>
+            <a href="{{ url_for('routes.beer_new') }}" class="btn btn-outline" style="width:auto; padding:0.5rem 0.9rem; font-size:0.85rem;">{{ icon('beer', 'icon-sm') }} + Cerveza</a>
+            <a href="{{ url_for('routes.venue_new') }}" class="btn btn-outline" style="width:auto; padding:0.5rem 0.9rem; font-size:0.85rem;">{{ icon('store', 'icon-sm') }} + Local</a>
+            <a href="{{ url_for('routes.fabricante_new') }}" class="btn btn-outline" style="width:auto; padding:0.5rem 0.9rem; font-size:0.85rem;">{{ icon('factory', 'icon-sm') }} + Marca</a>
+            <a href="{{ url_for('routes.index') }}" class="btn" style="width:auto; padding:0.5rem 1rem; font-size:0.85rem;">{{ icon('home', 'icon-sm') }} Volver a la App</a>
         </div>
     </div>
 
@@ -206,13 +206,13 @@
     <div class="admin-kpi-grid">
         <div class="admin-kpi-card {% if metrics.pending_claims > 0 %}alert-highlight{% endif %}" onclick="switchAdminTab('pane-claims', document.getElementById('tab-btn-claims'))" style="cursor:pointer;">
             <div class="admin-kpi-top"><span>Reclamaciones</span><span>{{ icon('scale') }}</span></div>
-            <div class="admin-kpi-value" style="color:{% if metrics.pending_claims > 0 %}#F59E0B{% else %}var(--text-main){% endif %};">{{ metrics.pending_claims }}</div>
-            <div class="admin-kpi-sub">{% if metrics.pending_claims > 0 %}<strong style="color:#F59E0B;">⚠️ Pendientes de revisión</strong>{% else %}Al día ({{ metrics.total_claims }} totales){% endif %}</div>
+            <div class="admin-kpi-value" style="color:{% if metrics.pending_claims > 0 %}var(--color-primary){% else %}var(--text-main){% endif %};">{{ metrics.pending_claims }}</div>
+            <div class="admin-kpi-sub">{% if metrics.pending_claims > 0 %}<strong style="color:var(--status-warn-fg);">{{ icon('alert-triangle', 'icon-sm') }} Pendientes de revisión</strong>{% else %}Al día ({{ metrics.total_claims }} totales){% endif %}</div>
         </div>
         <div class="admin-kpi-card" onclick="switchAdminTab('pane-users', document.getElementById('tab-btn-users'))" style="cursor:pointer;">
             <div class="admin-kpi-top"><span>Usuarios</span><span>{{ icon('users') }}</span></div>
             <div class="admin-kpi-value">{{ metrics.total_users }}</div>
-            <div class="admin-kpi-sub">{% if metrics.pending_users > 0 %}<strong style="color:#F59E0B;">{{ metrics.pending_users }} pendientes</strong>{% else %}Todos activos{% endif %}</div>
+            <div class="admin-kpi-sub">{% if metrics.pending_users > 0 %}<strong style="color:var(--status-warn-fg);">{{ metrics.pending_users }} pendientes</strong>{% else %}Todos activos{% endif %}</div>
         </div>
         <div class="admin-kpi-card" onclick="switchAdminTab('pane-venues', document.getElementById('tab-btn-venues'))" style="cursor:pointer;">
             <div class="admin-kpi-top"><span>Locales</span><span>{{ icon('store') }}</span></div>
@@ -220,7 +220,7 @@
             <div class="admin-kpi-sub">{{ metrics.active_venues }} activos en mapa</div>
         </div>
         <div class="admin-kpi-card" onclick="switchAdminTab('pane-beers', document.getElementById('tab-btn-beers'))" style="cursor:pointer;">
-            <div class="admin-kpi-top"><span>Cervezas</span><span>🍺</span></div>
+            <div class="admin-kpi-top"><span>Cervezas</span><span>{{ icon('beer') }}</span></div>
             <div class="admin-kpi-value">{{ metrics.total_beers }}</div>
             <div class="admin-kpi-sub">{{ metrics.active_beers }} activas</div>
         </div>
@@ -234,7 +234,7 @@
     <!-- 3. TABS -->
     <div class="admin-tabs-bar">
         <button type="button" id="tab-btn-claims" class="admin-tab-btn {% if search_type == 'claims' or (not search_type and metrics.pending_claims > 0) %}active{% endif %}" onclick="switchAdminTab('pane-claims', this)">
-            <span>{{ icon('scale') }} Verificaciones de Propiedad</span>
+            <span>{{ icon('scale', 'icon-sm') }} Verificaciones de Propiedad</span>
             {% if metrics.pending_claims > 0 %}
                 <span class="admin-tab-badge badge-alert">{{ metrics.pending_claims }}</span>
             {% else %}
@@ -242,23 +242,23 @@
             {% endif %}
         </button>
         <button type="button" id="tab-btn-users" class="admin-tab-btn {% if search_type == 'users' or (not search_type and metrics.pending_claims == 0) %}active{% endif %}" onclick="switchAdminTab('pane-users', this)">
-            <span>{{ icon('users') }} Usuarios</span>
+            <span>{{ icon('users', 'icon-sm') }} Usuarios</span>
             <span class="admin-tab-badge">{{ metrics.total_users }}</span>
         </button>
         <button type="button" id="tab-btn-venues" class="admin-tab-btn {% if search_type == 'venues' %}active{% endif %}" onclick="switchAdminTab('pane-venues', this)">
-            <span>{{ icon('store') }} Locales</span>
+            <span>{{ icon('store', 'icon-sm') }} Locales</span>
             <span class="admin-tab-badge">{{ metrics.total_venues }}</span>
         </button>
         <button type="button" id="tab-btn-beers" class="admin-tab-btn {% if search_type == 'beers' %}active{% endif %}" onclick="switchAdminTab('pane-beers', this)">
-            <span>🍺 Cervezas</span>
+            <span>{{ icon('beer', 'icon-sm') }} Cervezas</span>
             <span class="admin-tab-badge">{{ metrics.total_beers }}</span>
         </button>
         <button type="button" id="tab-btn-fabricantes" class="admin-tab-btn {% if search_type == 'fabricantes' %}active{% endif %}" onclick="switchAdminTab('pane-fabricantes', this)">
-            <span>{{ icon('factory') }} Fabricantes</span>
+            <span>{{ icon('factory', 'icon-sm') }} Fabricantes</span>
             <span class="admin-tab-badge">{{ metrics.total_fabricantes }}</span>
         </button>
         <button type="button" id="tab-btn-taxonomy" class="admin-tab-btn {% if search_type == 'taxonomy' %}active{% endif %}" onclick="switchAdminTab('pane-taxonomy', this)">
-            <span>{{ icon('tag') }} Taxonomía</span>
+            <span>{{ icon('tag', 'icon-sm') }} Taxonomía</span>
             <span class="admin-tab-badge">{{ styles|length }}</span>
         </button>
     </div>
@@ -268,17 +268,17 @@
         {% set pending_claims = claims|selectattr("status", "equalto", "PENDING")|list %}
         {% if pending_claims %}
             <div style="margin-bottom:2rem;">
-                <h4 style="margin:0 0 1rem 0; color:#F59E0B;">⏳ Solicitudes Pendientes de Decisión ({{ pending_claims|length }})</h4>
+                <h4 style="margin:0 0 1rem 0; color:var(--status-warn-fg); display:flex; align-items:center; gap:0.4rem;">{{ icon('clock', 'icon-sm') }} Solicitudes Pendientes de Decisión ({{ pending_claims|length }})</h4>
                 <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(430px, 1fr)); gap:1rem;">
                     {% for c in pending_claims %}
-                    <div class="claim-desktop-card" style="{% if c.is_dispute %}border-left-color:#EF4444;{% endif %}">
+                    <div class="claim-desktop-card" style="{% if c.is_dispute %}border-left-color:var(--status-err-fg);{% endif %}">
                         <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.6rem; margin-bottom:0.75rem;">
                             <div>
                                 <div style="display:flex; gap:0.4rem; flex-wrap:wrap; margin-bottom:0.3rem;">
                                     <span class="pill" style="margin:0; font-size:0.7rem;">{{ c.entity_type|upper }}</span>
-                                    <span class="pill" style="margin:0; font-size:0.7rem; background:rgba(255,255,255,0.06);">{{ c.verification_method }} · {{ c.verification_status }}</span>
+                                    <span class="pill badge-neutral" style="margin:0; font-size:0.7rem;">{{ c.verification_method }} · {{ c.verification_status }}</span>
                                     {% if c.is_dispute %}
-                                    <span class="pill" style="margin:0; font-size:0.7rem; background:rgba(239, 68, 68, 0.2); color:#FCA5A5; border-color:#EF4444;">⚖️ DISPUTA DE TITULARIDAD</span>
+                                    <span class="pill pill-red" style="margin:0; font-size:0.7rem;">{{ icon('scale', 'icon-sm') }} DISPUTA DE TITULARIDAD</span>
                                     {% endif %}
                                 </div>
                                 <h4 style="margin:0; font-size:1.15rem;">
@@ -289,7 +289,7 @@
                                 </small>
                             </div>
                             <div style="text-align:right; flex-shrink:0;">
-                                <span class="pill" style="margin:0; font-weight:800; font-size:0.78rem; {% if c.trust_score >= 70 %}background:rgba(16, 185, 129, 0.2); color:#6EE7B7; border-color:#10B981;{% elif c.trust_score >= 40 %}background:rgba(245, 158, 11, 0.18); color:#FCD34D; border-color:#F59E0B;{% else %}background:rgba(239, 68, 68, 0.16); color:#FCA5A5; border-color:#EF4444;{% endif %}">
+                                <span class="pill {% if c.trust_score >= 70 %}pill-green{% elif c.trust_score >= 40 %}pill-amber{% else %}pill-red{% endif %}" style="margin:0; font-weight:800; font-size:0.78rem;">
                                     Trust {{ c.trust_score }}/100
                                 </span>
                             </div>
@@ -297,8 +297,8 @@
 
                         {% if c.verification_target or c.verification_token %}
                         <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:0.55rem;">
-                            {% if c.verification_target %}🎯 Destino: <code>{{ c.verification_target }}</code>{% endif %}
-                            {% if c.verification_token %} · 🔑 Token: <code>{{ c.verification_token }}</code>{% endif %}
+                            {% if c.verification_target %}Destino: <code>{{ c.verification_target }}</code>{% endif %}
+                            {% if c.verification_token %} · Token: <code>{{ c.verification_token }}</code>{% endif %}
                         </div>
                         {% endif %}
 
@@ -310,13 +310,13 @@
 
                         <div style="display:flex; gap:0.8rem; flex-wrap:wrap; margin-bottom:0.7rem;">
                             {% if c.evidence_url %}
-                            <a href="{{ c.evidence_url }}" target="_blank" rel="noopener" style="font-size:0.82rem; color:var(--color-primary); text-decoration:underline;">
-                                🌐 Enlace público aportado ↗
+                            <a href="{{ c.evidence_url }}" target="_blank" rel="noopener" style="font-size:0.82rem; color:var(--color-primary); text-decoration:underline; display:inline-flex; align-items:center; gap:0.25rem;">
+                                {{ icon('globe', 'icon-sm') }} Enlace público aportado ↗
                             </a>
                             {% endif %}
                             {% if c.evidence_file %}
-                            <a href="{{ url_for('routes.claim_evidence_download', claim_id=c.id) }}" target="_blank" style="font-size:0.82rem; color:#6EE7B7; text-decoration:underline; font-weight:700;">
-                                🔒 Ver documento acreditativo privado ↗
+                            <a href="{{ url_for('routes.claim_evidence_download', claim_id=c.id) }}" target="_blank" style="font-size:0.82rem; color:var(--status-ok-fg); text-decoration:underline; font-weight:700; display:inline-flex; align-items:center; gap:0.25rem;">
+                                {{ icon('lock', 'icon-sm') }} Ver documento acreditativo privado ↗
                             </a>
                             {% endif %}
                         </div>
@@ -324,8 +324,8 @@
                         {% if c.trust_signals %}
                         <div style="margin-bottom:0.9rem; display:flex; flex-wrap:wrap; gap:0.4rem;">
                             {% for level, text in c.trust_signals %}
-                            <span class="pill" style="margin:0; font-size:0.74rem; {% if level == 'success' %}background:rgba(16, 185, 129, 0.15); color:#6EE7B7; border:1px solid rgba(16, 185, 129, 0.3);{% else %}background:rgba(245, 158, 11, 0.15); color:#FCD34D; border:1px solid rgba(245, 158, 11, 0.3);{% endif %}">
-                                {% if level == 'success' %}✅{% else %}⚠️{% endif %} {{ text }}
+                            <span class="pill {% if level == 'success' %}pill-green{% else %}pill-amber{% endif %}" style="margin:0; font-size:0.74rem;">
+                                {% if level == 'success' %}{{ icon('check', 'icon-sm') }}{% else %}{{ icon('alert-triangle', 'icon-sm') }}{% endif %} {{ text }}
                             </span>
                             {% endfor %}
                         </div>
@@ -335,17 +335,17 @@
                             <form method="POST" action="{{ url_for('routes.process_claim', claim_id=c.id, action='approve') }}" style="margin:0;">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn" style="width:auto; padding:0.5rem 1.2rem; background:#10B981; color:#0E1015; font-size:0.85rem;">
-                                    ✅ Conceder Propiedad
+                                    {{ icon('check-circle', 'icon-sm') }} Conceder Propiedad
                                 </button>
                             </form>
                             <details style="flex:1; min-width:200px;">
-                                <summary class="btn btn-outline" style="width:auto; padding:0.5rem 1rem; color:#EF4444; border-color:#EF4444; cursor:pointer; font-size:0.85rem;">
-                                    ❌ Rechazar...
+                                <summary class="btn btn-outline" style="width:auto; padding:0.5rem 1rem; color:var(--status-err-fg); border-color:var(--status-err-fg); cursor:pointer; font-size:0.85rem;">
+                                    {{ icon('x', 'icon-sm') }} Rechazar...
                                 </summary>
                                 <form method="POST" action="{{ url_for('routes.process_claim', claim_id=c.id, action='reject') }}" style="margin-top:0.6rem;">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <textarea name="resolution_note" rows="2" placeholder="Motivo del rechazo..." required style="width:100%; padding:0.6rem; border-radius:8px; margin-bottom:0.5rem; font-size:0.85rem;"></textarea>
-                                    <button type="submit" class="btn" style="background:#EF4444; font-size:0.82rem; padding:0.4rem 0.8rem;">Confirmar Rechazo</button>
+                                    <button type="submit" class="btn" style="background:#EF4444; color:#FFFFFF; font-size:0.82rem; padding:0.4rem 0.8rem;">Confirmar Rechazo</button>
                                 </form>
                             </details>
                         </div>
@@ -355,7 +355,7 @@
             </div>
         {% else %}
             <div style="background:var(--bg-panel); border:1px dashed var(--border-color); border-radius:var(--radius-card); padding:2rem; text-align:center; margin-bottom:2rem;">
-                <span style="font-size:2rem;">✅</span>
+                <div style="color:var(--status-ok-fg); margin-bottom:0.4rem;">{{ icon('check-circle', 'icon-xl') }}</div>
                 <h4 style="margin:0.5rem 0 0.2rem 0;">Sin verificaciones pendientes</h4>
                 <p style="margin:0; font-size:0.85rem; color:var(--text-secondary);">Todas las reclamaciones de propiedad están al día.</p>
             </div>
@@ -387,9 +387,9 @@
                         <td style="font-family:monospace;">{{ c.trust_score }}</td>
                         <td>
                             {% if c.status == 'APPROVED' %}
-                            <span class="pill" style="background:rgba(16, 185, 129, 0.2); color:#6EE7B7; border:1px solid rgba(16, 185, 129, 0.4); margin:0;">Aprobada</span>
+                            <span class="pill pill-green" style="margin:0;">Aprobada</span>
                             {% else %}
-                            <span class="pill" style="background:rgba(239, 68, 68, 0.2); color:#FCA5A5; border:1px solid rgba(239, 68, 68, 0.4); margin:0;">Rechazada</span>
+                            <span class="pill pill-red" style="margin:0;">Rechazada</span>
                             {% endif %}
                         </td>
                         <td style="font-size:0.82rem; color:var(--text-secondary);">{{ c.resolution_note or '-' }}</td>
@@ -416,8 +416,8 @@
         </div>
 
         {% if pending_users %}
-        <div style="background:rgba(245, 158, 11, 0.1); border:1px solid rgba(245, 158, 11, 0.35); padding:1.2rem; border-radius:var(--radius-card); margin-bottom:1.5rem;">
-            <h4 style="margin:0 0 0.8rem 0; color:#F59E0B;">⏳ Cuentas Pendientes ({{ pending_users|length }})</h4>
+        <div class="notice-amber" style="padding:1.2rem; border-radius:var(--radius-card); margin-bottom:1.5rem;">
+            <h4 style="margin:0 0 0.8rem 0; color:var(--status-warn-fg); display:flex; align-items:center; gap:0.4rem;">{{ icon('clock', 'icon-sm') }} Cuentas Pendientes ({{ pending_users|length }})</h4>
             <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:0.8rem;">
                 {% for u in pending_users %}
                 <div style="background:var(--bg-panel); padding:0.9rem; border-radius:8px; border:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
@@ -459,7 +459,7 @@
                         </td>
                         <td>
                             {% if u.role == 'ADMIN' %}
-                            <span class="pill" style="background:rgba(239, 68, 68, 0.2); color:#FCA5A5; border:1px solid rgba(239, 68, 68, 0.4); margin:0;">ADMIN</span>
+                            <span class="pill pill-red" style="margin:0;">ADMIN</span>
                             {% else %}
                             <span class="pill" style="margin:0;">USER</span>
                             {% endif %}
@@ -530,7 +530,7 @@
                         </div>
                     </div>
                     <div>
-                        <label>🗺️ Haz clic en el mapa para fijar coordenadas</label>
+                        <label style="display:flex; align-items:center; gap:0.35rem;">{{ icon('map', 'icon-sm') }} Haz clic en el mapa para fijar coordenadas</label>
                         <div id="admin-map" style="height: 270px; width: 100%; border-radius: 10px; border: 1px solid var(--border-color); z-index: 1;"></div>
                     </div>
                 </div>
@@ -563,16 +563,16 @@
                         </td>
                         <td>
                             {% if v.owner_user_id %}
-                                <span class="pill" style="margin:0; background:rgba(16, 185, 129, 0.15); color:#6EE7B7; border:1px solid rgba(16, 185, 129, 0.35); font-size:0.72rem;">👑 Verificada</span>
+                                <span class="pill pill-green" style="margin:0; font-size:0.72rem;">{{ icon('badge-check', 'icon-sm') }} Verificada</span>
                             {% else %}
                                 <span class="pill" style="margin:0; font-size:0.72rem;">Colaborativo</span>
                             {% endif %}
                         </td>
-                        <td>{% if is_active(v) %}<span style="color:#10B981;">● Activo</span>{% else %}<span style="color:var(--text-muted);">● Inactivo</span>{% endif %}</td>
+                        <td>{% if is_active(v) %}<span style="color:var(--status-ok-fg);">● Activo</span>{% else %}<span style="color:var(--text-muted);">● Inactivo</span>{% endif %}</td>
                         <td>
                             <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
-                                <a href="{{ url_for('routes.venue_tv', id=v.id) }}" target="_blank" class="btn btn-outline" style="padding:0.3rem 0.6rem; font-size:0.75rem; width:auto;">📺 TV</a>
-                                <a href="{{ url_for('routes.venue_qr_poster', id=v.id) }}" target="_blank" class="btn btn-outline" style="padding:0.3rem 0.6rem; font-size:0.75rem; width:auto;">📱 QR</a>
+                                <a href="{{ url_for('routes.venue_tv', id=v.id) }}" target="_blank" class="btn btn-outline" style="padding:0.3rem 0.6rem; font-size:0.75rem; width:auto;">{{ icon('tv', 'icon-sm') }} TV</a>
+                                <a href="{{ url_for('routes.venue_qr_poster', id=v.id) }}" target="_blank" class="btn btn-outline" style="padding:0.3rem 0.6rem; font-size:0.75rem; width:auto;">{{ icon('qr-code', 'icon-sm') }} QR</a>
                                 <a href="{{ url_for('routes.edit_venue', id=v.id) }}" class="btn btn-outline" style="padding:0.3rem 0.65rem; font-size:0.78rem; width:auto;">Editar</a>
                                 <form method="POST" action="{{ url_for('routes.toggle_venue', id=v.id) }}" style="margin:0;">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -635,7 +635,7 @@
                         <td>
                             <div style="display:flex; align-items:center; gap:0.75rem;">
                                 <div class="card-img" style="width:36px; height:36px; border-radius:6px; font-size:1.1rem; flex-shrink:0; {% if b.image %}background-image:url('{{ resolve_media_url('beers', b.image) }}'); background-size:cover; background-position:center;{% endif %}">
-                                    {% if not b.image %}🍺{% endif %}
+                                    {% if not b.image %}{{ icon('beer', 'icon-sm') }}{% endif %}
                                 </div>
                                 <strong><a href="{{ url_for('routes.beer_view', id=b.id) }}" style="color:var(--text-main);">{{ b.name }}</a></strong>
                             </div>
@@ -645,12 +645,12 @@
                         <td>{{ b.abv }}%</td>
                         <td>
                             {% if b.owner_user_id %}
-                                <span class="pill" style="margin:0; background:rgba(16, 185, 129, 0.15); color:#6EE7B7; border:1px solid rgba(16, 185, 129, 0.35); font-size:0.72rem;">👑 Verificada</span>
+                                <span class="pill pill-green" style="margin:0; font-size:0.72rem;">{{ icon('badge-check', 'icon-sm') }} Verificada</span>
                             {% else %}
                                 <span class="pill" style="margin:0; font-size:0.72rem;">Colaborativa</span>
                             {% endif %}
                         </td>
-                        <td>{% if is_active(b) %}<span style="color:#10B981;">● Activa</span>{% else %}<span style="color:var(--text-muted);">● Inactiva</span>{% endif %}</td>
+                        <td>{% if is_active(b) %}<span style="color:var(--status-ok-fg);">● Activa</span>{% else %}<span style="color:var(--text-muted);">● Inactiva</span>{% endif %}</td>
                         <td>
                             <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
                                 <a href="{{ url_for('routes.edit_beer', id=b.id) }}" class="btn btn-outline" style="padding:0.3rem 0.65rem; font-size:0.78rem; width:auto;">Editar</a>
@@ -731,7 +731,7 @@
                         <td>
                             <div style="display:flex; align-items:center; gap:0.75rem;">
                                 <div class="card-img" style="width:36px; height:36px; border-radius:6px; font-size:1.1rem; flex-shrink:0; {% if f.logo %}background-image:url('{{ resolve_media_url('fabricantes', f.logo) }}'); background-size:cover; background-position:center;{% endif %}">
-                                    {% if not f.logo %}🏭{% endif %}
+                                    {% if not f.logo %}{{ icon('factory', 'icon-sm') }}{% endif %}
                                 </div>
                                 <strong><a href="{{ url_for('routes.fabricante_view', id=f.id) }}" style="color:var(--text-main);">{{ f.name }}</a></strong>
                             </div>
@@ -743,12 +743,12 @@
                         </td>
                         <td>
                             {% if f.owner_user_id %}
-                                <span class="pill" style="margin:0; background:rgba(16, 185, 129, 0.15); color:#6EE7B7; border:1px solid rgba(16, 185, 129, 0.35); font-size:0.72rem;">👑 Verificada</span>
+                                <span class="pill pill-green" style="margin:0; font-size:0.72rem;">{{ icon('badge-check', 'icon-sm') }} Verificada</span>
                             {% else %}
                                 <span class="pill" style="margin:0; font-size:0.72rem;">Colaborativa</span>
                             {% endif %}
                         </td>
-                        <td>{% if is_active(f) %}<span style="color:#10B981;">● Activo</span>{% else %}<span style="color:var(--text-muted);">● Inactivo</span>{% endif %}</td>
+                        <td>{% if is_active(f) %}<span style="color:var(--status-ok-fg);">● Activo</span>{% else %}<span style="color:var(--text-muted);">● Inactivo</span>{% endif %}</td>
                         <td>
                             <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
                                 <a href="{{ url_for('routes.edit_fabricante', id=f.id) }}" class="btn btn-outline" style="padding:0.3rem 0.65rem; font-size:0.78rem; width:auto;">Editar</a>
@@ -780,7 +780,7 @@
     <div id="pane-taxonomy" class="admin-pane {% if search_type == 'taxonomy' %}active{% endif %}">
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(340px, 1fr)); gap:1.5rem;">
             <div class="admin-form-box">
-                <h4>🍺 Familias</h4>
+                <h4>{{ icon('beer', 'icon-sm') }} Familias</h4>
                 <form method="POST" action="{{ url_for('routes.add_family') }}" style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1.2rem;">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="text" name="name" placeholder="Nombre (ej: Ale, Lager, Sour)" required>
@@ -793,7 +793,7 @@
             </div>
 
             <div class="admin-form-box">
-                <h4>📖 Estilos BJCP</h4>
+                <h4>{{ icon('book-open', 'icon-sm') }} Estilos BJCP</h4>
                 <form method="POST" action="{{ url_for('routes.add_style') }}" style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1.2rem;">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div style="display:flex; gap:0.6rem;">
@@ -818,15 +818,15 @@
             </div>
 
             <div class="admin-form-box">
-                <h4>🏷️ Tags Sensoriales</h4>
+                <h4>{{ icon('tag', 'icon-sm') }} Tags Sensoriales</h4>
                 <form method="POST" action="{{ url_for('routes.add_tag') }}" style="display:flex; gap:0.5rem; margin-bottom:1.2rem; align-items:center;">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <input type="text" name="icon" placeholder="🏷️" maxlength="4" style="width:50px; text-align:center; margin:0;">
+                    <input type="text" name="icon" placeholder="icono" maxlength="4" style="width:58px; text-align:center; margin:0;">
                     <input type="text" name="name" placeholder="Descriptor" required style="flex:1; margin:0;">
                     <button type="submit" class="btn btn-outline" style="width:auto; margin:0; padding:0.5rem 1rem;">+ Añadir</button>
                 </form>
                 <div style="display:flex; flex-wrap:wrap; gap:0.4rem;">
-                    {% for t in tags %}<span class="pill">{{ t.icon }} {{ t.name }}</span>{% endfor %}
+                    {% for t in tags %}<span class="pill">{% if t.icon %}{{ t.icon }} {% endif %}{{ t.name }}</span>{% endfor %}
                 </div>
             </div>
         </div>

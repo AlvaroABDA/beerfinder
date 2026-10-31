@@ -6,7 +6,7 @@
         background: var(--bg-body);
         border: 1px solid var(--border-color);
         border-radius: var(--radius-card);
-        padding: 0.9rem;
+        padding: 0.95rem;
         margin: 1rem 0;
     }
     .taste-seg-grid {
@@ -19,9 +19,9 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 0.2rem;
-        padding: 0.65rem 0.35rem;
-        border-radius: 12px;
+        gap: 0.3rem;
+        padding: 0.68rem 0.35rem;
+        border-radius: 14px;
         border: 1.5px solid var(--border-color);
         background: var(--bg-panel);
         color: var(--text-secondary);
@@ -31,38 +31,36 @@
         transition: all 0.15s ease;
         font-family: inherit;
     }
-    .taste-seg-btn .seg-emoji {
-        font-size: 1.25rem;
-        line-height: 1;
-    }
     .taste-seg-btn.active-dislike {
-        background: rgba(239, 68, 68, 0.14);
-        border-color: rgba(239, 68, 68, 0.55);
-        color: #FCA5A5;
+        background: var(--status-err-bg);
+        border-color: var(--status-err-border);
+        color: var(--status-err-fg);
     }
     .taste-seg-btn.active-wishlist {
-        background: rgba(245, 158, 11, 0.18);
-        border-color: #F59E0B;
-        color: #FCD34D;
-        box-shadow: 0 0 14px rgba(245, 158, 11, 0.2);
+        background: var(--status-warn-bg);
+        border-color: var(--color-primary);
+        color: var(--color-primary);
     }
     .taste-seg-btn.active-like {
-        background: rgba(16, 185, 129, 0.16);
-        border-color: #10B981;
-        color: #6EE7B7;
+        background: var(--status-ok-bg);
+        border-color: var(--color-green);
+        color: var(--status-ok-fg);
     }
     .radar-bell-row {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 0.6rem;
-        margin-top: 0.7rem;
+        margin-top: 0.75rem;
         padding-top: 0.65rem;
         border-top: 1px solid var(--border-color);
         font-size: 0.82rem;
     }
     .radar-bell-btn {
-        padding: 0.38rem 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.4rem 0.8rem;
         border-radius: 999px;
         font-size: 0.78rem;
         font-weight: 700;
@@ -72,24 +70,25 @@
         color: var(--text-secondary);
         font-family: inherit;
         transition: all 0.15s ease;
+        flex-shrink: 0;
     }
     .radar-bell-btn.active {
-        background: rgba(245, 158, 11, 0.18);
-        border-color: #F59E0B;
-        color: #FCD34D;
+        background: var(--status-warn-bg);
+        border-color: var(--color-primary);
+        color: var(--color-primary);
     }
 </style>
 
 <div class="card">
     <div style="display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 0.85rem;">
-        <div class="card-img" onclick="openImageModal()" style="width: 84px; height: 84px; flex-shrink: 0; border-radius: 12px; {% if beer.image_url %}cursor: zoom-in; background-image: url('{{ beer.image_url }}'); background-size: cover; background-position: center;{% endif %}">
-            {% if not beer.image_url %}🍺{% endif %}
+        <div class="card-img" onclick="openImageModal()" style="width: 84px; height: 84px; flex-shrink: 0; border-radius: 14px; {% if beer.image_url %}cursor: zoom-in; background-image: url('{{ beer.image_url }}'); background-size: cover; background-position: center;{% endif %}">
+            {% if not beer.image_url %}{{ icon('beer', 'icon-xl') }}{% endif %}
         </div>
         <div style="flex: 1; min-width: 0;">
             <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.35rem;">
                 <h2 style="margin: 0;">{{ beer.name }}</h2>
                 {% if beer.owner_user_id %}
-                <span class="badge badge-green" style="font-size:0.7rem; padding:2px 8px;">👑 Oficial</span>
+                <span class="badge badge-green" style="font-size:0.72rem; padding:2px 8px;">{{ icon('badge-check', 'icon-sm') }} Oficial</span>
                 {% endif %}
             </div>
 
@@ -108,11 +107,11 @@
             </p>
             <p style="margin: 0 0 0.2rem 0; font-size:0.88rem; display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap;">
                 <strong>Estilo:</strong>
-                {% if beer.style_color %}<span style="width:0.75rem; height:0.75rem; border-radius:50%; background:{{ beer.style_color }}; display:inline-block; border:1px solid rgba(255,255,255,0.3);"></span>{% endif %}
+                {% if beer.style_color %}<span style="width:0.75rem; height:0.75rem; border-radius:50%; background:{{ beer.style_color }}; display:inline-block; border:1px solid var(--border-color);"></span>{% endif %}
                 <span>{{ beer.style_name }}</span>
                 {% if beer.style_id %}
                 <button type="button" onclick="showStyleInfo({{ beer.style_id }})" class="style-info-btn">
-                    ℹ️ ¿Qué es?
+                    {{ icon('info', 'icon-sm') }} ¿Qué es?
                 </button>
                 {% endif %}
             </p>
@@ -123,15 +122,16 @@
     </div>
 
     {% if is_brand_or_beer_owner and radar_demand_count > 0 %}
-    <div style="margin-bottom:0.9rem; padding:0.65rem 0.9rem; border-radius:10px; background:rgba(245, 158, 11, 0.12); border:1px solid rgba(245, 158, 11, 0.35); font-size:0.84rem; color:#FCD34D;">
-        📡 <strong>Demanda en vivo:</strong> {{ radar_demand_count }} {{ 'persona tiene' if radar_demand_count == 1 else 'personas tienen' }} esta cerveza activa en su radar.
+    <div class="notice-amber" style="margin-bottom:0.9rem;">
+        {{ icon('radar', 'icon-sm') }}
+        <span><strong>Demanda en vivo:</strong> {{ radar_demand_count }} {{ 'persona tiene' if radar_demand_count == 1 else 'personas tienen' }} esta cerveza activa en su radar.</span>
     </div>
     {% endif %}
 
     {% if can_edit %}
     <div style="margin-bottom: 0.9rem;">
-        <a href="{{ url_for('routes.edit_beer', id=beer.id) }}" class="btn btn-outline" style="padding:0.45rem 0.9rem; font-size:0.84rem;">
-            {{ icon('edit') }} Editar ficha
+        <a href="{{ url_for('routes.edit_beer', id=beer.id) }}" class="btn btn-outline" style="padding:0.48rem 0.95rem; font-size:0.84rem;">
+            {{ icon('edit', 'icon-sm') }} Editar ficha
         </a>
     </div>
     {% endif %}
@@ -139,13 +139,13 @@
     {% if session.get('user_id') %}
     <!-- Selector Unificado Variante B: Paladar + Radar Silencioso -->
     <div class="taste-selector-box">
-        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:0.55rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; gap:0.5rem;">
             <span style="font-size:0.82rem; font-weight:700; color:var(--text-main);">Tu afinidad con esta cerveza</span>
-            <span id="taste-feedback-hint" style="font-size:0.74rem; color:var(--text-secondary);">
-                {% if user_preference == 'WISHLIST' %}📡 En tu radar cercano
-                {% elif user_preference == 'LIKE' and notify_nearby %}❤️ Favorita · 🔔 Radar activo
-                {% elif user_preference == 'LIKE' %}❤️ Guardada en tus gustos
-                {% elif user_preference == 'DISLIKE' %}❌ Descartada de recomendaciones
+            <span id="taste-feedback-hint" style="font-size:0.75rem; color:var(--text-secondary); display:inline-flex; align-items:center; gap:0.28rem;">
+                {% if user_preference == 'WISHLIST' %}{{ icon('radar', 'icon-sm') }} En tu radar cercano
+                {% elif user_preference == 'LIKE' and notify_nearby %}{{ icon('heart', 'icon-sm') }} Favorita · Radar activo
+                {% elif user_preference == 'LIKE' %}{{ icon('heart', 'icon-sm') }} Guardada en tus gustos
+                {% elif user_preference == 'DISLIKE' %}{{ icon('circle-off', 'icon-sm') }} Descartada
                 {% else %}Toca para guardar{% endif %}
             </span>
         </div>
@@ -154,19 +154,19 @@
             <button type="button"
                     class="taste-seg-btn {% if user_preference == 'DISLIKE' %}active-dislike{% endif %}"
                     onclick="setBeerPreference({{ beer.id }}, '{{ 'CLEAR' if user_preference == 'DISLIKE' else 'DISLIKE' }}')">
-                <span class="seg-emoji">❌</span>
+                {{ icon('circle-off') }}
                 <span>No es para mí</span>
             </button>
             <button type="button"
                     class="taste-seg-btn {% if user_preference == 'WISHLIST' %}active-wishlist{% endif %}"
                     onclick="setBeerPreference({{ beer.id }}, '{{ 'CLEAR' if user_preference == 'WISHLIST' else 'WISHLIST' }}')">
-                <span class="seg-emoji">📡</span>
+                {{ icon('radar') }}
                 <span>Quiero probar</span>
             </button>
             <button type="button"
                     class="taste-seg-btn {% if user_preference == 'LIKE' %}active-like{% endif %}"
                     onclick="setBeerPreference({{ beer.id }}, '{{ 'CLEAR' if user_preference == 'LIKE' else 'LIKE' }}')">
-                <span class="seg-emoji">❤️</span>
+                {{ icon('heart') }}
                 <span>Me gusta</span>
             </button>
         </div>
@@ -178,12 +178,13 @@
                     id="radar-bell-toggle"
                     class="radar-bell-btn {% if notify_nearby %}active{% endif %}"
                     onclick="toggleRadarBell({{ beer.id }})">
-                {% if notify_nearby %}🔔 Avisarme activo{% else %}🔕 Avisarme cerca{% endif %}
+                {% if notify_nearby %}{{ icon('bell', 'icon-sm') }} Activo{% else %}{{ icon('bell-off', 'icon-sm') }} Avisarme{% endif %}
             </button>
         </div>
         {% elif user_preference == 'WISHLIST' %}
-        <p style="margin:0.6rem 0 0; font-size:0.76rem; color:var(--text-secondary);">
-            📡 Sin notificaciones intrusivas: solo verás un aviso silencioso en Inicio y en el Mapa cuando esté disponible cerca de ti.
+        <p style="margin:0.65rem 0 0; font-size:0.76rem; color:var(--text-secondary); display:flex; align-items:flex-start; gap:0.35rem;">
+            {{ icon('radar', 'icon-sm') }}
+            <span>Sin notificaciones intrusivas: solo verás un aviso silencioso en Inicio y en el Mapa cuando esté disponible cerca de ti.</span>
         </p>
         {% endif %}
     </div>
@@ -192,8 +193,8 @@
     {% if beer.tags_list %}
     <div style="margin: 0.9rem 0; display:flex; flex-wrap:wrap; gap:0.35rem;">
         {% for t in beer.tags_list %}
-        <span class="pill" style="margin:0; font-size:0.78rem; background:rgba(245, 158, 11, 0.14); color:var(--color-primary); border-color:rgba(245, 158, 11, 0.35);">
-            {{ t.icon or '🏷️' }} {{ t.name }}
+        <span class="pill pill-amber" style="margin:0; font-size:0.76rem;">
+            {{ icon('tag', 'icon-sm') }} {{ t.name }}
         </span>
         {% endfor %}
     </div>
@@ -205,24 +206,25 @@
 
     {% if session.get('user_id') %}
         {% if has_pending_claim %}
-        <div style="margin-top:1.1rem; padding-top:0.85rem; border-top:1px solid var(--border-color); font-size:0.82rem;">
-            ⏳ Tienes una solicitud de verificación abierta para esta cerveza ·
-            <a href="{{ url_for('routes.my_claims') }}" style="color:var(--color-primary); font-weight:700;">Ver estado / verificar código →</a>
+        <div style="margin-top:1.1rem; padding-top:0.85rem; border-top:1px solid var(--border-color); font-size:0.82rem; display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap;">
+            {{ icon('clock', 'icon-sm') }}
+            <span>Tienes una solicitud de verificación abierta para esta cerveza ·</span>
+            <a href="{{ url_for('routes.my_claims') }}" style="color:var(--color-primary); font-weight:700;">Ver estado →</a>
         </div>
         {% elif not beer.owner_user_id %}
         <details style="margin-top: 1.1rem; padding-top: 0.85rem; border-top: 1px solid var(--border-color);">
             <summary style="color: var(--text-secondary); cursor: pointer; font-size: 0.82rem; font-weight:600;">
-                🛡️ ¿Eres el fabricante oficial de esta cerveza? Verifícala
+                {{ icon('shield-check', 'icon-sm') }} ¿Eres el fabricante oficial de esta cerveza? Verifícala
             </summary>
             <form method="POST" action="{{ url_for('routes.claim_entity', entity_type='beer', entity_id=beer.id) }}" enctype="multipart/form-data" style="margin-top: 0.75rem;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <label style="font-size:0.82rem;">Método de acreditación</label>
                 <select name="verification_method" onchange="toggleBeerClaimFields(this.value)">
-                    <option value="DOMAIN_EMAIL">✉️ Email corporativo del dominio oficial (OTP rápido)</option>
-                    <option value="DNS_META">🌐 Etiqueta Meta / archivo en la web oficial</option>
-                    <option value="SOCIAL_TOKEN">📱 Código temporal en bio de Instagram / red oficial</option>
-                    <option value="DOCUMENT_UPLOAD">📄 Documento acreditativo privado (CIF / registro)</option>
-                    <option value="MANUAL">📝 Revisión manual con enlace y explicación</option>
+                    <option value="DOMAIN_EMAIL">Email corporativo del dominio oficial (OTP rápido)</option>
+                    <option value="DNS_META">Etiqueta Meta / archivo en la web oficial</option>
+                    <option value="SOCIAL_TOKEN">Código temporal en bio de Instagram / red oficial</option>
+                    <option value="DOCUMENT_UPLOAD">Documento acreditativo privado (CIF / registro)</option>
+                    <option value="MANUAL">Revisión manual con enlace y explicación</option>
                 </select>
 
                 <div id="beer-claim-target-box">
@@ -247,7 +249,7 @@
         {% elif not is_brand_or_beer_owner %}
         <details style="margin-top: 1.1rem; padding-top: 0.85rem; border-top: 1px solid var(--border-color);">
             <summary style="color: var(--text-muted); cursor: pointer; font-size: 0.78rem;">
-                ⚖️ ¿Eres el titular legítimo y deseas disputar la propiedad?
+                {{ icon('scale', 'icon-sm') }} ¿Eres el titular legítimo y deseas disputar la propiedad?
             </summary>
             <form method="POST" action="{{ url_for('routes.claim_entity', entity_type='beer', entity_id=beer.id) }}" enctype="multipart/form-data" style="margin-top: 0.65rem;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -264,10 +266,10 @@
     {% endif %}
 </div>
 
-<!-- DÓNDE ENCONTRARLA CERCA (Core Purpose #2) -->
+<!-- DÓNDE ENCONTRARLA CERCA -->
 <div class="section-title">
-    <span>📍 Dónde tomarla cerca</span>
-    <a href="{{ url_for('routes.map_view') }}" style="font-size:0.82rem; color:var(--color-primary); text-decoration:none; font-weight:600;">Ver mapa →</a>
+    <span>{{ icon('map-pin') }} Dónde tomarla cerca</span>
+    <a href="{{ url_for('routes.map_view') }}">Ver mapa →</a>
 </div>
 
 <div class="card" id="nearby-venues-card">
@@ -278,8 +280,8 @@
 
 {% if beer.image_url %}
 <div id="image-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center;" onclick="closeImageModal()">
-    <span style="position: absolute; top: 20px; right: 30px; color: white; font-size: 30px; font-weight: bold; cursor: pointer;">&times;</span>
-    <img src="{{ beer.image_url }}" alt="{{ beer.name }}" style="max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.8);">
+    <button type="button" class="menu-btn" style="position: absolute; top: 20px; right: 24px;">{{ icon('x') }}</button>
+    <img src="{{ beer.image_url }}" alt="{{ beer.name }}" style="max-width: 90%; max-height: 90%; border-radius: 14px; box-shadow: 0 0 24px rgba(0,0,0,0.7);">
 </div>
 {% endif %}
 
@@ -346,7 +348,7 @@ function toggleBeerClaimFields(method) {
                         <p style="margin:0; color:var(--text-secondary); font-size:0.9rem;">
                             Ahora mismo ningún local cercano reporta tenerla pinchada.
                             {% if session.get('user_id') and user_preference != 'WISHLIST' and not notify_nearby %}
-                            <br><span style="font-size:0.82rem;">💡 Márcala con <strong>📡 Quiero probar</strong> arriba para verla destacada cuando salga.</span>
+                            <br><span style="font-size:0.82rem; display:inline-flex; align-items:center; gap:0.3rem; margin-top:0.35rem;">${lucideSvg('radar', 'icon-sm')} Márcala con <strong>Quiero probar</strong> arriba para verla destacada cuando salga.</span>
                             {% endif %}
                         </p>`;
                     return;
@@ -354,18 +356,19 @@ function toggleBeerClaimFields(method) {
 
                 listEl.innerHTML = data.map((v, idx) => {
                     const borderStyle = idx < data.length - 1 ? 'border-bottom:1px solid var(--border-color); padding-bottom:0.85rem; margin-bottom:0.85rem;' : '';
-                    const verifiedBadge = v.is_verified_venue ? ' <span title="Local verificado">👑</span>' : '';
+                    const verifiedBadge = v.is_verified_venue ? ` <span title="Local verificado" style="color:var(--color-green); display:inline-flex;">${lucideSvg('badge-check', 'icon-sm')}</span>` : '';
                     const distBadge = v.walking_str
-                        ? `<span class="walk-badge">🚶 ${escapeHtml(v.walking_str)} · ${escapeHtml(v.distance_str)}</span>`
-                        : (v.distance_str ? `<span class="pill" style="margin:0;">📍 ${escapeHtml(v.distance_str)}</span>` : '');
+                        ? `<span class="walk-badge">${lucideSvg('footprints', 'icon-sm')} ${escapeHtml(v.walking_str)} · ${escapeHtml(v.distance_str)}</span>`
+                        : (v.distance_str ? `<span class="pill" style="margin:0;">${lucideSvg('map-pin', 'icon-sm')} ${escapeHtml(v.distance_str)}</span>` : '');
                     const formatInfo = v.price
-                        ? `<span style="font-size:0.8rem; color:var(--color-primary); font-weight:700;">${Number(v.price).toFixed(2)}€</span>`
+                        ? `<span style="font-size:0.82rem; color:var(--color-primary); font-weight:700;">${Number(v.price).toFixed(2)}€</span>`
                         : '';
                     return `
                         <div style="display:flex; justify-content:space-between; align-items:center; gap:0.8rem; flex-wrap:wrap; ${borderStyle}">
                             <div style="min-width:0; flex:1;">
-                                <a href="/venue/${v.venue_id}" style="color:var(--text-main); text-decoration:none; font-weight:700; font-size:1rem;">
-                                    🏪 ${escapeHtml(v.name)}${verifiedBadge}
+                                <a href="/venue/${v.venue_id}" style="color:var(--text-main); text-decoration:none; font-weight:700; font-size:0.98rem; display:inline-flex; align-items:center; gap:0.35rem;">
+                                    <span style="color:var(--color-primary); display:inline-flex;">${lucideSvg('store', 'icon-sm')}</span>
+                                    <span>${escapeHtml(v.name)}</span>${verifiedBadge}
                                 </a>
                                 <p style="margin:0.2rem 0 0; font-size:0.82rem; color:var(--text-secondary);">
                                     ${escapeHtml(v.address)}${v.city ? ', ' + escapeHtml(v.city) : ''}

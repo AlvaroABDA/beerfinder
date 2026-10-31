@@ -1,24 +1,45 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="classic">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-    <meta name="theme-color" content="#0E1015">
+    <meta name="theme-color" id="metaThemeColor" content="#0E1015">
     <link rel="icon" href="{{ url_for('static', filename='icons/favicon-32.png') }}" sizes="32x32" type="image/png">
     <title>{{ title|default('BeerMap') }}</title>
+    <script>
+        (function() {
+            try {
+                var saved = localStorage.getItem('beermap_theme') || 'classic';
+                var valid = ['classic', 'glass', 'glass-square', 'minimal', 'honey', 'cream'];
+                if (valid.indexOf(saved) === -1) saved = 'classic';
+                document.documentElement.setAttribute('data-theme', saved);
+                var metaColors = { classic: '#0E1015', glass: '#090D16', 'glass-square': '#080C16', minimal: '#131518', honey: '#0F1117', cream: '#F5F1E8' };
+                var meta = document.getElementById('metaThemeColor');
+                if (meta && metaColors[saved]) meta.setAttribute('content', metaColors[saved]);
+            } catch (e) {}
+        })();
+    </script>
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root {
-            /* Modern Craft Onyx Palette */
+        /* =====================================================================
+           1. ESTILO ACTUAL TRADICIONAL (classic - Craft Onyx Base)
+           ===================================================================== */
+        :root,
+        html[data-theme="classic"] {
+            --bg-outer: #08090C;
             --bg-body: #0E1015;
+            --bg-decor: none;
             --bg-panel: #161920;
             --bg-panel-raised: #1F232D;
             --bg-panel-glass: rgba(22, 25, 32, 0.88);
+            --bg-nav-glass: rgba(18, 20, 26, 0.94);
+            --bg-sidebar: #14161C;
+            --bg-beer-card: #161920;
             --text-main: #FFFFFF;
             --text-secondary: #94A3B8;
             --text-muted: #64748B;
@@ -27,19 +48,40 @@
             --border-color-active: rgba(245, 158, 11, 0.5);
             --color-primary: #F59E0B;
             --color-primary-hover: #D97706;
+            --color-primary-soft: rgba(245, 158, 11, 0.13);
             --color-primary-glow: rgba(245, 158, 11, 0.25);
             --color-secondary: #FDE68A;
             --color-accent: #EA580C;
             --color-tertiary: rgba(255, 255, 255, 0.05);
             --color-green: #10B981;
             --color-red: #EF4444;
+            --status-ok-fg: #6EE7B7;
+            --status-ok-bg: rgba(16, 185, 129, 0.15);
+            --status-ok-border: rgba(16, 185, 129, 0.35);
+            --status-warn-fg: #FCD34D;
+            --status-warn-bg: rgba(245, 158, 11, 0.14);
+            --status-warn-border: rgba(245, 158, 11, 0.36);
+            --status-err-fg: #FCA5A5;
+            --status-err-bg: rgba(239, 68, 68, 0.14);
+            --status-err-border: rgba(239, 68, 68, 0.36);
+            --btn-primary-bg: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            --btn-primary-fg: #0E1015;
+            --btn-primary-shadow: 0 4px 14px rgba(245, 158, 11, 0.25);
+            --feature-surface-bg: linear-gradient(135deg, rgba(245, 158, 11, 0.14) 0%, rgba(22, 25, 32, 0.95) 100%);
+            --feature-surface-border: rgba(245, 158, 11, 0.32);
+            --radar-surface-bg: linear-gradient(135deg, rgba(245, 158, 11, 0.18) 0%, rgba(16, 185, 129, 0.08) 100%);
+            --radar-surface-border: rgba(245, 158, 11, 0.48);
+            --radar-item-bg: rgba(14, 16, 21, 0.82);
+            --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+            --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+            --card-backdrop: none;
+            --card-left-stripe-width: 3px;
             --radius-card: 16px;
             --radius-button: 12px;
             --radius-pill: 20px;
+            --icon-stroke: 2;
             --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             --bottom-nav-height: 64px;
-
-            /* Escala tipográfica */
             --text-xs: 0.76rem;
             --text-sm: 0.86rem;
             --text-base: 0.96rem;
@@ -47,13 +89,295 @@
             --text-xl: 1.5rem;
         }
 
+        /* =====================================================================
+           2. MINIMALISTA Y CRISTAL (glass - Ref. Nexa Frosted Atmospheric)
+           ===================================================================== */
+        html[data-theme="glass"] {
+            --bg-outer: #050810;
+            --bg-body: #090D16;
+            --bg-decor:
+                radial-gradient(circle at 16% 10%, rgba(145, 184, 238, 0.16) 0%, transparent 44%),
+                radial-gradient(circle at 86% 32%, rgba(243, 201, 121, 0.11) 0%, transparent 46%),
+                radial-gradient(circle at 48% 90%, rgba(96, 142, 204, 0.13) 0%, transparent 50%);
+            --bg-panel: rgba(255, 255, 255, 0.055);
+            --bg-panel-raised: rgba(255, 255, 255, 0.09);
+            --bg-panel-glass: rgba(13, 18, 29, 0.56);
+            --bg-nav-glass: rgba(11, 16, 26, 0.68);
+            --bg-sidebar: rgba(14, 19, 31, 0.92);
+            --bg-beer-card: rgba(255, 255, 255, 0.058);
+            --text-main: #F8FAFC;
+            --text-secondary: #CBD5E1;
+            --text-muted: #94A3B8;
+            --text-dark: #090D16;
+            --border-color: rgba(255, 255, 255, 0.14);
+            --border-color-active: rgba(243, 201, 121, 0.55);
+            --color-primary: #F3C979;
+            --color-primary-hover: #E5B760;
+            --color-primary-soft: rgba(243, 201, 121, 0.14);
+            --color-primary-glow: rgba(243, 201, 121, 0.22);
+            --color-secondary: #FDE68A;
+            --color-accent: #E8985E;
+            --color-tertiary: rgba(255, 255, 255, 0.06);
+            --btn-primary-bg: linear-gradient(180deg, rgba(245, 206, 132, 0.96) 0%, rgba(221, 173, 88, 0.92) 100%);
+            --btn-primary-fg: #0A0E17;
+            --btn-primary-shadow: 0 6px 20px rgba(243, 201, 121, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+            --feature-surface-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.03) 100%);
+            --feature-surface-border: rgba(255, 255, 255, 0.20);
+            --radar-surface-bg: linear-gradient(145deg, rgba(243, 201, 121, 0.14) 0%, rgba(255, 255, 255, 0.04) 100%);
+            --radar-surface-border: rgba(243, 201, 121, 0.36);
+            --radar-item-bg: rgba(15, 21, 34, 0.55);
+            --card-shadow: 0 12px 30px rgba(2, 6, 16, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.20);
+            --card-hover-shadow: 0 16px 36px rgba(2, 6, 16, 0.54), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+            --card-backdrop: blur(22px) saturate(140%);
+            --card-left-stripe-width: 1px;
+            --radius-card: 22px;
+            --radius-button: 15px;
+            --radius-pill: 999px;
+            --icon-stroke: 1.5;
+        }
+
+        /* =====================================================================
+           2B. CRISTAL CUADRADO / PRISMA RECTO (glass-square)
+           Atmósfera translúcida de cristal técnico con geometría ortogonal / recta
+           ===================================================================== */
+        html[data-theme="glass-square"] {
+            --bg-outer: #05070E;
+            --bg-body: #080C16;
+            --bg-decor:
+                radial-gradient(circle at 14% 12%, rgba(130, 180, 245, 0.15) 0%, transparent 42%),
+                radial-gradient(circle at 88% 28%, rgba(243, 201, 121, 0.10) 0%, transparent 44%),
+                radial-gradient(circle at 50% 92%, rgba(85, 135, 215, 0.12) 0%, transparent 48%);
+            --bg-panel: rgba(255, 255, 255, 0.052);
+            --bg-panel-raised: rgba(255, 255, 255, 0.088);
+            --bg-panel-glass: rgba(10, 15, 26, 0.62);
+            --bg-nav-glass: rgba(8, 12, 22, 0.78);
+            --bg-sidebar: rgba(10, 15, 26, 0.95);
+            --bg-beer-card: rgba(255, 255, 255, 0.052);
+            --text-main: #F8FAFC;
+            --text-secondary: #CBD5E1;
+            --text-muted: #94A3B8;
+            --text-dark: #070A12;
+            --border-color: rgba(255, 255, 255, 0.16);
+            --border-color-active: rgba(243, 201, 121, 0.65);
+            --color-primary: #F3C979;
+            --color-primary-hover: #E5B760;
+            --color-primary-soft: rgba(243, 201, 121, 0.14);
+            --color-primary-glow: rgba(243, 201, 121, 0.25);
+            --color-secondary: #FDE68A;
+            --color-accent: #E8985E;
+            --color-tertiary: rgba(255, 255, 255, 0.06);
+            --btn-primary-bg: linear-gradient(180deg, rgba(245, 206, 132, 0.98) 0%, rgba(221, 173, 88, 0.92) 100%);
+            --btn-primary-fg: #070A12;
+            --btn-primary-shadow: 0 4px 16px rgba(243, 201, 121, 0.20), inset 0 1px 0 rgba(255, 255, 255, 0.50);
+            --feature-surface-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.025) 100%);
+            --feature-surface-border: rgba(255, 255, 255, 0.22);
+            --radar-surface-bg: linear-gradient(145deg, rgba(243, 201, 121, 0.14) 0%, rgba(255, 255, 255, 0.03) 100%);
+            --radar-surface-border: rgba(243, 201, 121, 0.40);
+            --radar-item-bg: rgba(12, 18, 30, 0.60);
+            --card-shadow: 0 8px 24px rgba(1, 4, 12, 0.46), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+            --card-hover-shadow: 0 12px 32px rgba(1, 4, 12, 0.58), inset 0 1px 0 rgba(255, 255, 255, 0.32);
+            --card-backdrop: blur(20px) saturate(140%);
+            --card-left-stripe-width: 2px;
+            --radius-card: 4px;
+            --radius-button: 4px;
+            --radius-pill: 3px;
+            --icon-stroke: 1.75;
+        }
+
+        /* =====================================================================
+           3. MINIMALISTA TRADICIONAL (minimal - Ref. Nebo Matte Graphite)
+           ===================================================================== */
+        html[data-theme="minimal"] {
+            --bg-outer: #0C0D0F;
+            --bg-body: #131518;
+            --bg-decor: none;
+            --bg-panel: #1C1F24;
+            --bg-panel-raised: #252930;
+            --bg-panel-glass: rgba(19, 21, 24, 0.96);
+            --bg-nav-glass: rgba(19, 21, 24, 0.98);
+            --bg-sidebar: #181A1F;
+            --bg-beer-card: #1C1F24;
+            --text-main: #F4F5F7;
+            --text-secondary: #9CA3AF;
+            --text-muted: #6B7280;
+            --text-dark: #131518;
+            --border-color: rgba(255, 255, 255, 0.06);
+            --border-color-active: rgba(229, 133, 75, 0.45);
+            --color-primary: #E5854B;
+            --color-primary-hover: #D4733B;
+            --color-primary-soft: rgba(229, 133, 75, 0.12);
+            --color-primary-glow: rgba(229, 133, 75, 0.16);
+            --color-secondary: #F3B38A;
+            --color-accent: #D96B38;
+            --color-tertiary: rgba(255, 255, 255, 0.04);
+            --btn-primary-bg: #E5854B;
+            --btn-primary-fg: #131518;
+            --btn-primary-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+            --feature-surface-bg: #20242B;
+            --feature-surface-border: rgba(255, 255, 255, 0.08);
+            --radar-surface-bg: #1E2229;
+            --radar-surface-border: rgba(229, 133, 75, 0.38);
+            --radar-item-bg: #15171B;
+            --card-shadow: 0 6px 18px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            --card-hover-shadow: 0 10px 24px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            --card-backdrop: none;
+            --card-left-stripe-width: 1px;
+            --radius-card: 18px;
+            --radius-button: 12px;
+            --radius-pill: 999px;
+            --icon-stroke: 1.75;
+        }
+
+        /* =====================================================================
+           4. MIEL & CREMA SUAVE (honey - Ref. Imagen 5 Neewick Soft Contrast)
+           ===================================================================== */
+        html[data-theme="honey"] {
+            --bg-outer: #090A0E;
+            --bg-body: #0F1117;
+            --bg-decor: radial-gradient(circle at 85% 0%, rgba(232, 188, 106, 0.08) 0%, transparent 42%);
+            --bg-panel: #171A23;
+            --bg-panel-raised: #212532;
+            --bg-panel-glass: rgba(15, 17, 23, 0.90);
+            --bg-nav-glass: rgba(15, 17, 23, 0.94);
+            --bg-sidebar: #141720;
+            --bg-beer-card: #F3EFE6;
+            --text-main: #F6F3EC;
+            --text-secondary: #A9AFBF;
+            --text-muted: #6E7587;
+            --text-dark: #14161E;
+            --border-color: rgba(246, 243, 236, 0.08);
+            --border-color-active: rgba(232, 188, 106, 0.50);
+            --color-primary: #E8BC6A;
+            --color-primary-hover: #DBAE58;
+            --color-primary-soft: rgba(232, 188, 106, 0.14);
+            --color-primary-glow: rgba(232, 188, 106, 0.20);
+            --color-secondary: #F4D89E;
+            --color-accent: #D99B43;
+            --color-tertiary: rgba(246, 243, 236, 0.05);
+            --btn-primary-bg: linear-gradient(165deg, #ECC373 0%, #DFB059 100%);
+            --btn-primary-fg: #14161E;
+            --btn-primary-shadow: 0 4px 12px rgba(223, 176, 89, 0.18);
+            --feature-surface-bg: linear-gradient(165deg, #ECC373 0%, #DFB059 100%);
+            --feature-surface-border: rgba(255, 255, 255, 0.22);
+            --radar-surface-bg: linear-gradient(165deg, rgba(236, 195, 115, 0.16) 0%, rgba(23, 26, 35, 0.96) 100%);
+            --radar-surface-border: rgba(232, 188, 106, 0.38);
+            --radar-item-bg: rgba(15, 17, 23, 0.85);
+            --card-shadow: 0 8px 22px rgba(5, 7, 11, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            --card-hover-shadow: 0 12px 28px rgba(5, 7, 11, 0.40);
+            --card-backdrop: none;
+            --card-left-stripe-width: 1px;
+            --radius-card: 24px;
+            --radius-button: 999px;
+            --radius-pill: 999px;
+            --icon-stroke: 1.75;
+        }
+
+        /* En Estilo 4 (honey), las tarjetas de cerveza usan marfil cálido claro (#F3EFE6) como en la imagen 5 */
+        html[data-theme="honey"] .beer-card {
+            --text-main: #151821;
+            --text-secondary: #525866;
+            --text-muted: #767D8E;
+            --color-primary: #B4781E;
+            --color-secondary: #8F5E14;
+            --bg-panel-raised: rgba(21, 24, 33, 0.06);
+            --border-color: rgba(21, 24, 33, 0.10);
+            --color-tertiary: rgba(21, 24, 33, 0.05);
+            --status-ok-fg: #047857;
+            --status-warn-fg: #92400E;
+            --status-err-fg: #B91C1C;
+            box-shadow: 0 8px 20px rgba(5, 7, 11, 0.26);
+        }
+
+        /* En Estilo 4 (honey), el bloque destacado BeerMatch usa miel suave con tinta oscura */
+        html[data-theme="honey"] .surface-feature {
+            --text-main: #14161E;
+            --text-secondary: rgba(20, 22, 30, 0.76);
+            --color-primary: #14161E;
+            --border-color: rgba(20, 22, 30, 0.16);
+        }
+        html[data-theme="honey"] .surface-feature .btn:not(.btn-outline) {
+            background: #14161E;
+            color: #F6F3EC;
+            box-shadow: 0 4px 12px rgba(20, 22, 30, 0.22);
+        }
+        html[data-theme="honey"] .surface-feature .btn-outline {
+            background: rgba(20, 22, 30, 0.08);
+            color: #14161E;
+            border-color: rgba(20, 22, 30, 0.28);
+        }
+
+        /* =====================================================================
+           5. CREMA CLARA SUAVE (cream - Variante Clara Completa Marfil & Miel)
+           ===================================================================== */
+        html[data-theme="cream"] {
+            --bg-outer: #E7E1D5;
+            --bg-body: #F5F1E8;
+            --bg-decor: radial-gradient(circle at 80% 0%, rgba(232, 188, 106, 0.22) 0%, transparent 46%);
+            --bg-panel: #FFFFFF;
+            --bg-panel-raised: #EFEAE0;
+            --bg-panel-glass: rgba(245, 241, 232, 0.88);
+            --bg-nav-glass: rgba(255, 255, 255, 0.94);
+            --bg-sidebar: #FAF7F1;
+            --bg-beer-card: #FFFFFF;
+            --text-main: #161821;
+            --text-secondary: #555C6E;
+            --text-muted: #7C8496;
+            --text-dark: #161821;
+            --border-color: rgba(22, 24, 33, 0.09);
+            --border-color-active: rgba(196, 134, 38, 0.45);
+            --color-primary: #B8791A;
+            --color-primary-hover: #9A6312;
+            --color-primary-soft: rgba(226, 174, 82, 0.20);
+            --color-primary-glow: rgba(226, 174, 82, 0.25);
+            --color-secondary: #8A580F;
+            --color-accent: #C25E28;
+            --color-tertiary: rgba(22, 24, 33, 0.045);
+            --color-green: #059669;
+            --color-red: #DC2626;
+            --status-ok-fg: #047857;
+            --status-ok-bg: rgba(16, 185, 129, 0.13);
+            --status-ok-border: rgba(16, 185, 129, 0.32);
+            --status-warn-fg: #92400E;
+            --status-warn-bg: rgba(245, 158, 11, 0.16);
+            --status-warn-border: rgba(217, 119, 6, 0.34);
+            --status-err-fg: #B91C1C;
+            --status-err-bg: rgba(239, 68, 68, 0.12);
+            --status-err-border: rgba(220, 38, 38, 0.30);
+            --btn-primary-bg: linear-gradient(165deg, #181B24 0%, #262B38 100%);
+            --btn-primary-fg: #FAF7F1;
+            --btn-primary-shadow: 0 4px 12px rgba(22, 24, 33, 0.16);
+            --feature-surface-bg: linear-gradient(165deg, #F0CA7D 0%, #E4B762 100%);
+            --feature-surface-border: rgba(184, 121, 26, 0.24);
+            --radar-surface-bg: linear-gradient(165deg, rgba(240, 202, 125, 0.36) 0%, rgba(255, 255, 255, 0.95) 100%);
+            --radar-surface-border: rgba(184, 121, 26, 0.38);
+            --radar-item-bg: #FFFFFF;
+            --card-shadow: 0 6px 18px rgba(22, 24, 33, 0.06);
+            --card-hover-shadow: 0 10px 24px rgba(22, 24, 33, 0.11);
+            --card-backdrop: none;
+            --card-left-stripe-width: 1px;
+            --radius-card: 22px;
+            --radius-button: 999px;
+            --radius-pill: 999px;
+            --icon-stroke: 1.75;
+        }
+        html[data-theme="cream"] .surface-feature {
+            --text-main: #161821;
+            --text-secondary: rgba(22, 24, 33, 0.76);
+            --color-primary: #161821;
+            --border-color: rgba(22, 24, 33, 0.15);
+        }
+
+        /* =====================================================================
+           BASE LAYOUT & REUSABLE SEMANTIC COMPONENTS
+           ===================================================================== */
         body {
             font-family: var(--font-family);
-            background: #08090C;
+            background: var(--bg-outer);
             margin: 0;
             color: var(--text-main);
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            transition: background-color 0.2s ease, color 0.2s ease;
         }
         a { color: inherit; text-decoration: none; }
         a.text-primary { color: var(--color-primary); }
@@ -69,27 +393,28 @@
         .app-container {
             max-width: 480px;
             margin: 0 auto;
-            background: var(--bg-body);
+            background-color: var(--bg-body);
+            background-image: var(--bg-decor);
             min-height: 100vh;
             position: relative;
-            box-shadow: 0 0 40px rgba(0,0,0,0.6);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.35);
             overflow-x: hidden;
+            transition: background-color 0.25s ease;
         }
 
-        /* Desktop & Admin Panel Wide Layout */
         @media (min-width: 769px) {
             .app-container.admin-container {
                 max-width: 1400px;
                 width: 95%;
                 margin: 20px auto 40px auto;
-                border-radius: 16px;
+                border-radius: var(--radius-card);
                 border: 1px solid var(--border-color);
-                box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7);
-                background: #0E1015;
+                box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+                background-color: var(--bg-body);
             }
             .app-container.admin-container header {
                 padding: 1.2rem 2.2rem;
-                border-radius: 16px 16px 0 0;
+                border-radius: var(--radius-card) var(--radius-card) 0 0;
             }
             .app-container.admin-container .content {
                 padding: 2rem 2.2rem 3rem 2.2rem;
@@ -101,10 +426,10 @@
 
         header {
             background: var(--bg-panel-glass);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(18px) saturate(135%);
+            -webkit-backdrop-filter: blur(18px) saturate(135%);
             color: var(--text-main);
-            padding: 0.9rem 1.2rem;
+            padding: 0.85rem 1.15rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -118,179 +443,461 @@
             align-items: center;
             gap: 0.5rem;
             font-weight: 800;
-            font-size: 1.22rem;
-            letter-spacing: -0.3px;
+            font-size: 1.18rem;
+            letter-spacing: -0.35px;
             color: var(--text-main);
             text-decoration: none;
+        }
+        .brand-logo-mark {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-button);
+            background: var(--color-primary-soft);
+            color: var(--color-primary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
         .header-brand-badge {
             font-size: 0.65rem;
             font-weight: 700;
-            background: rgba(245, 158, 11, 0.12);
+            background: var(--color-primary-soft);
             color: var(--color-primary);
-            border: 1px solid rgba(245, 158, 11, 0.25);
+            border: 1px solid var(--border-color-active);
             padding: 2px 6px;
-            border-radius: 6px;
+            border-radius: var(--radius-pill);
             letter-spacing: 0.5px;
             text-transform: uppercase;
         }
-        .header-actions { display: flex; align-items: center; gap: 0.6rem; }
+        .header-actions { display: flex; align-items: center; gap: 0.5rem; }
+
+        .theme-select-wrapper {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            height: 36px;
+            padding: 0 0.5rem;
+            border-radius: var(--radius-button);
+            background: var(--bg-panel-raised);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            transition: all 0.15s ease;
+        }
+        .theme-select-wrapper:hover,
+        .theme-select-wrapper:focus-within {
+            color: var(--text-main);
+            border-color: var(--border-color-active);
+        }
+        .theme-select-wrapper .icon {
+            color: var(--color-primary);
+            width: 16px;
+            height: 16px;
+            pointer-events: none;
+            margin-right: 0.25rem;
+            flex-shrink: 0;
+        }
+        .theme-select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: inherit;
+            font-family: inherit;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 0 1.1rem 0 0;
+            margin: 0;
+            width: auto;
+            height: 100%;
+        }
+        .theme-select-wrapper::after {
+            content: '';
+            position: absolute;
+            right: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 3.5px solid transparent;
+            border-right: 3.5px solid transparent;
+            border-top: 4px solid var(--text-secondary);
+            pointer-events: none;
+        }
+        .theme-select option {
+            background: #181B23;
+            color: #F8FAFC;
+            font-weight: 600;
+        }
+        html[data-theme="cream"] .theme-select option {
+            background: #FFFFFF;
+            color: #161821;
+        }
+
         .menu-btn {
             background: var(--bg-panel-raised);
             color: var(--text-main);
             border: 1px solid var(--border-color);
             cursor: pointer;
-            width: 38px;
-            height: 38px;
-            border-radius: 10px;
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-button);
             font-weight: bold;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: background 0.15s, border-color 0.15s, transform 0.1s;
         }
-        .menu-btn:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.15); }
+        .menu-btn:hover { border-color: var(--border-color-active); }
         .menu-btn:active { transform: scale(0.94); }
-        .icon { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; }
+
+        /* Lucide SVG System */
+        .icon {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: var(--icon-stroke, 1.75);
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            vertical-align: middle;
+            flex-shrink: 0;
+        }
         .icon-sm { width: 16px; height: 16px; }
+        .icon-lg { width: 26px; height: 26px; }
+        .icon-xl { width: 36px; height: 36px; }
         .icon-filled { fill: currentColor; }
 
         .session-badge {
             display: flex;
             align-items: center;
             gap: 0.4rem;
-            font-size: 0.82rem;
+            font-size: 0.8rem;
             font-weight: 600;
             color: var(--text-secondary);
             background: var(--bg-panel-raised);
             padding: 0.35rem 0.65rem;
-            border-radius: 8px;
+            border-radius: var(--radius-button);
             border: 1px solid var(--border-color);
             text-decoration: none;
             transition: all 0.15s;
         }
-        .session-badge:hover { color: var(--text-main); border-color: rgba(255, 255, 255, 0.15); }
+        .session-badge:hover { color: var(--text-main); border-color: var(--border-color-active); }
         .session-badge .icon { color: var(--color-primary); }
 
-        .sidebar-session { display: flex; align-items: center; gap: 0.7rem; padding: 1rem 1.4rem; margin-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); color: var(--text-main); background: rgba(0,0,0,0.2); }
-        .sidebar-session .icon { color: var(--color-primary); width: 28px; height: 28px; }
+        .sidebar-session {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            padding: 1rem 1.4rem;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-main);
+            background: var(--color-tertiary);
+        }
+        .sidebar-session .icon { color: var(--color-primary); width: 26px; height: 26px; }
         .sidebar-session-name { font-weight: 700; font-size: 0.95rem; }
         .sidebar-session-role { font-size: 0.75rem; color: var(--text-secondary); }
 
-        .sidebar { position: fixed; top: 0; left: -270px; width: 270px; height: 100vh; background: #14161C; z-index: 200; box-shadow: 4px 0 24px rgba(0,0,0,0.6); transition: left 0.28s cubic-bezier(0.16, 1, 0.3, 1); padding-top: 1rem; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; overflow-y: auto; }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 272px;
+            height: 100vh;
+            background: var(--bg-sidebar);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 200;
+            box-shadow: 4px 0 28px rgba(0,0,0,0.45);
+            transition: left 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+            padding-top: 1rem;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
         .sidebar.open { left: 0; }
-        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); z-index: 150; display: none; }
+        .sidebar-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.62);
+            backdrop-filter: blur(4px);
+            z-index: 150;
+            display: none;
+        }
         .sidebar-overlay.open { display: block; }
-        .sidebar-close { text-align: right; padding: 0 1rem 0.8rem; }
-        .sidebar a { display: flex; align-items: center; gap: 0.8rem; padding: 0.85rem 1.4rem; color: var(--text-main); text-decoration: none; font-weight: 500; font-size: 0.92rem; border-bottom: 1px solid rgba(255, 255, 255, 0.04); transition: background 0.15s, color 0.15s; }
-        .sidebar a:hover { background: rgba(245, 158, 11, 0.08); color: var(--color-primary); }
+        .sidebar-close { text-align: right; padding: 0 1rem 0.6rem; display: flex; justify-content: flex-end; }
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.82rem 1.4rem;
+            color: var(--text-main);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.92rem;
+            border-bottom: 1px solid var(--border-color);
+            transition: background 0.15s, color 0.15s;
+        }
+        .sidebar a:hover { background: var(--color-primary-soft); color: var(--color-primary); }
 
         .content {
             padding: 1.2rem;
-            padding-bottom: calc(var(--bottom-nav-height) + 20px + env(safe-area-inset-bottom, 0px));
+            padding-bottom: calc(var(--bottom-nav-height) + 24px + env(safe-area-inset-bottom, 0px));
         }
-        .alert { padding: 0.9rem 1.1rem; margin-bottom: 1rem; border-radius: var(--radius-button); font-size: 0.9rem; font-weight: 500; }
-        .alert-success { background: rgba(16, 185, 129, 0.12); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.3); }
-        .alert-danger, .alert-error { background: rgba(239, 68, 68, 0.12); color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.3); }
-        .alert-warning, .alert-info { background: rgba(245, 158, 11, 0.12); color: #FCD34D; border: 1px solid rgba(245, 158, 11, 0.3); }
 
-        .badge { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.76rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 999px; }
-        .badge-green { background: rgba(16, 185, 129, 0.16); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.35); }
+        .alert { padding: 0.85rem 1.05rem; margin-bottom: 1rem; border-radius: var(--radius-card); font-size: 0.88rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; }
+        .alert-success { background: var(--status-ok-bg); color: var(--status-ok-fg); border: 1px solid var(--status-ok-border); }
+        .alert-danger, .alert-error { background: var(--status-err-bg); color: var(--status-err-fg); border: 1px solid var(--status-err-border); }
+        .alert-warning, .alert-info { background: var(--status-warn-bg); color: var(--status-warn-fg); border: 1px solid var(--status-warn-border); }
+
+        .badge { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: var(--radius-pill); }
+        .badge-green { background: var(--status-ok-bg); color: var(--status-ok-fg); border: 1px solid var(--status-ok-border); }
+        .badge-neutral { background: var(--bg-panel-raised); color: var(--text-secondary); border: 1px solid var(--border-color); }
 
         .btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
+            gap: 0.45rem;
             width: 100%;
-            padding: 0.85rem 1.2rem;
-            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-            color: #0E1015;
+            padding: 0.82rem 1.15rem;
+            background: var(--btn-primary-bg);
+            color: var(--btn-primary-fg);
             text-align: center;
             text-decoration: none;
             border: none;
             border-radius: var(--radius-button);
             cursor: pointer;
-            font-size: 0.95rem;
+            font-size: 0.92rem;
             font-weight: 700;
+            font-family: inherit;
             box-sizing: border-box;
-            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25);
-            transition: transform 0.1s ease, box-shadow 0.15s, opacity 0.15s;
+            box-shadow: var(--btn-primary-shadow);
+            transition: transform 0.12s ease, box-shadow 0.15s, opacity 0.15s;
         }
-        .btn:hover { opacity: 0.96; box-shadow: 0 6px 18px rgba(245, 158, 11, 0.35); }
+        .btn:hover { opacity: 0.95; }
         .btn:active { transform: scale(0.98); }
         .btn-outline {
-            background: rgba(245, 158, 11, 0.08);
+            background: var(--color-primary-soft);
             color: var(--color-primary);
-            border: 1.5px solid var(--color-primary);
+            border: 1.5px solid var(--border-color-active);
             box-shadow: none;
         }
-        .btn-outline:hover { background: rgba(245, 158, 11, 0.16); opacity: 1; }
-        .btn-accent { background: var(--color-accent); color: var(--text-main); }
+        .btn-outline:hover { opacity: 1; border-color: var(--color-primary); }
+        .btn-accent { background: var(--color-accent); color: #FFFFFF; }
         .btn-accent-outline { background: transparent; color: var(--color-accent); border: 1.5px solid var(--color-accent); }
-        .btn-accent-outline:hover { background: rgba(234, 88, 12, 0.12); opacity: 1; }
 
         input, select, textarea {
-            width: 100%; padding: 0.85rem 1rem; margin: 0.4rem 0 0.9rem 0; border: 1px solid var(--border-color);
-            border-radius: var(--radius-button); box-sizing: border-box; font-size: 0.95rem; font-family: inherit;
-            background: var(--bg-panel); color: var(--text-main); transition: box-shadow 0.2s, border-color 0.2s;
+            width: 100%;
+            padding: 0.82rem 1rem;
+            margin: 0.38rem 0 0.9rem 0;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-button);
+            box-sizing: border-box;
+            font-size: 0.94rem;
+            font-family: inherit;
+            background: var(--bg-panel);
+            color: var(--text-main);
+            backdrop-filter: var(--card-backdrop);
+            -webkit-backdrop-filter: var(--card-backdrop);
+            transition: box-shadow 0.2s, border-color 0.2s;
         }
         input::placeholder, textarea::placeholder { color: var(--text-muted); opacity: 1; }
-        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18); }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px var(--color-primary-soft);
+        }
+        select option { background: #181B23; color: #F8FAFC; }
+        html[data-theme="cream"] select option { background: #FFFFFF; color: #161821; }
         input[type="color"] { padding: 0.3rem; cursor: pointer; }
         label { font-weight: 600; font-size: var(--text-sm); color: var(--text-secondary); }
 
-        .section-title { font-size: var(--text-lg); font-weight: 700; margin: 1.5rem 0 0.9rem; display: flex; justify-content: space-between; align-items: baseline; color: var(--text-main); }
-        .section-title a { font-size: var(--text-sm); color: var(--color-primary); text-decoration: none; font-weight: 600; }
+        .section-title {
+            font-size: var(--text-base);
+            font-weight: 800;
+            letter-spacing: -0.2px;
+            margin: 1.5rem 0 0.85rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-main);
+        }
+        .section-title > span { display: inline-flex; align-items: center; gap: 0.45rem; }
+        .section-title > span .icon { color: var(--color-primary); }
+        .section-title a { font-size: var(--text-sm); color: var(--color-primary); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 0.2rem; }
 
-        .beer-card, .venue-card, .card {
+        .card, .venue-card {
             background: var(--bg-panel);
+            backdrop-filter: var(--card-backdrop);
+            -webkit-backdrop-filter: var(--card-backdrop);
             border-radius: var(--radius-card);
             padding: 1.1rem;
             margin-bottom: 0.9rem;
             border: 1px solid var(--border-color);
-            border-left: 3px solid var(--border-color);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+            border-left-width: var(--card-left-stripe-width);
+            box-shadow: var(--card-shadow);
             text-decoration: none;
             color: inherit;
             display: block;
             transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.18s, box-shadow 0.18s;
         }
-        .beer-card:hover, .venue-card:hover, .card:hover { transform: translateY(-2px); border-color: rgba(245, 158, 11, 0.35); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35); }
+        .beer-card {
+            background: var(--bg-beer-card);
+            backdrop-filter: var(--card-backdrop);
+            -webkit-backdrop-filter: var(--card-backdrop);
+            border-radius: var(--radius-card);
+            padding: 1.1rem;
+            margin-bottom: 0.9rem;
+            border: 1px solid var(--border-color);
+            border-left-width: var(--card-left-stripe-width);
+            box-shadow: var(--card-shadow);
+            text-decoration: none;
+            color: var(--text-main);
+            display: block;
+            transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.18s, box-shadow 0.18s;
+        }
+        .beer-card:hover, .venue-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--border-color-active);
+            box-shadow: var(--card-hover-shadow);
+        }
         .beer-card:active, .venue-card:active { transform: scale(0.99); }
-        .card-header { display: flex; gap: 0.9rem; margin-bottom: 0.5rem; justify-content: space-between; align-items: center; }
-        .card-img { width: 58px; height: 58px; background: var(--bg-panel-raised); border: 1px solid var(--border-color); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
+
+        /* Semantic Theme-Aware Feature & Radar Blocks */
+        .surface-feature {
+            background: var(--feature-surface-bg);
+            border: 1px solid var(--feature-surface-border);
+            border-radius: var(--radius-card);
+            box-shadow: var(--card-shadow);
+            backdrop-filter: var(--card-backdrop);
+            -webkit-backdrop-filter: var(--card-backdrop);
+            padding: 1.1rem;
+            margin-bottom: 1.35rem;
+            color: var(--text-main);
+        }
+        .surface-radar {
+            background: var(--radar-surface-bg);
+            border: 1.5px solid var(--radar-surface-border);
+            border-radius: var(--radius-card);
+            box-shadow: var(--card-shadow);
+            backdrop-filter: var(--card-backdrop);
+            -webkit-backdrop-filter: var(--radar-backdrop, var(--card-backdrop));
+            padding: 1rem;
+        }
+        .radar-hit-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.7rem;
+            background: var(--radar-item-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-button);
+            padding: 0.68rem 0.85rem;
+            text-decoration: none;
+            color: inherit;
+            transition: border-color 0.15s, transform 0.15s;
+        }
+        .radar-hit-row:hover { border-color: var(--border-color-active); transform: translateY(-1px); }
+
+        .notice-amber {
+            padding: 0.65rem 0.9rem;
+            border-radius: var(--radius-button);
+            background: var(--status-warn-bg);
+            border: 1px solid var(--status-warn-border);
+            font-size: 0.83rem;
+            color: var(--status-warn-fg);
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+        .notice-green {
+            padding: 0.75rem 0.95rem;
+            border-radius: var(--radius-button);
+            background: var(--status-ok-bg);
+            border: 1px solid var(--status-ok-border);
+            font-size: 0.84rem;
+            color: var(--status-ok-fg);
+        }
+
+        .card-header { display: flex; gap: 0.9rem; margin-bottom: 0.2rem; justify-content: space-between; align-items: center; }
+        .card-img {
+            width: 58px;
+            height: 58px;
+            background: var(--bg-panel-raised);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-button);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-primary);
+            flex-shrink: 0;
+        }
         .card-info { flex: 1; min-width: 0; }
         .card-title { margin: 0 0 0.2rem 0; font-size: var(--text-base); font-weight: 700; color: var(--text-main); }
-        .card-subtitle { margin: 0 0 0.4rem 0; font-size: var(--text-sm); color: var(--text-secondary); }
+        .card-subtitle { margin: 0 0 0.35rem 0; font-size: var(--text-sm); color: var(--text-secondary); }
 
-        .pill { display: inline-block; background-color: var(--color-tertiary); color: var(--text-secondary); border: 1px solid var(--border-color); padding: 5px 12px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 600; margin-right: 4px; margin-bottom: 6px; }
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background-color: var(--color-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            padding: 4px 11px;
+            border-radius: var(--radius-pill);
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 4px;
+            margin-bottom: 6px;
+        }
+        .pill-amber { background: var(--status-warn-bg); color: var(--status-warn-fg); border-color: var(--status-warn-border); }
+        .pill-green { background: var(--status-ok-bg); color: var(--status-ok-fg); border-color: var(--status-ok-border); }
+        .pill-red { background: var(--status-err-bg); color: var(--status-err-fg); border-color: var(--status-err-border); }
+
         .status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--text-main); }
         .status-dot { width: 8px; height: 8px; border-radius: 50%; }
-        .status-green .status-dot { background-color: var(--color-green); box-shadow: 0 0 8px rgba(16, 185, 129, 0.4); }
-        .status-yellow .status-dot { background-color: var(--color-primary); box-shadow: 0 0 8px rgba(245, 158, 11, 0.4); }
-        .status-red .status-dot { background-color: var(--color-red); box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }
+        .status-green .status-dot { background-color: var(--color-green); box-shadow: 0 0 8px rgba(16, 185, 129, 0.35); }
+        .status-yellow .status-dot { background-color: var(--color-primary); box-shadow: 0 0 8px var(--color-primary-glow); }
+        .status-red .status-dot { background-color: var(--color-red); box-shadow: 0 0 8px rgba(239, 68, 68, 0.35); }
         .status-text { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
 
         .search-bar {
             display: flex;
             background: var(--bg-panel);
+            backdrop-filter: var(--card-backdrop);
+            -webkit-backdrop-filter: var(--card-backdrop);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-button);
-            padding: 0.4rem 0.9rem;
+            padding: 0.38rem 0.9rem;
             align-items: center;
-            margin-bottom: 1.2rem;
+            margin-bottom: 1.1rem;
+            box-shadow: var(--card-shadow);
             transition: border-color 0.2s, box-shadow 0.2s;
         }
-        .search-bar input { margin: 0; border: none; padding: 0.5rem; flex: 1; outline: none; background: transparent; color: var(--text-main); margin-bottom: 0; }
-        .search-bar:focus-within { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18); }
+        .search-bar input {
+            margin: 0;
+            border: none;
+            padding: 0.48rem 0.5rem;
+            flex: 1;
+            outline: none;
+            background: transparent;
+            backdrop-filter: none;
+            box-shadow: none;
+            color: var(--text-main);
+        }
+        .search-bar:focus-within { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-soft); }
 
         .quick-category-scroll {
             display: flex;
             gap: 0.5rem;
             overflow-x: auto;
-            padding: 0.2rem 0 0.6rem 0;
-            margin-bottom: 1.2rem;
+            padding: 0.15rem 0 0.55rem 0;
+            margin-bottom: 1.1rem;
             scrollbar-width: none;
             -webkit-overflow-scrolling: touch;
         }
@@ -302,6 +909,8 @@
             padding: 0.45rem 0.9rem;
             border-radius: var(--radius-pill);
             background: var(--bg-panel);
+            backdrop-filter: var(--card-backdrop);
+            -webkit-backdrop-filter: var(--card-backdrop);
             border: 1px solid var(--border-color);
             color: var(--text-secondary);
             font-size: 0.82rem;
@@ -309,41 +918,45 @@
             white-space: nowrap;
             text-decoration: none;
             transition: all 0.15s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
         }
         .quick-chip:hover, .quick-chip:active {
             background: var(--bg-panel-raised);
             color: var(--text-main);
-            border-color: rgba(255, 255, 255, 0.2);
+            border-color: var(--border-color-active);
             transform: translateY(-1px);
         }
         .quick-chip.active {
-            background: rgba(245, 158, 11, 0.14);
+            background: var(--color-primary-soft);
             color: var(--color-primary);
-            border-color: rgba(245, 158, 11, 0.45);
+            border-color: var(--border-color-active);
         }
 
         .walk-badge {
             display: inline-flex;
             align-items: center;
             gap: 0.3rem;
-            background: rgba(245, 158, 11, 0.12);
+            background: var(--color-primary-soft);
             color: var(--color-primary);
-            border: 1px solid rgba(245, 158, 11, 0.28);
-            padding: 3px 8px;
+            border: 1px solid var(--border-color-active);
+            padding: 3px 9px;
             border-radius: var(--radius-pill);
             font-size: 0.74rem;
             font-weight: 600;
             white-space: nowrap;
+        }
+        .walk-badge-green {
+            background: var(--status-ok-bg);
+            color: var(--status-ok-fg);
+            border-color: var(--status-ok-border);
         }
 
         .style-info-btn {
             display: inline-flex;
             align-items: center;
             gap: 0.3rem;
-            background: rgba(245, 158, 11, 0.12);
+            background: var(--color-primary-soft);
             color: var(--color-primary);
-            border: 1px solid rgba(245, 158, 11, 0.32);
+            border: 1px solid var(--border-color-active);
             padding: 3px 9px;
             border-radius: var(--radius-pill);
             font-size: 0.74rem;
@@ -353,9 +966,9 @@
             text-decoration: none;
             line-height: 1.2;
             vertical-align: middle;
+            font-family: inherit;
         }
         .style-info-btn:hover, .style-info-btn:active {
-            background: rgba(245, 158, 11, 0.25);
             border-color: var(--color-primary);
             transform: translateY(-1px);
         }
@@ -368,16 +981,16 @@
             width: 100%;
             max-width: 480px;
             height: var(--bottom-nav-height);
-            background: rgba(18, 20, 26, 0.94);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: var(--bg-nav-glass);
+            backdrop-filter: blur(22px) saturate(140%);
+            -webkit-backdrop-filter: blur(22px) saturate(140%);
             border-top: 1px solid var(--border-color);
             display: flex;
             justify-content: space-around;
             align-items: center;
             z-index: 100;
             padding-bottom: env(safe-area-inset-bottom, 0px);
-            box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.22);
         }
         .bottom-nav-item {
             flex: 1;
@@ -395,62 +1008,118 @@
             padding: 6px 0;
         }
         .bottom-nav-item .icon {
-            width: 22px;
-            height: 22px;
+            width: 21px;
+            height: 21px;
             transition: all 0.2s ease;
         }
-        .bottom-nav-item:active {
-            transform: scale(0.92);
-        }
-        .bottom-nav-item.active {
-            color: var(--color-primary);
-        }
-        .bottom-nav-item.active .icon {
-            color: var(--color-primary);
-            transform: translateY(-1px);
-        }
+        .bottom-nav-item:active { transform: scale(0.92); }
+        .bottom-nav-item.active { color: var(--color-primary); }
+        .bottom-nav-item.active .icon { color: var(--color-primary); transform: translateY(-1px); }
         .bottom-nav-item.active::after {
             content: '';
             position: absolute;
             top: 2px;
             width: 16px;
-            height: 3px;
+            height: 2.5px;
             background: var(--color-primary);
             border-radius: 2px;
-            box-shadow: 0 0 8px var(--color-primary-glow);
         }
 
         .bottom-nav-beermatch .beermatch-icon-wrapper {
-            width: 32px;
-            height: 32px;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
-            background: rgba(245, 158, 11, 0.1);
+            background: var(--color-primary-soft);
+            color: var(--color-primary);
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         .bottom-nav-beermatch.active .beermatch-icon-wrapper {
-            background: var(--color-primary);
-            box-shadow: 0 0 14px var(--color-primary-glow);
+            background: var(--btn-primary-bg);
+            box-shadow: var(--btn-primary-shadow);
             transform: scale(1.06);
         }
         .bottom-nav-beermatch.active .beermatch-icon-wrapper .icon {
-            color: #0E1015 !important;
-            fill: #0E1015 !important;
+            color: var(--btn-primary-fg) !important;
         }
+
+        html[data-theme="glass-square"] #styleModal > div,
+        html[data-theme="glass-square"] #styleGuideModal > div {
+            border-radius: 6px 6px 0 0 !important;
+        }
+
     </style>
     <script>
+        window.THEMES = ['classic', 'glass', 'glass-square', 'minimal', 'honey', 'cream'];
+        window.THEME_META_COLORS = {
+            classic: '#0E1015',
+            glass: '#090D16',
+            'glass-square': '#080C16',
+            minimal: '#131518',
+            honey: '#0F1117',
+            cream: '#F5F1E8'
+        };
+
+        window.setBeerMapTheme = function(themeName) {
+            if (!themeName || window.THEMES.indexOf(themeName) === -1) themeName = 'classic';
+            document.documentElement.setAttribute('data-theme', themeName);
+            try { localStorage.setItem('beermap_theme', themeName); } catch (e) {}
+
+            var s1 = document.getElementById('themeSelect');
+            if (s1 && s1.value !== themeName) s1.value = themeName;
+            var s2 = document.getElementById('sidebarThemeSelect');
+            if (s2 && s2.value !== themeName) s2.value = themeName;
+
+            var meta = document.getElementById('metaThemeColor');
+            if (meta && window.THEME_META_COLORS[themeName]) {
+                meta.setAttribute('content', window.THEME_META_COLORS[themeName]);
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var currentTheme = document.documentElement.getAttribute('data-theme') || 'classic';
+            var s1 = document.getElementById('themeSelect');
+            if (s1) s1.value = currentTheme;
+            var s2 = document.getElementById('sidebarThemeSelect');
+            if (s2) s2.value = currentTheme;
+        });
+
+        /* Canonical Lucide Icons helper for dynamic client-side rendering */
+        window.LUCIDE_PATHS = {
+            'home': '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+            'beer': '<path d="M17 11h1a3 3 0 0 1 0 6h-1"/><path d="M9 12v6"/><path d="M13 12v6"/><path d="M14 7.5c-1 0-1.44.5-3 .5s-2-.5-3-.5-1.72.5-2.5.5a2.5 2.5 0 0 1 0-5c.78 0 1.57.5 2.5.5S9.44 2 11 2s2 1.5 3 1.5 1.72-.5 2.5-.5a2.5 2.5 0 0 1 0 5c-.78 0-1.5-.5-2.5-.5Z"/><path d="M5 8v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8"/>',
+            'hop': '<path d="M10.82 16.12c1.69.6 3.91.79 5.18.88.55.04 1-.42.97-.97-.09-1.27-.28-3.49-.88-5.18"/><path d="M11.5 6.5c1.64 0 3.77.31 5.06.57.56.11.98-.32.92-.89-.15-1.36-.57-3.62-1.48-5.18"/><path d="M6.5 11.5c0 1.64.31 3.77.57 5.06.11.56-.32.98-.89.92-1.36-.15-3.62-.57-5.18-1.48"/><path d="M16.95 16.95c1.5.57 3.55.92 4.82 1.04.58.05 1.05-.42 1-1-.12-1.27-.47-3.32-1.04-4.82"/><path d="M12.5 2.5C9.5 2.5 5 5 4 9c1.5 2.5 4.5 4 8.5 3.5.5-4-1-6.5 0-10Z"/>',
+            'radar': '<path d="M19.07 4.93A10 10 0 0 0 6.99 3.34"/><path d="M4 6h.01"/><path d="M2.29 9.62A10 10 0 1 0 21.31 8.35"/><path d="M16.24 7.76A6 6 0 1 0 8.23 16.67"/><path d="M12 18h.01"/><path d="M17.99 11.66A6 6 0 0 1 15.77 16.67"/><circle cx="12" cy="12" r="2"/><path d="m13.41 10.59 5.66-5.66"/>',
+            'map-pin': '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/>',
+            'store': '<path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7"/>',
+            'factory': '<path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M17 18h1"/><path d="M12 18h1"/><path d="M7 18h1"/>',
+            'heart': '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+            'sparkles': '<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>',
+            'footprints': '<path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z"/><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z"/><path d="M16 17h4"/><path d="M4 13h4"/>',
+            'badge-check': '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/>',
+            'bell': '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+            'bell-off': '<path d="M8.7 3A6 6 0 0 1 18 8a21.3 21.3 0 0 0 .6 5"/><path d="M17 17H3s3-2 3-9a4.67 4.67 0 0 1 .3-1.7"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/><path d="m2 2 20 20"/>',
+            'circle-off': '<path d="m2 2 20 20"/><path d="M8.35 2.69A10 10 0 0 1 21.3 15.65"/><path d="M19.08 19.08A10 10 0 1 1 4.92 4.92"/>',
+            'alert-triangle': '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+            'check': '<polyline points="20 6 9 17 4 12"/>',
+            'x': '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>'
+        };
+        window.lucideSvg = function(name, extraClass) {
+            var p = window.LUCIDE_PATHS[name] || window.LUCIDE_PATHS['beer'];
+            return '<svg class="icon ' + (extraClass || '') + '" viewBox="0 0 24 24" aria-hidden="true">' + p + '</svg>';
+        };
+
         window.getAppLocation = function(onSuccess, onError) {
             const GEO_ERROR_MESSAGES = {
-                1: 'Permiso de ubicación denegado. Actívalo en los ajustes del navegador/sistema para ver distancias.',
+                1: 'Permiso de ubicación denegado. Actívalo en los ajustes del navegador para ver distancias.',
                 2: 'No se pudo determinar tu posición (señal GPS/red no disponible).',
                 3: 'Se agotó el tiempo de espera al pedir tu ubicación.'
             };
 
             function triggerError(err) {
                 const msg = (err && GEO_ERROR_MESSAGES[err.code]) || 'No se pudo obtener tu ubicación.';
-                console.warn('Geolocation failed or was denied:', msg, err);
                 if (onError) onError(msg);
             }
 
@@ -484,46 +1153,84 @@
     </script>
 </head>
 <body>
-    {% macro icon(name, extra_class='') %}
-        {% if name == 'home' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7"/><path d="M9 22V12h6v10"/></svg>
-        {% elif name == 'arrow-left' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-        {% elif name == 'map-pin' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
-        {% elif name == 'heart' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21.2l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
-        {% elif name == 'user' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        {% elif name == 'plus' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        {% elif name == 'settings' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        {% elif name == 'log-out' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        {% elif name == 'log-in' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-        {% elif name == 'user-plus' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-        {% elif name == 'x' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        {% elif name == 'menu' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        {% elif name == 'star' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        {% elif name == 'target' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>
-        {% elif name == 'bell' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        {% elif name == 'store' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-8h6v8"/></svg>
-        {% elif name == 'factory' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><path d="M3 21V10l6 4v-4l6 4V7l6 4v10H3z"/><line x1="7" y1="21" x2="7" y2="17"/><line x1="13" y1="21" x2="13" y2="17"/></svg>
-        {% elif name == 'search' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        {% elif name == 'check-circle' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-        {% elif name == 'edit' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
-        {% elif name == 'save' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        {% elif name == 'list' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-        {% elif name == 'tag' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><path d="M20.59 13.41L13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-        {% elif name == 'users' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        {% elif name == 'scale' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M5 7l-3 7a3 3 0 0 0 6 0z"/><path d="M19 7l-3 7a3 3 0 0 0 6 0z"/><path d="M5 7h14"/><path d="M8 21h8"/></svg>
-        {% elif name == 'link' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>
-        {% elif name == 'alert-triangle' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        {% elif name == 'calendar' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        {% elif name == 'globe' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-        {% elif name == 'mail' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>
-        {% elif name == 'phone' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-        {% elif name == 'sliders' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+    {% macro icon(name, extra_class='') -%}
+        {% if name == 'home' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        {% elif name == 'beer' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 11h1a3 3 0 0 1 0 6h-1"/><path d="M9 12v6"/><path d="M13 12v6"/><path d="M14 7.5c-1 0-1.44.5-3 .5s-2-.5-3-.5-1.72.5-2.5.5a2.5 2.5 0 0 1 0-5c.78 0 1.57.5 2.5.5S9.44 2 11 2s2 1.5 3 1.5 1.72-.5 2.5-.5a2.5 2.5 0 0 1 0 5c-.78 0-1.5-.5-2.5-.5Z"/><path d="M5 8v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8"/></svg>
+        {% elif name == 'hop' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.82 16.12c1.69.6 3.91.79 5.18.88.55.04 1-.42.97-.97-.09-1.27-.28-3.49-.88-5.18"/><path d="M11.5 6.5c1.64 0 3.77.31 5.06.57.56.11.98-.32.92-.89-.15-1.36-.57-3.62-1.48-5.18"/><path d="M6.5 11.5c0 1.64.31 3.77.57 5.06.11.56-.32.98-.89.92-1.36-.15-3.62-.57-5.18-1.48"/><path d="M16.95 16.95c1.5.57 3.55.92 4.82 1.04.58.05 1.05-.42 1-1-.12-1.27-.47-3.32-1.04-4.82"/><path d="M12.5 2.5C9.5 2.5 5 5 4 9c1.5 2.5 4.5 4 8.5 3.5.5-4-1-6.5 0-10Z"/></svg>
+        {% elif name == 'radar' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.07 4.93A10 10 0 0 0 6.99 3.34"/><path d="M4 6h.01"/><path d="M2.29 9.62A10 10 0 1 0 21.31 8.35"/><path d="M16.24 7.76A6 6 0 1 0 8.23 16.67"/><path d="M12 18h.01"/><path d="M17.99 11.66A6 6 0 0 1 15.77 16.67"/><circle cx="12" cy="12" r="2"/><path d="m13.41 10.59 5.66-5.66"/></svg>
+        {% elif name == 'arrow-left' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+        {% elif name == 'arrow-up-right' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+        {% elif name == 'chevron-down' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        {% elif name == 'map-pin' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+        {% elif name == 'map-pinned' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8c0 3.613-3.869 7.429-5.393 8.795a1 1 0 0 1-1.214 0C9.87 15.429 6 11.613 6 8a6 6 0 0 1 12 0"/><circle cx="12" cy="8" r="2"/><path d="M8.714 14h-3.71a1 1 0 0 0-.948.683l-2.004 6A1 1 0 0 0 3 22h18a1 1 0 0 0 .948-1.316l-2-6a1 1 0 0 0-.949-.684h-3.712"/></svg>
+        {% elif name == 'heart' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+        {% elif name == 'user' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        {% elif name == 'plus' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+        {% elif name == 'settings' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        {% elif name == 'log-out' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+        {% elif name == 'log-in' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
+        {% elif name == 'user-plus' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+        {% elif name == 'x' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        {% elif name == 'circle-off' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="m2 2 20 20"/><path d="M8.35 2.69A10 10 0 0 1 21.3 15.65"/><path d="M19.08 19.08A10 10 0 1 1 4.92 4.92"/></svg>
+        {% elif name == 'menu' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+        {% elif name == 'palette' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+        {% elif name == 'star' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        {% elif name == 'sparkles' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+        {% elif name == 'flame' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+        {% elif name == 'moon' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        {% elif name == 'citrus' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.66 17.67a1.08 1.08 0 0 1-.04 1.6A12 12 0 0 1 4.73 2.38a1.1 1.1 0 0 1 1.61-.04z"/><path d="M19.65 15.66A8 8 0 0 1 8.35 4.34"/><path d="m14 10-5.5 5.5"/><path d="M14 17.85V10H6.15"/></svg>
+        {% elif name == 'target' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+        {% elif name == 'bell' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        {% elif name == 'bell-off' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.7 3A6 6 0 0 1 18 8a21.3 21.3 0 0 0 .6 5"/><path d="M17 17H3s3-2 3-9a4.67 4.67 0 0 1 .3-1.7"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/><path d="m2 2 20 20"/></svg>
+        {% elif name == 'store' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7"/></svg>
+        {% elif name == 'factory' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M17 18h1"/><path d="M12 18h1"/><path d="M7 18h1"/></svg>
+        {% elif name == 'search' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        {% elif name == 'check' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        {% elif name == 'check-circle' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+        {% elif name == 'badge-check' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/></svg>
+        {% elif name == 'shield-check' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+        {% elif name == 'edit' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/></svg>
+        {% elif name == 'save' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg>
+        {% elif name == 'list' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>
+        {% elif name == 'book-open' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
+        {% elif name == 'info' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        {% elif name == 'clock' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        {% elif name == 'tv' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="15" x="2" y="7" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>
+        {% elif name == 'qr-code' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+        {% elif name == 'lock' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        {% elif name == 'smartphone' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+        {% elif name == 'file-text' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+        {% elif name == 'tag' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg>
+        {% elif name == 'users' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        {% elif name == 'scale' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>
+        {% elif name == 'link' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        {% elif name == 'alert-triangle' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+        {% elif name == 'calendar' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
+        {% elif name == 'globe' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+        {% elif name == 'mail' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+        {% elif name == 'phone' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        {% elif name == 'sliders' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>
         {% endif %}
-    {% endmacro %}
+    {%- endmacro %}
 
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMenu()"></div>
     <div class="sidebar" id="sidebarMenu">
         <div class="sidebar-close">
-            <button class="menu-btn" onclick="toggleMenu()">{{ icon('x') }}</button>
+            <button class="menu-btn" onclick="toggleMenu()" aria-label="Cerrar menú">{{ icon('x') }}</button>
+        </div>
+
+        <div style="padding: 0 1.2rem 0.8rem; border-bottom: 1px solid var(--border-color); margin-bottom: 0.5rem;">
+            <label for="sidebarThemeSelect" style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-secondary); display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem;">
+                {{ icon('palette', 'icon-sm') }} Estilo Visual (GUI)
+            </label>
+            <select id="sidebarThemeSelect" onchange="window.setBeerMapTheme(this.value)" style="margin:0; padding:0.55rem 0.8rem; font-size:0.88rem; font-weight:600; width:100%; border-radius:var(--radius-button); background:var(--bg-panel-raised); color:var(--text-main); border:1px solid var(--border-color); cursor:pointer;">
+                <option value="classic">1 · Actual (Craft Onyx)</option>
+                <option value="glass">2 · Cristal Redondo (Nexa)</option>
+                <option value="glass-square">3 · Cristal Cuadrado (Prisma Recto)</option>
+                <option value="minimal">4 · Grafito (Nebo Matte)</option>
+                <option value="honey">5 · Miel &amp; Crema (Neewick)</option>
+                <option value="cream">6 · Clara (Marfil &amp; Miel)</option>
+            </select>
         </div>
 
         {% if session.get('user_id') %}
@@ -542,41 +1249,56 @@
         {% endif %}
 
         <a href="{{ url_for('routes.index') }}">{{ icon('home') }} Inicio</a>
-        <a href="{{ url_for('routes.beers_list') }}">🍺 Explorar cervezas</a>
+        <a href="{{ url_for('routes.beers_list') }}">{{ icon('beer') }} Explorar cervezas</a>
         <a href="{{ url_for('routes.map_view') }}">{{ icon('map-pin') }} Mapa</a>
 
         {% if session.get('user_id') %}
-            <a href="{{ url_for('beermatch.swipe_view') }}" style="color: var(--color-primary); font-weight: bold;">{{ icon('heart') }} BeerMatch</a>
-            <a href="{{ url_for('beermatch.history_view') }}" style="padding-left:2.5rem; font-size:0.9rem;">📡 Mis Cervezas y Radar</a>
+            <a href="{{ url_for('beermatch.swipe_view') }}" style="color: var(--color-primary); font-weight: 700;">{{ icon('heart') }} BeerMatch</a>
+            <a href="{{ url_for('beermatch.history_view') }}" style="padding-left:2.4rem; font-size:0.88rem;">{{ icon('radar', 'icon-sm') }} Mis Cervezas y Radar</a>
             <a href="{{ url_for('routes.profile') }}">{{ icon('user') }} Mi Perfil</a>
-            <a href="{{ url_for('routes.my_claims') }}">{{ icon('scale') }} Mis Reclamaciones</a>
+            <a href="{{ url_for('routes.my_claims') }}">{{ icon('shield-check') }} Mis Verificaciones</a>
             <a href="{{ url_for('routes.beer_new') }}">{{ icon('plus') }} Añadir cerveza</a>
             <a href="{{ url_for('routes.venue_new') }}">{{ icon('store') }} Añadir bar</a>
             <a href="{{ url_for('routes.fabricante_new') }}">{{ icon('factory') }} Añadir marca</a>
             {% if session.get('role') == 'ADMIN' %}
                 <a href="{{ url_for('routes.admin') }}">{{ icon('settings') }} Administración</a>
             {% endif %}
-            <a href="{{ url_for('routes.logout') }}" style="color: #ff3b30; margin-top: 1rem; border-top: 2px solid #f2f2f2;">{{ icon('log-out') }} Cerrar sesión</a>
+            <a href="{{ url_for('routes.logout') }}" style="color: var(--color-red); margin-top: 0.75rem;">{{ icon('log-out') }} Cerrar sesión</a>
         {% else %}
-            <a href="{{ url_for('routes.login') }}" style="margin-top: 1rem; border-top: 2px solid #f2f2f2;">{{ icon('log-in') }} Iniciar sesión</a>
+            <a href="{{ url_for('routes.login') }}" style="margin-top: 0.75rem;">{{ icon('log-in') }} Iniciar sesión</a>
             <a href="{{ url_for('routes.register') }}">{{ icon('user-plus') }} Registro</a>
         {% endif %}
     </div>
 
     <div class="app-container {% if request.endpoint in ['routes.admin', 'routes.edit_user'] %}admin-container{% endif %}">
         <header>
-            <div style="display:flex; align-items:center; gap:0.8rem;">
+            <div style="display:flex; align-items:center; gap:0.7rem;">
                 <a href="{{ url_for('routes.index') }}" class="header-brand">
-                    <span>🍺 BeerMap</span>
-                    <span class="header-brand-badge">{% if request.endpoint in ['routes.admin', 'routes.edit_user'] %}PANEL ADMIN{% else %}PWA{% endif %}</span>
+                    <span class="brand-logo-mark">{{ icon('beer', 'icon-sm') }}</span>
+                    <span>BeerMap</span>
+                    {% if request.endpoint in ['routes.admin', 'routes.edit_user'] %}
+                    <span class="header-brand-badge">ADMIN</span>
+                    {% endif %}
                 </a>
             </div>
             <div class="header-actions">
                 {% if request.endpoint in ['routes.admin', 'routes.edit_user'] %}
-                <a href="{{ url_for('routes.admin') if request.endpoint != 'routes.admin' else url_for('routes.index') }}" class="session-badge" style="color:var(--color-primary); font-weight:700;" title="{% if request.endpoint != 'routes.admin' %}Volver al Panel{% else %}Ir a la App{% endif %}">
-                    {{ icon('arrow-left') if request.endpoint != 'routes.admin' else icon('home') }} <span>{% if request.endpoint != 'routes.admin' %}Volver a Admin{% else %}Ir a la App{% endif %}</span>
+                <a href="{{ url_for('routes.admin') if request.endpoint != 'routes.admin' else url_for('routes.index') }}" class="session-badge" style="color:var(--color-primary); font-weight:700;">
+                    {{ icon('arrow-left', 'icon-sm') if request.endpoint != 'routes.admin' else icon('home', 'icon-sm') }}
+                    <span>{% if request.endpoint != 'routes.admin' %}Panel{% else %}App{% endif %}</span>
                 </a>
                 {% endif %}
+                <div class="theme-select-wrapper" title="Selector de estilo visual">
+                    {{ icon('palette', 'icon-sm') }}
+                    <select id="themeSelect" onchange="window.setBeerMapTheme(this.value)" class="theme-select" aria-label="Estilo visual">
+                        <option value="classic">Actual</option>
+                        <option value="glass">Cristal Redondo</option>
+                        <option value="glass-square">Cristal Cuadrado</option>
+                        <option value="minimal">Grafito</option>
+                        <option value="honey">Miel</option>
+                        <option value="cream">Clara</option>
+                    </select>
+                </div>
                 <button class="menu-btn" onclick="toggleMenu()" title="Menú lateral">{{ icon('menu') }}</button>
             </div>
         </header>
@@ -599,7 +1321,7 @@
                 <span>Inicio</span>
             </a>
             <a href="{{ url_for('routes.beers_list') }}" class="bottom-nav-item {% if request.endpoint in ['routes.beers_list', 'routes.beer_view', 'routes.beer_new', 'routes.edit_beer'] %}active{% endif %}">
-                {{ icon('search') }}
+                {{ icon('beer') }}
                 <span>Cervezas</span>
             </a>
             <a href="{{ url_for('beermatch.swipe_view') }}" class="bottom-nav-item bottom-nav-beermatch {% if request.endpoint in ['beermatch.swipe_view', 'beermatch.history_view'] %}active{% endif %}" title="BeerMatch">
@@ -665,10 +1387,13 @@
                         if (data.exists) {
                             const warning = document.createElement('div');
                             warning.className = 'duplicate-warning';
-                            warning.style.color = '#e67e22';
-                            warning.style.fontSize = '0.85rem';
-                            warning.style.marginTop = '0.4rem';
-                            warning.innerHTML = `⚠️ Ya existe un ${escapeHtml(data.type)} similar ("${escapeHtml(data.name)}"). Comprueba que no es un duplicado antes de crearlo.`;
+                            warning.style.color = 'var(--status-warn-fg)';
+                            warning.style.fontSize = '0.84rem';
+                            warning.style.marginTop = '0.35rem';
+                            warning.style.display = 'flex';
+                            warning.style.alignItems = 'center';
+                            warning.style.gap = '0.35rem';
+                            warning.innerHTML = `${lucideSvg('alert-triangle', 'icon-sm')} <span>Ya existe un ${escapeHtml(data.type)} similar ("${escapeHtml(data.name)}"). Comprueba que no sea un duplicado.</span>`;
                             this.parentNode.insertBefore(warning, this.nextSibling);
                         }
                     });
@@ -679,32 +1404,34 @@
     </script>
 
     <!-- Modal Ficha de Estilo (Biblia de la Cerveza) -->
-    <div id="styleInfoModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.75); z-index:2100; align-items:flex-end; justify-content:center; backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);" onclick="if(event.target===this) closeStyleModal()">
-        <div style="background:var(--bg-panel); width:100%; max-width:480px; max-height:85vh; border-radius:20px 20px 0 0; border:1px solid var(--border-color); border-bottom:none; padding:1.4rem; box-sizing:border-box; overflow-y:auto; box-shadow:0 -8px 32px rgba(0,0,0,0.6); position:relative;">
-            <div style="width:40px; height:4px; background:rgba(255,255,255,0.2); border-radius:2px; margin:0 auto 1.2rem auto;"></div>
+    <div id="styleInfoModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.68); z-index:2100; align-items:flex-end; justify-content:center; backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);" onclick="if(event.target===this) closeStyleModal()">
+        <div style="background:var(--bg-panel); backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px); width:100%; max-width:480px; max-height:85vh; border-radius:22px 22px 0 0; border:1px solid var(--border-color); border-bottom:none; padding:1.4rem; box-sizing:border-box; overflow-y:auto; box-shadow:0 -8px 32px rgba(0,0,0,0.45); position:relative;">
+            <div style="width:40px; height:4px; background:var(--border-color); border-radius:2px; margin:0 auto 1.2rem auto;"></div>
 
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.8rem;">
                 <div style="display:flex; align-items:center; gap:0.6rem;">
-                    <span id="styleModalColorDot" style="width:1.2rem; height:1.2rem; border-radius:50%; display:inline-block; border:2px solid rgba(255,255,255,0.3); flex-shrink:0;"></span>
+                    <span id="styleModalColorDot" style="width:1.15rem; height:1.15rem; border-radius:50%; display:inline-block; border:2px solid var(--border-color); flex-shrink:0;"></span>
                     <div>
-                        <h3 id="styleModalTitle" style="margin:0; font-size:1.3rem; font-weight:800; color:var(--text-main);"></h3>
-                        <span id="styleModalFamily" class="pill" style="margin:0.25rem 0 0 0; background:rgba(245, 158, 11, 0.15); color:var(--color-primary); border-color:rgba(245, 158, 11, 0.35); font-size:0.75rem;"></span>
+                        <h3 id="styleModalTitle" style="margin:0; font-size:1.25rem; font-weight:800; color:var(--text-main);"></h3>
+                        <span id="styleModalFamily" class="pill pill-amber" style="margin:0.25rem 0 0 0; font-size:0.74rem;"></span>
                     </div>
                 </div>
-                <button onclick="closeStyleModal()" style="background:transparent; border:none; color:var(--text-secondary); font-size:1.5rem; cursor:pointer; line-height:1; padding:0 0.4rem;">&times;</button>
+                <button onclick="closeStyleModal()" class="menu-btn" style="width:32px; height:32px;">{{ icon('x', 'icon-sm') }}</button>
             </div>
 
-            <div style="background:var(--bg-body); border-left:3px solid var(--color-primary); padding:0.9rem 1rem; border-radius:8px; margin-bottom:1rem;">
-                <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--color-primary); font-weight:700; margin-bottom:0.3rem;">📖 Perfil de la Biblia Cervecera</div>
+            <div style="background:var(--bg-body); border-left:3px solid var(--color-primary); padding:0.9rem 1rem; border-radius:12px; margin-bottom:1rem;">
+                <div style="font-size:0.74rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--color-primary); font-weight:700; margin-bottom:0.35rem; display:flex; align-items:center; gap:0.35rem;">
+                    {{ icon('book-open', 'icon-sm') }} Perfil de la Biblia Cervecera
+                </div>
                 <p id="styleModalDescription" style="margin:0; font-size:0.92rem; line-height:1.45; color:var(--text-main);"></p>
             </div>
 
-            <div id="styleModalFamilyInfo" style="font-size:0.82rem; color:var(--text-secondary); margin-bottom:1.2rem; padding:0.6rem 0.8rem; background:rgba(255,255,255,0.03); border-radius:8px; border:1px solid var(--border-color);">
+            <div id="styleModalFamilyInfo" style="font-size:0.82rem; color:var(--text-secondary); margin-bottom:1.2rem; padding:0.65rem 0.85rem; background:var(--color-tertiary); border-radius:12px; border:1px solid var(--border-color);">
                 <strong>Sobre la familia:</strong> <span id="styleModalFamilyDesc"></span>
             </div>
 
             <div id="styleModalExamplesSection" style="display:none; margin-top:1rem;">
-                <div style="font-size:0.8rem; font-weight:700; color:var(--text-secondary); margin-bottom:0.5rem; text-transform:uppercase;">Cervezas en la app con este estilo</div>
+                <div style="font-size:0.78rem; font-weight:700; color:var(--text-secondary); margin-bottom:0.5rem; text-transform:uppercase;">Cervezas en la app con este estilo</div>
                 <div id="styleModalExamplesList" style="display:flex; flex-direction:column; gap:0.4rem;"></div>
             </div>
         </div>
@@ -740,8 +1467,8 @@
                 const exList = document.getElementById('styleModalExamplesList');
                 if (data.examples && data.examples.length > 0) {
                     exList.innerHTML = data.examples.map(e => `
-                        <a href="/beer/${e.id}" style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem 0.75rem; background:var(--bg-body); border-radius:8px; border:1px solid var(--border-color); text-decoration:none; color:inherit; font-size:0.85rem;">
-                            <span style="font-weight:600; color:var(--text-main);">🍺 ${escapeHtml(e.name)}</span>
+                        <a href="/beer/${e.id}" style="display:flex; justify-content:space-between; align-items:center; padding:0.55rem 0.8rem; background:var(--bg-body); border-radius:10px; border:1px solid var(--border-color); text-decoration:none; color:inherit; font-size:0.85rem;">
+                            <span style="font-weight:600; color:var(--text-main); display:inline-flex; align-items:center; gap:0.4rem;">${lucideSvg('beer', 'icon-sm')} ${escapeHtml(e.name)}</span>
                             <span style="color:var(--text-secondary); font-size:0.78rem;">${escapeHtml(e.brewery || '')}${e.abv ? ' · ' + escapeHtml(e.abv) + '%' : ''}</span>
                         </a>
                     `).join('');
@@ -806,20 +1533,20 @@
             if (filteredStyles.length === 0) return;
 
             html += `
-                <div style="background:var(--bg-body); border-radius:12px; border:1px solid var(--border-color); padding:1rem;">
-                    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:0.6rem; border-bottom:1px solid var(--border-color); padding-bottom:0.4rem;">
-                        <strong style="color:var(--color-primary); font-size:0.95rem;">🍺 ${escapeHtml(fam.family_name)}</strong>
+                <div style="background:var(--bg-body); border-radius:14px; border:1px solid var(--border-color); padding:1rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.65rem; border-bottom:1px solid var(--border-color); padding-bottom:0.45rem;">
+                        <strong style="color:var(--color-primary); font-size:0.94rem; display:inline-flex; align-items:center; gap:0.4rem;">${lucideSvg('hop', 'icon-sm')} ${escapeHtml(fam.family_name)}</strong>
                         <span style="font-size:0.75rem; color:var(--text-secondary);">${filteredStyles.length} estilos</span>
                     </div>
                     <div style="display:flex; flex-direction:column; gap:0.5rem;">
                         ${filteredStyles.map(s => `
-                            <div onclick="showStyleInfo(${s.id})" style="padding:0.6rem 0.8rem; background:var(--bg-panel); border-radius:8px; border:1px solid var(--border-color); cursor:pointer; transition:transform 0.1s ease;">
+                            <div onclick="showStyleInfo(${s.id})" style="padding:0.65rem 0.85rem; background:var(--bg-panel); border-radius:10px; border:1px solid var(--border-color); cursor:pointer;">
                                 <div style="display:flex; justify-content:space-between; align-items:center;">
                                     <div style="display:flex; align-items:center; gap:0.5rem;">
-                                        <span style="width:0.75rem; height:0.75rem; border-radius:50%; background:${s.color || '#F59E0B'}; display:inline-block; border:1px solid rgba(255,255,255,0.2);"></span>
+                                        <span style="width:0.75rem; height:0.75rem; border-radius:50%; background:${s.color || '#F59E0B'}; display:inline-block; border:1px solid var(--border-color);"></span>
                                         <strong style="font-size:0.9rem; color:var(--text-main);">${escapeHtml(s.name)}</strong>
                                     </div>
-                                    <span class="style-info-btn" style="font-size:0.7rem; padding:2px 6px;">Ver cata →</span>
+                                    <span class="style-info-btn" style="font-size:0.7rem; padding:2px 7px;">Ver cata →</span>
                                 </div>
                                 <p style="margin:0.3rem 0 0 0; font-size:0.8rem; color:var(--text-secondary); line-height:1.35;">
                                     ${escapeHtml(s.description)}
@@ -845,19 +1572,22 @@
     </script>
 
     <!-- Modal Guía de Estilos Completa (Biblia) -->
-    <div id="styleGuideModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.75); z-index:2100; align-items:flex-end; justify-content:center; backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);" onclick="if(event.target===this) closeStyleGuideModal()">
-        <div style="background:var(--bg-panel); width:100%; max-width:480px; max-height:88vh; border-radius:20px 20px 0 0; border:1px solid var(--border-color); border-bottom:none; padding:1.4rem; box-sizing:border-box; overflow-y:auto; box-shadow:0 -8px 32px rgba(0,0,0,0.6); position:relative;">
-            <div style="width:40px; height:4px; background:rgba(255,255,255,0.2); border-radius:2px; margin:0 auto 1rem auto;"></div>
+    <div id="styleGuideModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.68); z-index:2100; align-items:flex-end; justify-content:center; backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);" onclick="if(event.target===this) closeStyleGuideModal()">
+        <div style="background:var(--bg-panel); backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px); width:100%; max-width:480px; max-height:88vh; border-radius:22px 22px 0 0; border:1px solid var(--border-color); border-bottom:none; padding:1.4rem; box-sizing:border-box; overflow-y:auto; box-shadow:0 -8px 32px rgba(0,0,0,0.45); position:relative;">
+            <div style="width:40px; height:4px; background:var(--border-color); border-radius:2px; margin:0 auto 1rem auto;"></div>
 
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-                <div>
-                    <h3 style="margin:0; font-size:1.25rem; font-weight:800; color:var(--text-main);">📖 Guía de Estilos</h3>
-                    <span style="font-size:0.78rem; color:var(--text-secondary);">Biblia cervecera clasificada por familias</span>
+                <div style="display:flex; align-items:center; gap:0.55rem;">
+                    <span style="color:var(--color-primary);">{{ icon('book-open') }}</span>
+                    <div>
+                        <h3 style="margin:0; font-size:1.2rem; font-weight:800; color:var(--text-main);">Guía de Estilos</h3>
+                        <span style="font-size:0.78rem; color:var(--text-secondary);">Biblia cervecera clasificada por familias</span>
+                    </div>
                 </div>
-                <button onclick="closeStyleGuideModal()" style="background:transparent; border:none; color:var(--text-secondary); font-size:1.5rem; cursor:pointer; line-height:1; padding:0 0.4rem;">&times;</button>
+                <button onclick="closeStyleGuideModal()" class="menu-btn" style="width:32px; height:32px;">{{ icon('x', 'icon-sm') }}</button>
             </div>
 
-            <input type="text" id="styleGuideSearch" placeholder="Buscar estilo o sabor (ej. amargor, trigo, tostada)..." oninput="filterStyleGuide(this.value)" style="width:100%; padding:0.65rem 0.9rem; font-size:0.88rem; border-radius:10px; margin-bottom:1rem; box-sizing:border-box;">
+            <input type="text" id="styleGuideSearch" placeholder="Buscar estilo o sabor (ej. amargor, trigo, tostada)..." oninput="filterStyleGuide(this.value)" style="width:100%; padding:0.65rem 0.9rem; font-size:0.88rem; margin-bottom:1rem; box-sizing:border-box;">
 
             <div id="styleGuideContent" style="display:flex; flex-direction:column; gap:1rem;"></div>
         </div>

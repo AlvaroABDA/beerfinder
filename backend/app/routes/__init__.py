@@ -108,6 +108,15 @@ def android_asset_links():
     ]), 200
 
 
+@bp.after_app_request
+def add_cache_control(response):
+    if response.mimetype == 'text/html':
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+    return response
+
+
 # Registrar sub-módulos sobre el mismo blueprint para mantener intactos todos los endpoints url_for('routes.*')
 from . import auth_routes, catalog_routes, api_routes, claims_routes, admin_routes  # noqa: E402,F401
 

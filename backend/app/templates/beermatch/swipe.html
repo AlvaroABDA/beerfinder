@@ -3,31 +3,35 @@
 {% block content %}
 
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-    <h2 style="margin: 0; font-size: 1.5rem;">🍺 BeerMatch</h2>
-    <a href="{{ url_for('beermatch.history_view') }}" class="btn btn-outline" style="width: auto; padding: 0.5rem 1rem; font-size: 0.88rem;">Mis Cervezas 📡</a>
+    <h2 style="margin: 0; font-size: 1.45rem; display:flex; align-items:center; gap:0.45rem;">
+        <span style="color:var(--color-primary); display:inline-flex;">{{ icon('hop') }}</span>
+        <span>BeerMatch</span>
+    </h2>
+    <a href="{{ url_for('beermatch.history_view') }}" class="btn btn-outline" style="width: auto; padding: 0.48rem 0.95rem; font-size: 0.85rem;">
+        {{ icon('radar', 'icon-sm') }} Mis Cervezas
+    </a>
 </div>
 
 <div id="swipe-search-bar" style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
-    <div style="flex: 1; position: relative;">
-        <input type="text" id="swipe-search-input" placeholder="Buscar cerveza, estilo, cervecería..."
-            style="width: 100%; margin:0; padding: 0.7rem 1rem 0.7rem 2.5rem; border-radius: var(--radius-card); border: 1px solid var(--border-color); background: var(--bg-panel); color: var(--text-main); font-size: 0.95rem;">
-        <span style="position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 1rem;">🔍</span>
+    <div class="search-bar" style="flex: 1; margin: 0;">
+        <span style="color: var(--color-primary); display:flex; margin-right:0.25rem;">{{ icon('search', 'icon-sm') }}</span>
+        <input type="text" id="swipe-search-input" placeholder="Buscar cerveza, estilo, cervecería...">
     </div>
-    <button id="swipe-search-clear" style="display: none; padding: 0.7rem 1rem; border-radius: var(--radius-card); border: 1px solid var(--border-color); background: var(--bg-panel); color: var(--text-secondary); cursor: pointer;">✕</button>
+    <button id="swipe-search-clear" class="menu-btn" style="display: none; width:42px; height:46px;">{{ icon('x', 'icon-sm') }}</button>
 </div>
 
 <div id="geoWarning" class="alert alert-warning" style="display:none;"></div>
 
 <div id="beermatch-container" style="position: relative; width: 100%; height: 58vh; max-height: 460px; perspective: 1000px; display: flex; justify-content: center; align-items: center;">
     <div id="loading-indicator" style="text-align: center; color: var(--text-secondary);">
-        <p style="font-size: 2rem; margin: 0;">🍻</p>
-        <p>Buscando cervezas...</p>
+        <span style="color:var(--color-primary); display:inline-flex; margin-bottom:0.4rem;">{{ icon('beer', 'icon-xl') }}</span>
+        <p style="margin:0;">Buscando cervezas...</p>
     </div>
 
     <div id="card-stack" style="position: absolute; width: 100%; height: 100%; display: none; align-items: center; justify-content: center;"></div>
 
-    <div id="empty-state" style="display: none; text-align: center; color: var(--text-secondary); background: var(--bg-panel); padding: 2rem; border-radius: var(--radius-card); border: 1px solid var(--border-color); width: 100%; max-width: 320px;">
-        <p style="font-size: 3rem; margin: 0 0 1rem 0;">🎉</p>
+    <div id="empty-state" style="display: none; text-align: center; color: var(--text-secondary); background: var(--bg-panel); padding: 2rem; border-radius: var(--radius-card); border: 1px solid var(--border-color); width: 100%; max-width: 320px; box-shadow: var(--card-shadow);">
+        <span style="color:var(--color-primary); display:inline-flex; margin-bottom:0.75rem;">{{ icon('sparkles', 'icon-xl') }}</span>
         <h3 id="empty-title" style="margin-top: 0; color: var(--text-main);">¡Al día!</h3>
         <p id="empty-msg">Ya has clasificado todas las cervezas disponibles.</p>
         <a href="{{ url_for('beermatch.history_view') }}" class="btn" style="margin-top: 1rem;">Ver mis cervezas y radar</a>
@@ -36,23 +40,23 @@
 
 <!-- Selector Variante B: 3 acciones limpias (Descartar | Quiero probar en Radar | Me gusta) -->
 <div id="action-buttons" style="display: none; justify-content: center; align-items: center; gap: 1.4rem; margin-top: 1.4rem;">
-    <button id="btn-dislike" title="No es para mí" style="width: 64px; height: 64px; border-radius: 50%; background: var(--bg-panel); border: 2px solid rgba(239, 68, 68, 0.45); font-size: 1.7rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.1s;">
-        ❌
+    <button id="btn-dislike" title="No es para mí" style="width: 62px; height: 62px; border-radius: 50%; background: var(--bg-panel); color: var(--color-red); border: 1.5px solid var(--status-err-border); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--card-shadow); transition: transform 0.12s;">
+        {{ icon('x', 'icon-lg') }}
     </button>
-    <button id="btn-wishlist" title="Quiero probarla (activar en mi Radar)" style="width: 56px; height: 56px; border-radius: 50%; background: rgba(245, 158, 11, 0.14); border: 2px solid var(--color-primary); font-size: 1.45rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 14px rgba(245,158,11,0.25); transition: transform 0.1s;">
-        📡
+    <button id="btn-wishlist" title="Quiero probarla (activar en mi Radar)" style="width: 56px; height: 56px; border-radius: 50%; background: var(--color-primary-soft); color: var(--color-primary); border: 1.5px solid var(--color-primary); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--card-shadow); transition: transform 0.12s;">
+        {{ icon('radar', 'icon-lg') }}
     </button>
-    <button id="btn-like" title="Me gusta" style="width: 64px; height: 64px; border-radius: 50%; background: var(--bg-panel); border: 2px solid rgba(16, 185, 129, 0.55); font-size: 1.7rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.1s;">
-        ❤️
+    <button id="btn-like" title="Me gusta" style="width: 62px; height: 62px; border-radius: 50%; background: var(--bg-panel); color: var(--color-green); border: 1.5px solid var(--status-ok-border); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--card-shadow); transition: transform 0.12s;">
+        {{ icon('heart', 'icon-lg') }}
     </button>
 </div>
-<p id="swipe-legend" style="display:none; text-align:center; font-size:0.75rem; color:var(--text-muted); margin-top:0.55rem;">
-    ← Descartar · ↑ 📡 Quiero probar (Radar) · → ❤️ Me gusta
+<p id="swipe-legend" style="display:none; text-align:center; font-size:0.75rem; color:var(--text-muted); margin-top:0.6rem;">
+    ← Descartar · ↑ Quiero probar (Radar) · → Me gusta
 </p>
 
 <div id="feedback-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; transition: opacity 0.2s;">
-    <div id="feedback-text" style="background: rgba(0,0,0,0.85); padding: 0.9rem 1.8rem; border-radius: 30px; font-size: 1.35rem; font-weight: bold; transform: scale(0.8); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
-        ❤️ ¡Me gusta!
+    <div id="feedback-text" style="background: rgba(15, 17, 23, 0.90); backdrop-filter: blur(12px); padding: 0.85rem 1.6rem; border-radius: 999px; font-size: 1.15rem; font-weight: 800; display:inline-flex; align-items:center; gap:0.5rem; transform: scale(0.85); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+        ¡Me gusta!
     </div>
 </div>
 
@@ -63,10 +67,12 @@
         max-width: 340px;
         height: 100%;
         background: var(--bg-panel);
-        border-radius: 20px;
-        border: 1px solid var(--color-tertiary);
-        border-top: 4px solid var(--color-tertiary);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+        backdrop-filter: var(--card-backdrop);
+        -webkit-backdrop-filter: var(--card-backdrop);
+        border-radius: var(--radius-card);
+        border: 1px solid var(--border-color);
+        border-top: 4px solid var(--border-color);
+        box-shadow: var(--card-shadow);
         overflow: hidden;
         display: flex;
         flex-direction: column;
@@ -77,34 +83,34 @@
     }
     .beermatch-card-img {
         flex: 1;
-        background-color: var(--color-tertiary);
+        background-color: var(--bg-panel-raised);
         background-size: cover;
         background-position: center;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 4rem;
+        color: var(--color-primary);
         position: relative;
     }
     .beermatch-card-img::after {
         content: '';
         position: absolute;
         bottom: 0; left: 0; right: 0;
-        height: 50%;
+        height: 55%;
         background: linear-gradient(to top, var(--bg-panel), transparent);
     }
     .beermatch-card-content {
         padding: 1.4rem;
         position: relative;
         z-index: 2;
-        margin-top: -2.8rem;
+        margin-top: -2.4rem;
     }
-    .bm-title { margin: 0 0 0.2rem 0; font-size: 1.5rem; color: var(--text-main); font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-    .bm-brewery { margin: 0 0 0.6rem 0; font-size: 1.05rem; color: var(--color-primary); font-weight: 600; }
-    .bm-info { margin: 0; font-size: 0.95rem; color: var(--text-secondary); display: flex; gap: 0.5rem; align-items: center; }
+    .bm-title { margin: 0 0 0.2rem 0; font-size: 1.45rem; color: var(--text-main); font-weight: 800; }
+    .bm-brewery { margin: 0 0 0.55rem 0; font-size: 1rem; color: var(--color-primary); font-weight: 700; }
+    .bm-info { margin: 0; font-size: 0.92rem; color: var(--text-secondary); display: flex; gap: 0.5rem; align-items: center; }
     .bm-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.6rem 0 0 0; }
-    .bm-tag { background: rgba(255,255,255,0.1); border: 1px solid var(--color-tertiary); color: var(--text-secondary); font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 1rem; }
-    .bm-reason { margin: 0.5rem 0 0 0; font-size: 0.8rem; color: var(--color-secondary); }
+    .bm-tag { background: var(--color-tertiary); border: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: var(--radius-pill); }
+    .bm-reason { margin: 0.5rem 0 0 0; font-size: 0.8rem; color: var(--color-secondary); display:flex; align-items:center; gap:0.3rem; }
 
     .bm-location-badge {
         position: absolute;
@@ -114,15 +120,16 @@
         display: flex;
         align-items: center;
         gap: 0.35rem;
-        background: rgba(0, 0, 0, 0.65);
-        backdrop-filter: blur(4px);
-        border-radius: 20px;
-        padding: 0.3rem 0.65rem 0.3rem 0.5rem;
+        background: rgba(15, 17, 23, 0.75);
+        color: #F8FAFC;
+        backdrop-filter: blur(8px);
+        border-radius: var(--radius-pill);
+        padding: 0.32rem 0.7rem 0.32rem 0.55rem;
         max-width: calc(100% - 1.5rem);
     }
     .bm-location-name { font-size: 0.78rem; font-weight: 600; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
-    .bm-location-dist { font-size: 0.75rem; font-weight: 700; color: var(--color-secondary); white-space: nowrap; }
-    .bm-location-dist::before { content: '·'; margin-right: 0.3rem; color: rgba(255,255,255,0.4); }
+    .bm-location-dist { font-size: 0.75rem; font-weight: 700; color: #F3C979; white-space: nowrap; }
+    .bm-location-dist::before { content: '·'; margin-right: 0.3rem; color: rgba(255,255,255,0.45); }
 
     .card-swipe-right { transform: translateX(100vw) rotate(28deg) !important; opacity: 0; }
     .card-swipe-left { transform: translateX(-100vw) rotate(-28deg) !important; opacity: 0; }
@@ -130,12 +137,13 @@
 
     .badge-swipe {
         position: absolute; top: 2rem;
-        padding: 0.45rem 0.9rem; border-radius: 10px; font-weight: 900; font-size: 1.6rem;
-        border: 4px solid; opacity: 0; z-index: 10; text-transform: uppercase;
+        padding: 0.4rem 0.85rem; border-radius: 10px; font-weight: 900; font-size: 1.4rem;
+        border: 3px solid; opacity: 0; z-index: 10; text-transform: uppercase;
+        background: rgba(15, 17, 23, 0.72);
     }
-    .badge-like { right: 1.5rem; color: var(--color-green); border-color: var(--color-green); transform: rotate(15deg); }
-    .badge-dislike { left: 1.5rem; color: var(--color-red); border-color: var(--color-red); transform: rotate(-15deg); }
-    .badge-wishlist { left: 50%; transform: translateX(-50%); color: var(--color-primary); border-color: var(--color-primary); }
+    .badge-like { right: 1.5rem; color: #10B981; border-color: #10B981; transform: rotate(14deg); }
+    .badge-dislike { left: 1.5rem; color: #EF4444; border-color: #EF4444; transform: rotate(-14deg); }
+    .badge-wishlist { left: 50%; transform: translateX(-50%); color: #F59E0B; border-color: #F59E0B; }
 </style>
 
 <script>
@@ -198,14 +206,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             })
             .catch(() => {
-                loading.innerHTML = '<p style="color:var(--color-red)">Error al cargar. Inténtalo de nuevo.</p>';
+                loading.innerHTML = '<p style="color:var(--status-err-fg)">Error al cargar. Inténtalo de nuevo.</p>';
             });
     }
 
     let searchTimeout = null;
     searchInput.addEventListener('input', () => {
         const q = searchInput.value.trim();
-        searchClear.style.display = q ? 'block' : 'none';
+        searchClear.style.display = q ? 'flex' : 'none';
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
             currentQuery = q;
@@ -228,8 +236,8 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         msg => {
             const warning = document.getElementById('geoWarning');
-            warning.textContent = '📍 ' + msg + ' Mostrando recomendaciones por afinidad.';
-            warning.style.display = 'block';
+            warning.innerHTML = `${lucideSvg('map-pin', 'icon-sm')} <span>${escapeHtml(msg)} Mostrando recomendaciones por afinidad.</span>`;
+            warning.style.display = 'flex';
             fetchBeers(null, null, currentQuery);
         }
     );
@@ -246,17 +254,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (b.style_color) card.style.borderTopColor = b.style_color;
 
         const bgStyle = b.image_url ? `background-image: url('${b.image_url}');` : '';
-        const fallbackEmoji = b.image_url ? '' : '🍺';
+        const fallbackIcon = b.image_url ? '' : '<svg class="icon" style="width:64px;height:64px;opacity:0.65;" viewBox="0 0 24 24">' + window.LUCIDE_PATHS['beer'] + '</svg>';
         const tagsHtml = (b.tags && b.tags.length)
             ? `<div class="bm-tags">${b.tags.map(t => `<span class="bm-tag">${escapeHtml(t)}</span>`).join('')}</div>`
             : '';
-        const reasonHtml = b.reason ? `<p class="bm-reason">💡 ${escapeHtml(b.reason)}</p>` : '';
+        const reasonHtml = b.reason ? `<p class="bm-reason">${lucideSvg('sparkles', 'icon-sm')} <span>${escapeHtml(b.reason)}</span></p>` : '';
 
         const distStr = escapeHtml(b.distance_str || (b.distance_km != null ? b.distance_km + ' km' : ''));
         const venueName = escapeHtml(b.nearest_venue_name);
         const locationBadge = b.nearest_venue_name
             ? `<div class="bm-location-badge">
-                 <span>📍</span>
+                 ${lucideSvg('map-pin', 'icon-sm')}
                  <span class="bm-location-name">${venueName}</span>
                  ${distStr ? `<span class="bm-location-dist">${distStr}</span>` : ''}
                </div>`
@@ -265,9 +273,9 @@ document.addEventListener('DOMContentLoaded', () => {
         card.innerHTML = `
             <div class="badge-swipe badge-like" id="badge-like-${i}">ME GUSTA</div>
             <div class="badge-swipe badge-dislike" id="badge-dislike-${i}">DESCARTAR</div>
-            <div class="badge-swipe badge-wishlist" id="badge-wishlist-${i}">RADAR 📡</div>
+            <div class="badge-swipe badge-wishlist" id="badge-wishlist-${i}">RADAR</div>
             <div class="beermatch-card-img" style="${bgStyle}">
-                ${fallbackEmoji}
+                ${fallbackIcon}
                 ${locationBadge}
             </div>
             <div class="beermatch-card-content">
@@ -283,20 +291,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showFeedback(type) {
         if (type === 'LIKE') {
-            feedbackText.innerHTML = '❤️ ¡Me gusta!';
+            feedbackText.innerHTML = `${lucideSvg('heart')} <span>¡Me gusta!</span>`;
             feedbackText.style.color = '#6EE7B7';
         } else if (type === 'WISHLIST') {
-            feedbackText.innerHTML = '📡 ¡Añadida a tu Radar!';
+            feedbackText.innerHTML = `${lucideSvg('radar')} <span>¡Añadida a tu Radar!</span>`;
             feedbackText.style.color = '#FCD34D';
         } else {
-            feedbackText.innerHTML = '❌ Descartada';
+            feedbackText.innerHTML = `${lucideSvg('x')} <span>Descartada</span>`;
             feedbackText.style.color = '#FCA5A5';
         }
         feedbackOverlay.style.opacity = '1';
         feedbackText.style.transform = 'scale(1)';
         setTimeout(() => {
             feedbackOverlay.style.opacity = '0';
-            feedbackText.style.transform = 'scale(0.8)';
+            feedbackText.style.transform = 'scale(0.85)';
         }, 750);
     }
 

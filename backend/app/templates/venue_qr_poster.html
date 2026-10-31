@@ -208,14 +208,17 @@
     <!-- ACTION BAR -->
     <div class="action-bar">
         <a href="{{ url_for('routes.venue_view', id=venue.id) }}" class="btn-action btn-back">
-            ← Volver al Bar
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+            Volver al Bar
         </a>
         <div style="display:flex; gap:0.6rem;">
             <button onclick="downloadQr()" class="btn-action btn-back" style="color:#FFFFFF;">
-                ⬇️ Descargar PNG
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                Descargar PNG
             </button>
             <button onclick="window.print()" class="btn-action btn-print">
-                🖨️ Imprimir Cartel
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg>
+                Imprimir Cartel
             </button>
         </div>
     </div>
@@ -223,7 +226,8 @@
     <!-- POSTER / TABLE TENT -->
     <div class="poster-container" id="printablePoster">
         <div class="poster-badge-top">
-            <span>🍺 Carta Digital en Vivo</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 11h1a3 3 0 0 1 0 6h-1"/><path d="M9 12v6"/><path d="M13 12v6"/><path d="M14 7.5c-1 0-1.44.5-3 .5s-2-.5-3-.5-1.72.5-2.5.5a2.5 2.5 0 0 1 0-5c.78 0 1.57.5 2.5.5S9.44 2 11 2s2 1.5 3 1.5 1.72-.5 2.5-.5a2.5 2.5 0 0 1 0 5c-.78 0-1.5-.5-2.5-.5Z"/><path d="M5 8v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8"/></svg>
+            <span>Carta Digital en Vivo</span>
         </div>
 
         <h1 class="venue-name">{{ venue.name }}</h1>
@@ -235,7 +239,8 @@
         </div>
 
         <h3 class="poster-cta-title">
-            <span>📱</span> ¿Qué tenemos pinchado hoy?
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+            ¿Qué tenemos pinchado hoy?
         </h3>
         <p class="poster-cta-desc">
             Escanea este código con tu cámara para consultar nuestra <strong>pizarra de grifos en tiempo real</strong>, estilos, alérgenos y notas de cata.
@@ -243,7 +248,8 @@
 
         <div class="poster-footer">
             <div class="poster-footer-brand">
-                <span>🍺</span> BeerMap
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 11h1a3 3 0 0 1 0 6h-1"/><path d="M9 12v6"/><path d="M13 12v6"/><path d="M14 7.5c-1 0-1.44.5-3 .5s-2-.5-3-.5-1.72.5-2.5.5a2.5 2.5 0 0 1 0-5c.78 0 1.57.5 2.5.5S9.44 2 11 2s2 1.5 3 1.5 1.72-.5 2.5-.5a2.5 2.5 0 0 1 0 5c-.78 0-1.5-.5-2.5-.5Z"/><path d="M5 8v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8"/></svg>
+                BeerMap
             </div>
             <div>Actualización al instante</div>
         </div>

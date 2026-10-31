@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="search-bar" style="margin-bottom: 1rem;">
-    <span style="font-size: 1.2rem; color: var(--text-secondary);">🔍</span>
+    <span style="color: var(--color-primary); display:flex; margin-right:0.25rem;">{{ icon('search', 'icon-sm') }}</span>
     <input type="text" id="searchInput" list="beer-list" placeholder="Buscar por nombre, fabricante..." oninput="debounceExplore()" value="{{ request.args.get('q', '') }}">
     <datalist id="beer-list">
         {% for b in beers %}
@@ -11,28 +11,30 @@
     </datalist>
 </div>
 
-<div class="card" style="margin-bottom: 1.5rem;">
-    <h3 style="margin: 0 0 0.5rem 0; font-size: 1rem; color: var(--color-primary);">¿Qué te apetece?</h3>
-    
-    <div style="display: flex; flex-direction: column; gap: 1rem;">
+<div class="card" style="margin-bottom: 1.4rem;">
+    <h3 style="margin: 0 0 0.65rem 0; font-size: 0.98rem; color: var(--color-primary); display:flex; align-items:center; gap:0.4rem;">
+        {{ icon('sliders', 'icon-sm') }} Filtrar por estilo y notas
+    </h3>
+
+    <div style="display: flex; flex-direction: column; gap: 0.9rem;">
         <div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.3rem;">
-                <label style="font-size: 0.85rem; color: var(--text-secondary); margin:0;">Estilo de Cerveza</label>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
+                <label style="font-size: 0.84rem; color: var(--text-secondary); margin:0;">Estilo de Cerveza</label>
                 <button type="button" onclick="openStyleGuideModal()" class="style-info-btn">
-                    📖 Guía de estilos
+                    {{ icon('book-open', 'icon-sm') }} Guía de estilos
                 </button>
             </div>
-            <input type="text" id="styleInput" list="style-list" placeholder="Escribe un estilo (ej. IPA, Pilsner)..." oninput="debounceExplore()" style="margin: 0; padding: 0.5rem; width: 100%; border-radius: 8px;">
+            <input type="text" id="styleInput" list="style-list" placeholder="Escribe un estilo (ej. IPA, Pilsner)..." oninput="debounceExplore()" style="margin: 0; padding: 0.6rem 0.85rem; width: 100%;">
             <datalist id="style-list">
                 {% for s in styles %}
                 <option value="{{ s.name }}"></option>
                 {% endfor %}
             </datalist>
         </div>
-        
+
         <div>
-            <label style="font-size: 0.85rem; color: var(--text-secondary);">Característica (Tag)</label>
-            <input type="text" id="tagInput" list="tag-list" placeholder="Escribe un tag (ej. Lupulada)..." oninput="debounceExplore()" style="margin: 0; padding: 0.5rem; width: 100%; border-radius: 8px;">
+            <label style="font-size: 0.84rem; color: var(--text-secondary); display:block; margin-bottom:0.35rem;">Característica (Tag)</label>
+            <input type="text" id="tagInput" list="tag-list" placeholder="Escribe un tag (ej. Lupulada)..." oninput="debounceExplore()" style="margin: 0; padding: 0.6rem 0.85rem; width: 100%;">
             <datalist id="tag-list">
                 {% for t in tags %}
                 <option value="{{ t.name }}"></option>
@@ -56,45 +58,45 @@
         const q = document.getElementById('searchInput').value;
         const style = document.getElementById('styleInput').value;
         const tag = document.getElementById('tagInput').value;
-        
+
         let url = `/api/explore?q=${encodeURIComponent(q)}&style=${encodeURIComponent(style)}&tag=${encodeURIComponent(tag)}`;
         if (currentLat !== null && currentLon !== null) {
             url += `&lat=${currentLat}&lon=${currentLon}`;
         }
-        
+
         document.getElementById('resultsContainer').innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Cargando cervezas...</p>';
-        
+
         fetch(url)
             .then(res => res.json())
             .then(data => {
                 const container = document.getElementById('resultsContainer');
                 container.innerHTML = '';
-                
-                if(data.length === 0) {
+
+                if (data.length === 0) {
                     container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No se encontraron cervezas.</p>';
                     return;
                 }
-                
+
                 data.forEach(beer => {
                     const card = document.createElement('a');
                     card.className = 'beer-card';
                     card.href = beer.view_url;
                     if (beer.style_color) card.style.borderLeftColor = beer.style_color;
-                    
-                    let imgHtml = '<div class="card-img">🍺</div>';
+
+                    let imgHtml = `<div class="card-img">${lucideSvg('beer', 'icon-lg')}</div>`;
                     if (beer.image_url) {
                         imgHtml = `<div class="card-img" style="background-image: url('${beer.image_url}'); background-size: cover; background-position: center;"></div>`;
                     }
-                    
+
                     let distanceHtml = '';
                     if (beer.distance !== 9999) {
-                        distanceHtml = `<span style="font-size: 0.8rem; color: var(--color-green); display: block; margin-top: 0.2rem;">📍 A ${beer.distance_str}</span>`;
+                        distanceHtml = `<span style="font-size: 0.8rem; color: var(--status-ok-fg); display: inline-flex; align-items:center; gap:0.25rem; margin-top: 0.2rem; font-weight:600;">${lucideSvg('map-pin', 'icon-sm')} A ${escapeHtml(beer.distance_str)}</span>`;
                     } else if (currentLat !== null) {
-                        distanceHtml = `<span style="font-size: 0.8rem; color: var(--color-red); display: block; margin-top: 0.2rem;">📍 No disponible cerca</span>`;
+                        distanceHtml = `<span style="font-size: 0.78rem; color: var(--text-muted); display: inline-flex; align-items:center; gap:0.25rem; margin-top: 0.2rem;">${lucideSvg('map-pin', 'icon-sm')} Sin stock cercano</span>`;
                     }
 
                     const reasonHtml = beer.reason
-                        ? `<span style="font-size: 0.78rem; color: var(--color-secondary); display: block; margin-top: 0.3rem;">💡 ${escapeHtml(beer.reason)}</span>`
+                        ? `<span style="font-size: 0.78rem; color: var(--color-secondary); display: flex; align-items:center; gap:0.3rem; margin-top: 0.3rem;">${lucideSvg('sparkles', 'icon-sm')} ${escapeHtml(beer.reason)}</span>`
                         : '';
 
                     card.innerHTML = `
@@ -119,7 +121,6 @@
         timeout = setTimeout(exploreBeers, 300);
     }
 
-    // Initialize
     window.getAppLocation(
         pos => {
             currentLat = pos.coords.latitude;
@@ -128,8 +129,8 @@
         },
         msg => {
             const warning = document.getElementById('geoWarning');
-            warning.textContent = '📍 ' + msg + ' Mostrando resultados sin distancia.';
-            warning.style.display = 'block';
+            warning.innerHTML = `${lucideSvg('map-pin', 'icon-sm')} <span>${escapeHtml(msg)} Mostrando resultados sin distancia.</span>`;
+            warning.style.display = 'flex';
             exploreBeers();
         }
     );

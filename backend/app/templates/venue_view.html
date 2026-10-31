@@ -3,22 +3,24 @@
 {% block content %}
 <div class="card">
     <div style="display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 0.9rem;">
-        <div class="card-img" style="width: 56px; height: 56px; color: var(--color-primary); flex-shrink:0;">{{ icon('store') }}</div>
+        <div class="card-img" style="width: 56px; height: 56px; flex-shrink:0;">{{ icon('store') }}</div>
         <div style="flex:1; min-width:0;">
             <h2 style="margin: 0 0 0.25rem 0;">{{ venue.name }}</h2>
             <p class="text-sm text-secondary" style="margin: 0; display:flex; align-items:center; gap:0.3rem;">
-                {{ icon('map-pin') }} {{ venue.address }}{% if venue.city %}, {{ venue.city }}{% endif %}
+                {{ icon('map-pin', 'icon-sm') }} {{ venue.address }}{% if venue.city %}, {{ venue.city }}{% endif %}
             </p>
             {% if venue.website or venue.instagram_handle or venue.phone %}
-            <div style="display:flex; flex-wrap:wrap; gap:0.75rem; margin-top:0.4rem; font-size:0.82rem;">
+            <div style="display:flex; flex-wrap:wrap; gap:0.75rem; margin-top:0.45rem; font-size:0.82rem;">
                 {% if venue.website %}
-                <a href="{{ venue.website }}" target="_blank" rel="noopener" style="color:var(--color-primary); text-decoration:underline;">🌐 Web oficial ↗</a>
+                <a href="{{ venue.website }}" target="_blank" rel="noopener" style="color:var(--color-primary); text-decoration:underline; display:inline-flex; align-items:center; gap:0.25rem;">
+                    {{ icon('globe', 'icon-sm') }} Web oficial {{ icon('arrow-up-right', 'icon-sm') }}
+                </a>
                 {% endif %}
                 {% if venue.instagram_handle %}
-                <span style="color:var(--text-secondary);">📱 {{ venue.instagram_handle }}</span>
+                <span style="color:var(--text-secondary); display:inline-flex; align-items:center; gap:0.25rem;">{{ icon('smartphone', 'icon-sm') }} {{ venue.instagram_handle }}</span>
                 {% endif %}
                 {% if venue.phone %}
-                <span style="color:var(--text-secondary);">📞 {{ venue.phone }}</span>
+                <span style="color:var(--text-secondary); display:inline-flex; align-items:center; gap:0.25rem;">{{ icon('phone', 'icon-sm') }} {{ venue.phone }}</span>
                 {% endif %}
             </div>
             {% endif %}
@@ -30,41 +32,44 @@
     {% endif %}
 
     {% if venue.owner_user_id %}
-    <span class="badge badge-green" style="margin-bottom: 0.5rem; display: inline-flex; align-items:center; gap:0.3rem;">
-        {{ icon('check-circle') }} Local verificado oficialmente
+    <span class="badge badge-green" style="margin-bottom: 0.5rem;">
+        {{ icon('badge-check', 'icon-sm') }} Local verificado oficialmente
     </span>
     {% else %}
-    <span class="badge" style="background:#2A2E39; color:var(--text-secondary); margin-bottom: 0.5rem; display: inline-block;">
+    <span class="badge badge-neutral" style="margin-bottom: 0.5rem;">
         Colaborativo · Sin propietario verificado
     </span>
     {% endif %}
 
     <div style="margin-top: 0.9rem; display: flex; gap: 0.75rem;">
-        <a href="{{ url_for('routes.map_view') }}" class="btn btn-outline" style="flex: 1;">Ver en Mapa</a>
+        <a href="{{ url_for('routes.map_view') }}" class="btn btn-outline" style="flex: 1;">
+            {{ icon('map-pin', 'icon-sm') }} Ver en Mapa
+        </a>
         {% if can_edit %}
-        <a href="{{ url_for('routes.edit_venue', id=venue.id) }}" class="btn" style="flex: 1; display:flex; align-items:center; justify-content:center; gap:0.4rem;">
-            {{ icon('edit') }} Editar
+        <a href="{{ url_for('routes.edit_venue', id=venue.id) }}" class="btn" style="flex: 1;">
+            {{ icon('edit', 'icon-sm') }} Editar
         </a>
         {% endif %}
     </div>
 
     {% if can_b2b %}
     <!-- Herramientas exclusivas B2B para propietario verificado / ADMIN -->
-    <div style="margin-top: 0.9rem; padding-top: 0.85rem; border-top: 1px solid var(--border-color);">
-        <div style="font-size:0.76rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--color-primary); margin-bottom:0.5rem;">
-            👑 Herramientas para tu Local Verificado
+    <div style="margin-top: 0.95rem; padding-top: 0.85rem; border-top: 1px solid var(--border-color);">
+        <div style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--color-primary); margin-bottom:0.55rem; display:flex; align-items:center; gap:0.35rem;">
+            {{ icon('badge-check', 'icon-sm') }} Herramientas para tu Local Verificado
         </div>
         <div style="display: flex; gap: 0.6rem;">
-            <a href="{{ url_for('routes.venue_tv', id=venue.id) }}" target="_blank" class="btn btn-outline" style="flex: 1; display:flex; align-items:center; justify-content:center; gap:0.4rem; font-size:0.82rem;">
-                📺 Modo TV
+            <a href="{{ url_for('routes.venue_tv', id=venue.id) }}" target="_blank" class="btn btn-outline" style="flex: 1; font-size:0.82rem;">
+                {{ icon('tv', 'icon-sm') }} Modo TV
             </a>
-            <a href="{{ url_for('routes.venue_qr_poster', id=venue.id) }}" target="_blank" class="btn btn-outline" style="flex: 1; display:flex; align-items:center; justify-content:center; gap:0.4rem; font-size:0.82rem;">
-                📱 Cartel QR Mesas
+            <a href="{{ url_for('routes.venue_qr_poster', id=venue.id) }}" target="_blank" class="btn btn-outline" style="flex: 1; font-size:0.82rem;">
+                {{ icon('qr-code', 'icon-sm') }} Cartel QR Mesas
             </a>
         </div>
         {% if radar_demand_count > 0 %}
-        <div style="margin-top:0.65rem; padding:0.55rem 0.8rem; border-radius:10px; background:rgba(245, 158, 11, 0.12); border:1px solid rgba(245, 158, 11, 0.35); font-size:0.8rem; color:#FCD34D;">
-            📡 <strong>{{ radar_demand_count }} {{ 'usuario tiene' if radar_demand_count == 1 else 'usuarios tienen' }}</strong> cervezas de tu pizarra activa en su radar.
+        <div class="notice-amber" style="margin-top:0.65rem;">
+            {{ icon('radar', 'icon-sm') }}
+            <span><strong>{{ radar_demand_count }} {{ 'usuario tiene' if radar_demand_count == 1 else 'usuarios tienen' }}</strong> cervezas de tu pizarra activa en su radar.</span>
         </div>
         {% endif %}
     </div>
@@ -72,14 +77,15 @@
 
     {% if session.get('user_id') %}
         {% if has_pending_claim %}
-        <div style="margin-top:1rem; padding-top:0.8rem; border-top:1px solid var(--border-color); font-size:0.82rem;">
-            ⏳ Tienes una reclamación activa sobre este local ·
+        <div style="margin-top:1rem; padding-top:0.8rem; border-top:1px solid var(--border-color); font-size:0.82rem; display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap;">
+            {{ icon('clock', 'icon-sm') }}
+            <span>Tienes una reclamación activa sobre este local ·</span>
             <a href="{{ url_for('routes.my_claims') }}" style="color:var(--color-primary); font-weight:700;">Completar verificación →</a>
         </div>
         {% elif not venue.owner_user_id %}
         <details style="margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid var(--border-color);">
             <summary style="color: var(--color-primary); cursor: pointer; font-size: 0.84rem; font-weight:600;">
-                🛡️ ¿Gestionas este establecimiento? Reclámalo y activa herramientas B2B (TV + QR)
+                {{ icon('shield-check', 'icon-sm') }} ¿Gestionas este establecimiento? Reclámalo y activa herramientas (TV + QR)
             </summary>
             <form method="POST" action="{{ url_for('routes.claim_entity', entity_type='venue', entity_id=venue.id) }}" enctype="multipart/form-data" style="margin-top: 0.75rem;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -87,16 +93,16 @@
                 <label style="font-size:0.82rem;">Método de verificación</label>
                 <select name="verification_method" onchange="toggleVenueClaimFields(this.value)">
                     {% if venue.website %}
-                    <option value="DOMAIN_EMAIL">✉️ Email corporativo del dominio del local (OTP automático)</option>
-                    <option value="DNS_META">🌐 Etiqueta Meta / archivo en la web del local</option>
+                    <option value="DOMAIN_EMAIL">Email corporativo del dominio del local (OTP automático)</option>
+                    <option value="DNS_META">Etiqueta Meta / archivo en la web del local</option>
                     {% endif %}
-                    <option value="SOCIAL_TOKEN">📱 Código temporal en bio de Instagram ({{ venue.instagram_handle or '@tulocal' }})</option>
-                    <option value="DOCUMENT_UPLOAD">📄 Documento privado (licencia, recibo o CIF — confidencial)</option>
+                    <option value="SOCIAL_TOKEN">Código temporal en bio de Instagram ({{ venue.instagram_handle or '@tulocal' }})</option>
+                    <option value="DOCUMENT_UPLOAD">Documento privado (licencia, recibo o CIF — confidencial)</option>
                     {% if not venue.website %}
-                    <option value="DOMAIN_EMAIL">✉️ Email corporativo propio</option>
-                    <option value="DNS_META">🌐 Etiqueta Meta en web oficial</option>
+                    <option value="DOMAIN_EMAIL">Email corporativo propio</option>
+                    <option value="DNS_META">Etiqueta Meta en web oficial</option>
                     {% endif %}
-                    <option value="MANUAL">📝 Solicitud manual con enlace y explicación</option>
+                    <option value="MANUAL">Solicitud manual con enlace y explicación</option>
                 </select>
 
                 <div id="venue-claim-target-box">
@@ -123,7 +129,7 @@
         {% elif not can_b2b %}
         <details style="margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid var(--border-color);">
             <summary style="color: var(--text-muted); cursor: pointer; font-size: 0.78rem;">
-                ⚖️ ¿Eres el titular real de este local? Disputar propiedad
+                {{ icon('scale', 'icon-sm') }} ¿Eres el titular real de este local? Disputar propiedad
             </summary>
             <form method="POST" action="{{ url_for('routes.claim_entity', entity_type='venue', entity_id=venue.id) }}" enctype="multipart/form-data" style="margin-top: 0.65rem;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -141,17 +147,19 @@
 </div>
 
 <div class="section-title">
-    <span>🍺 Pizarra de Cervezas</span>
+    <span>{{ icon('beer') }} Pizarra de Cervezas</span>
     {% if is_verified_venue %}
-    <span style="font-size:0.76rem; color:#6EE7B7; font-weight:600;">👑 Pizarra oficial</span>
+    <span style="font-size:0.76rem; color:var(--status-ok-fg); font-weight:700; display:inline-flex; align-items:center; gap:0.25rem;">
+        {{ icon('badge-check', 'icon-sm') }} Oficial
+    </span>
     {% endif %}
 </div>
 
 {% for beer in available_beers %}
 <div class="beer-card" style="display: block; cursor: pointer; {% if beer.style_color %}border-left-color: {{ beer.style_color }};{% endif %}" onclick="window.location.href='{{ url_for('routes.beer_view', id=beer.id) }}'">
     <div class="card-header" style="align-items: center;">
-        <div class="card-img" {% if beer.image_url %}style="width: 84px; height: 84px; background-image: url('{{ beer.image_url }}'); background-size: cover; background-position: center; border-radius: 12px; flex-shrink: 0;"{% else %}style="width: 84px; height: 84px; flex-shrink: 0; font-size: 2.2rem;"{% endif %}>
-            {% if not beer.image_url %}🍺{% endif %}
+        <div class="card-img" {% if beer.image_url %}style="width: 80px; height: 80px; background-image: url('{{ beer.image_url }}'); background-size: cover; background-position: center; border-radius: 14px; flex-shrink: 0;"{% else %}style="width: 80px; height: 80px; flex-shrink: 0;"{% endif %}>
+            {% if not beer.image_url %}{{ icon('beer', 'icon-xl') }}{% endif %}
         </div>
         <div class="card-info" style="flex: 1; min-width: 0;">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.4rem;">
@@ -172,12 +180,12 @@
                 {% endif %}
 
                 {% if beer.in_user_radar and beer.status == 'AVAILABLE' %}
-                    <span class="pill" style="margin:0; font-size:0.72rem; background:rgba(245, 158, 11, 0.2); color:#FCD34D; border-color:#F59E0B;">📡 En tu radar</span>
+                    <span class="pill pill-amber" style="margin:0; font-size:0.72rem;">{{ icon('radar', 'icon-sm') }} En tu radar</span>
                 {% endif %}
 
                 {% if beer.community_soldout_reports and beer.community_soldout_reports > 0 and beer.status == 'AVAILABLE' %}
-                    <span class="pill" style="margin:0; font-size:0.72rem; background:rgba(239, 68, 68, 0.15); color:#FCA5A5; border-color:rgba(239, 68, 68, 0.4);">
-                        ⚠️ {{ beer.community_soldout_reports }} {{ 'aviso agotada' if beer.community_soldout_reports == 1 else 'avisos agotada' }}
+                    <span class="pill pill-red" style="margin:0; font-size:0.72rem;">
+                        {{ icon('alert-triangle', 'icon-sm') }} {{ beer.community_soldout_reports }} {{ 'aviso agotada' if beer.community_soldout_reports == 1 else 'avisos agotada' }}
                     </span>
                 {% endif %}
             </div>
@@ -187,12 +195,12 @@
                 <form action="{{ url_for('routes.update_status', venue_id=venue.id, beer_id=beer.id) }}" method="POST" style="flex: 1; margin:0;">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="status" value="AVAILABLE">
-                    <button type="submit" class="btn" style="padding: 0.35rem 0.4rem; font-size: 0.72rem; width: 100%; background: var(--color-green); display:flex; align-items:center; justify-content:center; gap:0.25rem;">{{ icon('check-circle') }} Disp.</button>
+                    <button type="submit" class="btn" style="padding: 0.35rem 0.4rem; font-size: 0.74rem; width: 100%; background: var(--color-green); color:#FFFFFF; box-shadow:none;">{{ icon('check-circle', 'icon-sm') }} Disp.</button>
                 </form>
                 <form action="{{ url_for('routes.update_status', venue_id=venue.id, beer_id=beer.id) }}" method="POST" style="flex: 1; margin:0;">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="status" value="SOLD_OUT">
-                    <button type="submit" class="btn" style="padding: 0.35rem 0.4rem; font-size: 0.72rem; width: 100%; background: var(--color-red); display:flex; align-items:center; justify-content:center; gap:0.25rem;">{{ icon('x') }} Agot.</button>
+                    <button type="submit" class="btn" style="padding: 0.35rem 0.4rem; font-size: 0.74rem; width: 100%; background: var(--color-red); color:#FFFFFF; box-shadow:none;">{{ icon('x', 'icon-sm') }} Agot.</button>
                 </form>
             </div>
             {% elif is_verified_venue and session.get('user_id') and beer.status == 'AVAILABLE' %}
@@ -207,7 +215,7 @@
             {% endif %}
 
             {% if beer.history %}
-            <div id="history-{{ beer.id }}" style="display: none; margin-top: 0.75rem; font-size: 0.75rem; color: var(--text-secondary); background: var(--bg-body); padding: 0.5rem 0.7rem; border-radius: 8px;" onclick="event.stopPropagation();">
+            <div id="history-{{ beer.id }}" style="display: none; margin-top: 0.75rem; font-size: 0.75rem; color: var(--text-secondary); background: var(--color-tertiary); padding: 0.5rem 0.7rem; border-radius: 10px;" onclick="event.stopPropagation();">
                 <strong>Última actividad:</strong>
                 <ul style="margin: 0.25rem 0 0; padding-left: 1.1rem;">
                 {% for log in beer.history %}
@@ -227,7 +235,10 @@
 
 {% if can_manage_taplist %}
 <div class="card" style="margin-top: 1rem; border: 1px dashed var(--border-color); background: transparent;">
-    <h3 style="margin-top: 0; font-size:1.05rem;">{% if can_b2b %}🍺 Añadir cerveza a tu pizarra oficial{% else %}🍺 Colaborar añadiendo una cerveza a este bar{% endif %}</h3>
+    <h3 style="margin-top: 0; font-size:1.02rem; display:flex; align-items:center; gap:0.4rem;">
+        {{ icon('plus', 'icon-sm') }}
+        <span>{% if can_b2b %}Añadir cerveza a tu pizarra oficial{% else %}Colaborar añadiendo una cerveza a este bar{% endif %}</span>
+    </h3>
     <form action="{{ url_for('routes.venue_add_beer', venue_id=venue.id) }}" method="POST" id="add-beer-form" style="display: flex; gap: 0.6rem; align-items: flex-start; flex-direction: column;">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div style="position: relative; width: 100%;" id="beer-autocomplete-wrap">
@@ -236,11 +247,11 @@
                 id="beer-search-input"
                 placeholder="Escribe el nombre o cervecera..."
                 autocomplete="off"
-                style="width: 100%; margin: 0; padding: 0.7rem 1rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-panel); color: var(--text-main); font-size: 0.95rem; font-family: inherit; outline: none; box-sizing: border-box;"
+                style="width: 100%; margin: 0;"
             >
             <input type="hidden" name="beer_id" id="beer-id-input" required>
             <div id="beer-suggestions"
-                 style="display:none; position:absolute; top:calc(100% + 4px); left:0; right:0; background:var(--bg-panel); border:1px solid var(--border-color); border-radius:10px; max-height:220px; overflow-y:auto; z-index:500; box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+                 style="display:none; position:absolute; top:calc(100% + 4px); left:0; right:0; background:var(--bg-panel); border:1px solid var(--border-color); border-radius:12px; max-height:220px; overflow-y:auto; z-index:500; box-shadow:var(--card-shadow);">
             </div>
         </div>
 
@@ -352,13 +363,13 @@
 })();
 </script>
 {% elif is_verified_venue %}
-<p style="font-size:0.8rem; color:var(--text-secondary); text-align:center; margin-top:0.8rem;">
-    🔒 La pizarra de este establecimiento está gestionada directamente por su propietario verificado.
+<p style="font-size:0.8rem; color:var(--text-secondary); text-align:center; margin-top:0.8rem; display:flex; align-items:center; justify-content:center; gap:0.35rem;">
+    {{ icon('lock', 'icon-sm') }} La pizarra de este establecimiento está gestionada directamente por su propietario verificado.
 </p>
 {% endif %}
 
 <div style="margin-top:1.5rem;">
-    <a href="{{ url_for('routes.index') }}" class="btn btn-outline">← Volver al Inicio</a>
+    <a href="{{ url_for('routes.index') }}" class="btn btn-outline">{{ icon('arrow-left', 'icon-sm') }} Volver al Inicio</a>
 </div>
 
 <script>
