@@ -217,27 +217,44 @@ def bootstrap_database(app=None):
                     b.fabricante_id = fab.id
         db.session.commit()
 
-        # Bootstrap opcional de cuenta ADMIN inicial en Cloud Run / producción
-        admin_email = (os.environ.get('ADMIN_EMAIL') or '').strip().lower()
-        admin_password = os.environ.get('ADMIN_PASSWORD') or ''
+        # Asegurar cuenta ADMIN inicial (local, PythonAnywhere o Cloud Run)
+        admin_email = (os.environ.get('ADMIN_EMAIL') or 'admin@example.com').strip().lower()
+        admin_password = os.environ.get('ADMIN_PASSWORD') or 'admin123'
         admin_username = (os.environ.get('ADMIN_USERNAME') or 'admin').strip()
-        if admin_email and admin_password:
-            existing_admin = User.query.filter(
-                (db.func.lower(User.email) == admin_email) | (db.func.lower(User.username) == admin_username.lower())
-            ).first()
-            if not existing_admin:
-                db.session.add(
-                    User(
-                        username=admin_username,
-                        email=admin_email,
-                        password=auth.hash_password(admin_password),
-                        role='ADMIN',
-                        status='ACTIVE',
-                        email_verified=True,
-                    )
-                )
-                db.session.commit()
 
+        existing_admin = User.query.filter(
+            (db.func.lower(User.email) == admin_email) | (db.func.lower(User.username) == admin_username.lower())
+        ).first()
+
+        if not existing_admin:
+            db.session.add(
+                User(
+                    username=admin_username,
+                    email=admin_email,
+                    password=auth.hash_password(admin_password),
+                    role='ADMIN',
+                    status='ACTIVE',
+                    email_verified=True,
+                )
+            )
+            db.session.commit()
+            print(f'[Bootstrap] Usuario administrador creado: {admin_username} ({admin_email})')
+        else:
+            changed = False
+            if existing_admin.role != 'ADMIN':
+                existing_admin.role = 'ADMIN'
+                changed = True
+            if existing_admin.status != 'ACTIVE':
+                existing_admin.status = 'ACTIVE'
+                changed = True
+            if not existing_admin.email_verified:
+                existing_admin.email_verified = True
+                changed = True
+            if os.environ.get('ADMIN_PASSWORD'):
+                existing_admin.password = auth.hash_password(admin_password)
+                changed = True
+            if changed:
+                db.session.commit()
 
 if __name__ == '__main__':
     bootstrap_database()
