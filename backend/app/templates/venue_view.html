@@ -41,12 +41,36 @@
     </span>
     {% endif %}
 
-    <div style="margin-top: 0.9rem; display: flex; gap: 0.75rem;">
-        <a href="{{ url_for('routes.map_view') }}" class="btn btn-outline" style="flex: 1;">
+    {% if not venue.latitude or not venue.longitude %}
+    <div class="notice-amber" style="margin-top: 0.8rem; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+        <span style="display:flex; align-items:center; gap:0.4rem;">
+            {{ icon('alert-triangle', 'icon-sm') }} Este local aún no tiene coordenadas fijadas y no aparece en el mapa.
+        </span>
+        {% if can_edit %}
+        <a href="{{ url_for('routes.edit_venue', id=venue.id) }}" style="color:var(--color-primary); font-weight:700; text-decoration:underline;">
+            Ubicar ahora en mapa →
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div style="margin-top: 0.9rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        {% if venue.latitude and venue.longitude %}
+        <a href="{{ url_for('routes.map_view') }}?venue={{ venue.id }}" class="btn btn-outline" style="flex: 1; min-width: 130px;">
             {{ icon('map-pin', 'icon-sm') }} Ver en Mapa
         </a>
+        <a href="https://www.google.com/maps/search/?api=1&query={{ venue.latitude }},{{ venue.longitude }}" target="_blank" rel="noopener" class="btn btn-outline" style="flex: 1; min-width: 130px;">
+            {{ icon('globe', 'icon-sm') }} Cómo llegar
+        </a>
+        {% else %}
         {% if can_edit %}
-        <a href="{{ url_for('routes.edit_venue', id=venue.id) }}" class="btn" style="flex: 1;">
+        <a href="{{ url_for('routes.edit_venue', id=venue.id) }}" class="btn btn-outline" style="flex: 1; min-width: 130px; border-color: var(--color-primary); color: var(--color-primary);">
+            {{ icon('map-pinned', 'icon-sm') }} Situar en el Mapa
+        </a>
+        {% endif %}
+        {% endif %}
+        {% if can_edit %}
+        <a href="{{ url_for('routes.edit_venue', id=venue.id) }}" class="btn" style="flex: 1; min-width: 110px;">
             {{ icon('edit', 'icon-sm') }} Editar
         </a>
         {% endif %}

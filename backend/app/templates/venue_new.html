@@ -1,57 +1,82 @@
 {% extends "base.html" %}
 
 {% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
 <div class="card">
     <h2 style="margin-top:0; display:flex; align-items:center; gap:0.5rem;">{{ icon('store') }} Añadir un Bar</h2>
     <p style="font-size:0.9rem; color:var(--text-secondary); margin-bottom:1.5rem;">
         ¿Conoces un bar con buena selección de cervezas? Añádelo para que aparezca en el mapa. Si es tu negocio, luego podrás verificar su propiedad desde su ficha.
     </p>
 
-    <form method="POST" action="{{ url_for('routes.venue_new') }}">
+    <form method="POST" action="{{ url_for('routes.venue_new') }}" id="venueForm">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <label>Nombre del establecimiento *</label>
-        <input type="text" name="name" placeholder="Ej: La Cervecería del Norte" required>
-
-        <label>Dirección *</label>
-        <input type="text" name="address" id="address-input" placeholder="Calle, número..." required>
-
-        <label>Ciudad *</label>
-        <input type="text" name="city" placeholder="Ej: Vitoria-Gasteiz" required>
-
-        <label>Descripción (opcional)</label>
-        <textarea name="description" rows="3" placeholder="Breve descripción del local, especialidad, ambiente..."></textarea>
+        
+        <label for="name-input">Nombre del establecimiento *</label>
+        <input type="text" name="name" id="name-input" placeholder="Ej: La Cervecería del Norte" required>
 
         <div style="display:flex; gap:0.8rem; flex-wrap:wrap;">
-            <div style="flex:1; min-width:180px;">
-                <label>Sitio web oficial (opcional)</label>
-                <input type="url" name="website" placeholder="https://...">
+            <div style="flex:2; min-width:200px;">
+                <label for="address-input">Dirección *</label>
+                <input type="text" name="address" id="address-input" placeholder="Calle, número..." required>
             </div>
-            <div style="flex:1; min-width:160px;">
-                <label>Instagram (opcional)</label>
-                <input type="text" name="instagram_handle" placeholder="@nombrelocal">
+            <div style="flex:1; min-width:140px;">
+                <label for="city-input">Ciudad *</label>
+                <input type="text" name="city" id="city-input" placeholder="Ej: Vitoria-Gasteiz" required>
             </div>
         </div>
 
-        <details style="margin-bottom:1rem;">
-            <summary style="font-size:0.85rem; color:var(--text-secondary); cursor:pointer; user-select:none; display:inline-flex; align-items:center; gap:0.35rem;">
-                {{ icon('sliders', 'icon-sm') }} Coordenadas precisas (opcional — se calculan automáticamente desde la dirección)
-            </summary>
-            <div style="margin-top:0.8rem; display:flex; gap:0.8rem;">
-                <div style="flex:1;">
-                    <label>Latitud</label>
-                    <input type="text" name="latitude" id="lat-input" placeholder="Ej: 42.8467" style="margin-bottom:0;">
+        <!-- RELACIÓN DIRECCIÓN & LOCALIZACIÓN EN EL MAPA -->
+        <div style="margin: 1.1rem 0; padding: 1rem; border-radius: var(--radius-card); background: var(--bg-panel-raised); border: 1px solid var(--border-color);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:0.6rem;">
+                <div>
+                    <strong style="font-size:0.95rem; color:var(--text-main); display:flex; align-items:center; gap:0.4rem;">
+                        {{ icon('map-pinned', 'icon-sm') }} Localización en el Mapa
+                    </strong>
+                    <span style="font-size:0.78rem; color:var(--text-secondary);">
+                        Verifica el punto exacto para que aparezca correctamente en el mapa.
+                    </span>
                 </div>
-                <div style="flex:1;">
-                    <label>Longitud</label>
-                    <input type="text" name="longitude" id="lon-input" placeholder="Ej: -2.6726" style="margin-bottom:0;">
+                <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+                    <button type="button" id="btn-geocode" onclick="locateAddressOnMap()" class="btn btn-outline" style="width:auto; padding:0.4rem 0.8rem; font-size:0.8rem; display:inline-flex; align-items:center; gap:0.35rem;">
+                        {{ icon('search', 'icon-sm') }} Localizar dirección
+                    </button>
+                    <button type="button" onclick="useMyLocation()" class="btn btn-outline" style="width:auto; padding:0.4rem 0.8rem; font-size:0.8rem; display:inline-flex; align-items:center; gap:0.35rem;">
+                        {{ icon('map-pin', 'icon-sm') }} Mi GPS
+                    </button>
                 </div>
             </div>
-            <button type="button" onclick="useMyLocation()" class="btn btn-outline" style="margin-top:0.8rem; font-size:0.85rem; padding:0.5rem 1rem; width:auto;">
-                {{ icon('map-pin', 'icon-sm') }} Usar mi ubicación actual
-            </button>
-        </details>
 
-        <div style="display:flex; gap:1rem; margin-top:0.5rem;">
+            <div id="venue-picker-map" style="height: 250px; width: 100%; border-radius: var(--radius-button); border: 1px solid var(--border-color); margin-bottom: 0.6rem; z-index: 1;"></div>
+
+            <div id="geo-status-banner" style="font-size:0.82rem; padding:0.5rem 0.85rem; border-radius:var(--radius-button); display:flex; align-items:center; justify-content:space-between; gap:0.5rem; background:var(--color-tertiary); color:var(--text-secondary); border:1px solid var(--border-color);">
+                <span id="geo-status-text" style="display:inline-flex; align-items:center; gap:0.35rem;">
+                    {{ icon('info', 'icon-sm') }} Escribe la calle y ciudad para situarlo, o haz clic en el mapa.
+                </span>
+                <span id="geo-coords-badge" style="font-family:monospace; font-size:0.75rem; color:var(--text-muted);"></span>
+            </div>
+
+            <!-- Coordenadas enviadas con el formulario -->
+            <input type="hidden" name="latitude" id="lat-input" value="">
+            <input type="hidden" name="longitude" id="lon-input" value="">
+        </div>
+
+        <label for="desc-input">Descripción (opcional)</label>
+        <textarea name="description" id="desc-input" rows="3" placeholder="Breve descripción del local, especialidad, ambiente..."></textarea>
+
+        <div style="display:flex; gap:0.8rem; flex-wrap:wrap;">
+            <div style="flex:1; min-width:180px;">
+                <label for="web-input">Sitio web oficial (opcional)</label>
+                <input type="url" name="website" id="web-input" placeholder="https://...">
+            </div>
+            <div style="flex:1; min-width:160px;">
+                <label for="ig-input">Instagram (opcional)</label>
+                <input type="text" name="instagram_handle" id="ig-input" placeholder="@nombrelocal">
+            </div>
+        </div>
+
+        <div style="display:flex; gap:1rem; margin-top:1.2rem;">
             <button type="submit" class="btn">Añadir Bar</button>
             <a href="{{ url_for('routes.index') }}" class="btn btn-outline">Cancelar</a>
         </div>
@@ -59,16 +84,149 @@
 </div>
 
 <script>
-function useMyLocation() {
-    window.getAppLocation(
-        function(pos) {
-            document.getElementById('lat-input').value = pos.coords.latitude.toFixed(6);
-            document.getElementById('lon-input').value = pos.coords.longitude.toFixed(6);
-        },
-        function(msg) {
-            alert('No se pudo obtener tu ubicación: ' + msg);
+    var defaultLat = 42.8467;
+    var defaultLng = -2.6726; // Vitoria-Gasteiz por defecto
+    var currentMarker = null;
+
+    var map = L.map('venue-picker-map').setView([defaultLat, defaultLng], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    setTimeout(function() {
+        map.invalidateSize();
+    }, 250);
+
+    var beerPinIcon = L.divIcon({
+        html: '<div style="background:#E8BC6A; color:#14161E; border:2px solid #FFFFFF; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 12px rgba(0,0,0,0.5); cursor:grab;">' + lucideSvg('store', 'icon-sm') + '</div>',
+        className: 'custom-venue-pin',
+        iconSize: [36, 36],
+        iconAnchor: [18, 18]
+    });
+
+    function setCoordinates(lat, lng, labelText) {
+        document.getElementById('lat-input').value = lat.toFixed(6);
+        document.getElementById('lon-input').value = lng.toFixed(6);
+
+        if (currentMarker) {
+            currentMarker.setLatLng([lat, lng]);
+        } else {
+            currentMarker = L.marker([lat, lng], {
+                icon: beerPinIcon,
+                draggable: true
+            }).addTo(map);
+
+            currentMarker.on('dragend', function(e) {
+                var pos = e.target.getLatLng();
+                setCoordinates(pos.lat, pos.lng, 'Punto ajustado manualmente arrastrando el pin');
+            });
         }
-    );
-}
+
+        var banner = document.getElementById('geo-status-banner');
+        var textElem = document.getElementById('geo-status-text');
+        var badgeElem = document.getElementById('geo-coords-badge');
+
+        banner.style.background = 'var(--status-ok-bg)';
+        banner.style.color = 'var(--status-ok-fg)';
+        banner.style.borderColor = 'var(--status-ok-border)';
+        textElem.innerHTML = lucideSvg('badge-check', 'icon-sm') + ' ' + (labelText || 'Ubicación fijada correctamente (arrastra el pin si quieres afinar)');
+        badgeElem.textContent = lat.toFixed(4) + ', ' + lng.toFixed(4);
+    }
+
+    map.on('click', function(e) {
+        setCoordinates(e.latlng.lat, e.latlng.lng, 'Punto marcado manualmente en el mapa');
+    });
+
+    async function locateAddressOnMap() {
+        var address = (document.getElementById('address-input').value || '').trim();
+        var city = (document.getElementById('city-input').value || '').trim();
+
+        if (!address && !city) {
+            alert('Por favor escribe al menos la calle o la ciudad para poder localizarla.');
+            return;
+        }
+
+        var query = address ? (address + ', ' + city) : city;
+        var banner = document.getElementById('geo-status-banner');
+        var textElem = document.getElementById('geo-status-text');
+        var btn = document.getElementById('btn-geocode');
+        
+        btn.disabled = true;
+        textElem.innerHTML = lucideSvg('clock', 'icon-sm') + ' Buscando "' + escapeHtml(query) + '" en el mapa...';
+
+        try {
+            // 1. Intentar primero con la API de BeerMap (aprovecha la caché local de la BD)
+            var resp = await fetch('/api/geocode?q=' + encodeURIComponent(query));
+            if (resp.ok) {
+                var data = await resp.json();
+                if (data.found && data.latitude && data.longitude) {
+                    map.flyTo([data.latitude, data.longitude], 16);
+                    setCoordinates(data.latitude, data.longitude, 'Dirección encontrada y fijada');
+                    btn.disabled = false;
+                    return;
+                }
+            }
+
+            // 2. Fallback directo a Nominatim OpenStreetMap en el navegador si el servidor no tiene red saliente
+            var nominatimUrl = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(query);
+            var nomResp = await fetch(nominatimUrl, { headers: { 'Accept': 'application/json' } });
+            if (nomResp.ok) {
+                var results = await nomResp.json();
+                if (results && results.length > 0) {
+                    var lat = parseFloat(results[0].lat);
+                    var lon = parseFloat(results[0].lon);
+                    map.flyTo([lat, lon], 16);
+                    setCoordinates(lat, lon, 'Dirección encontrada en el mapa');
+                    btn.disabled = false;
+                    return;
+                }
+            }
+
+            banner.style.background = 'var(--status-warn-bg)';
+            banner.style.color = 'var(--status-warn-fg)';
+            banner.style.borderColor = 'var(--status-warn-border)';
+            textElem.innerHTML = lucideSvg('alert-triangle', 'icon-sm') + ' No pudimos ubicar la dirección exacta. Haz clic directamente en el mapa para fijar el pin.';
+        } catch (err) {
+            banner.style.background = 'var(--status-warn-bg)';
+            banner.style.color = 'var(--status-warn-fg)';
+            banner.style.borderColor = 'var(--status-warn-border)';
+            textElem.innerHTML = lucideSvg('alert-triangle', 'icon-sm') + ' Error al conectar con el geolocalizador. Haz clic en el mapa para marcar el local.';
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    // Al cambiar la dirección o ciudad, si aún no hay coordenadas, sugerir geocodificar
+    var addrInput = document.getElementById('address-input');
+    var cityInput = document.getElementById('city-input');
+    function onAddressFieldBlur() {
+        var lat = document.getElementById('lat-input').value;
+        if (!lat && addrInput.value.trim().length > 3 && cityInput.value.trim().length > 2) {
+            locateAddressOnMap();
+        }
+    }
+    addrInput.addEventListener('blur', onAddressFieldBlur);
+    cityInput.addEventListener('blur', onAddressFieldBlur);
+
+    function useMyLocation() {
+        window.getAppLocation(
+            function(pos) {
+                map.flyTo([pos.coords.latitude, pos.coords.longitude], 16);
+                setCoordinates(pos.coords.latitude, pos.coords.longitude, 'Ubicación tomada de tu GPS');
+            },
+            function(msg) {
+                alert('No se pudo obtener tu ubicación: ' + msg);
+            }
+        );
+    }
+
+    // Inicializar mapa cerca del usuario si da permiso de geolocalización
+    window.getAppLocation(function(pos) {
+        if (!document.getElementById('lat-input').value) {
+            map.setView([pos.coords.latitude, pos.coords.longitude], 14);
+        }
+    }, function() {});
 </script>
 {% endblock %}

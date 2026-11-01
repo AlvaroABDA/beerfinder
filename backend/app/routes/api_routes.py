@@ -365,3 +365,16 @@ def check_duplicate():
 
     return jsonify({'exists': False})
 
+
+@bp.route('/api/geocode')
+def api_geocode():
+    q = (request.args.get('q') or '').strip()
+    if not q:
+        return jsonify({'found': False, 'message': 'Consulta vacía'}), 400
+    lat, lon = data_access.geocode_address(q)
+    if lat is not None and lon is not None:
+        return jsonify({'found': True, 'latitude': lat, 'longitude': lon, 'query': q})
+    return jsonify({'found': False, 'message': 'No se encontraron coordenadas'}), 404
+
+
+

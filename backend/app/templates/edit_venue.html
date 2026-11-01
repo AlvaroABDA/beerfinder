@@ -1,59 +1,97 @@
 {% extends "base.html" %}
 
 {% block content %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
 <div class="card">
-    <h2>Editar Local: {{ venue.name }}</h2>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
+        <h2 style="margin:0; display:flex; align-items:center; gap:0.5rem;">
+            {{ icon('edit') }} Editar Local: {{ venue.name }}
+        </h2>
+        <a href="{{ url_for('routes.venue_view', id=venue.id) }}" class="btn btn-outline" style="width:auto; padding:0.4rem 0.8rem; font-size:0.85rem;">
+            {{ icon('arrow-left', 'icon-sm') }} Ver ficha
+        </a>
+    </div>
 
-    <form method="POST" action="{{ url_for('routes.edit_venue', id=venue.id) }}">
+    <form method="POST" action="{{ url_for('routes.edit_venue', id=venue.id) }}" id="editVenueForm">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-            <div style="flex:1; min-width:180px;">
-                <label>Nombre del Bar</label>
-                <input type="text" name="name" value="{{ venue.name }}" required>
-            </div>
-            <div style="flex:1; min-width:150px;">
-                <label>Ciudad</label>
-                <input type="text" name="city" value="{{ venue.city }}" required>
-            </div>
-        </div>
+        
+        <label for="name-input">Nombre del Bar *</label>
+        <input type="text" name="name" id="name-input" value="{{ venue.name }}" required>
 
-        <label>Dirección</label>
-        <input type="text" name="address" value="{{ venue.address }}" required>
-
-        <label>Descripción</label>
-        <textarea name="description" rows="3">{{ venue.description }}</textarea>
-
-        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-            <div style="flex:1; min-width:180px;">
-                <label>Sitio Web Oficial</label>
-                <input type="url" name="website" value="{{ venue.website or '' }}" placeholder="https://...">
+        <div style="display:flex; gap:0.8rem; flex-wrap:wrap;">
+            <div style="flex:2; min-width:200px;">
+                <label for="address-input">Dirección *</label>
+                <input type="text" name="address" id="address-input" value="{{ venue.address }}" required>
             </div>
             <div style="flex:1; min-width:140px;">
-                <label>Instagram</label>
-                <input type="text" name="instagram_handle" value="{{ venue.instagram_handle or '' }}"
-                    placeholder="@nombrelocal">
+                <label for="city-input">Ciudad *</label>
+                <input type="text" name="city" id="city-input" value="{{ venue.city }}" required>
+            </div>
+        </div>
+
+        <!-- RELACIÓN DIRECCIÓN & LOCALIZACIÓN EN EL MAPA -->
+        <div style="margin: 1.1rem 0; padding: 1rem; border-radius: var(--radius-card); background: var(--bg-panel-raised); border: 1px solid var(--border-color);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:0.6rem;">
+                <div>
+                    <strong style="font-size:0.95rem; color:var(--text-main); display:flex; align-items:center; gap:0.4rem;">
+                        {{ icon('map-pinned', 'icon-sm') }} Ubicación en el Mapa
+                    </strong>
+                    <span style="font-size:0.78rem; color:var(--text-secondary);">
+                        Arrastra el marcador o haz clic en el mapa para ajustar la posición exacta.
+                    </span>
+                </div>
+                <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+                    <button type="button" id="btn-geocode" onclick="locateAddressOnMap()" class="btn btn-outline" style="width:auto; padding:0.4rem 0.8rem; font-size:0.8rem; display:inline-flex; align-items:center; gap:0.35rem;">
+                        {{ icon('search', 'icon-sm') }} Reubicar con dirección
+                    </button>
+                    <button type="button" onclick="useMyLocation()" class="btn btn-outline" style="width:auto; padding:0.4rem 0.8rem; font-size:0.8rem; display:inline-flex; align-items:center; gap:0.35rem;">
+                        {{ icon('map-pin', 'icon-sm') }} Mi GPS
+                    </button>
+                </div>
+            </div>
+
+            <div id="edit-map" style="height: 250px; width: 100%; border-radius: var(--radius-button); border: 1px solid var(--border-color); margin-bottom: 0.6rem; z-index: 1;"></div>
+
+            <div id="geo-status-banner" style="font-size:0.82rem; padding:0.5rem 0.85rem; border-radius:var(--radius-button); display:flex; align-items:center; justify-content:space-between; gap:0.5rem; background:var(--color-tertiary); color:var(--text-secondary); border:1px solid var(--border-color);">
+                <span id="geo-status-text" style="display:inline-flex; align-items:center; gap:0.35rem;">
+                    {% if venue.latitude and venue.longitude %}
+                        {{ icon('badge-check', 'icon-sm') }} Ubicación fijada en el mapa.
+                    {% else %}
+                        {{ icon('alert-triangle', 'icon-sm') }} Sin coordenadas GPS. Pulsa "Reubicar" o haz clic en el mapa.
+                    {% endif %}
+                </span>
+                <span id="geo-coords-badge" style="font-family:monospace; font-size:0.75rem; color:var(--text-muted);">
+                    {% if venue.latitude and venue.longitude %}
+                        {{ venue.latitude|round(4) }}, {{ venue.longitude|round(4) }}
+                    {% endif %}
+                </span>
+            </div>
+
+            <input type="hidden" id="latitude" name="latitude" value="{{ venue.latitude or '' }}">
+            <input type="hidden" id="longitude" name="longitude" value="{{ venue.longitude or '' }}">
+        </div>
+
+        <label for="desc-input">Descripción</label>
+        <textarea name="description" id="desc-input" rows="3">{{ venue.description }}</textarea>
+
+        <div style="display: flex; gap: 0.8rem; flex-wrap: wrap;">
+            <div style="flex:1; min-width:180px;">
+                <label for="web-input">Sitio Web Oficial</label>
+                <input type="url" name="website" id="web-input" value="{{ venue.website or '' }}" placeholder="https://...">
             </div>
             <div style="flex:1; min-width:140px;">
-                <label>Teléfono</label>
-                <input type="tel" name="phone" value="{{ venue.phone or '' }}" placeholder="+34 ...">
+                <label for="ig-input">Instagram</label>
+                <input type="text" name="instagram_handle" id="ig-input" value="{{ venue.instagram_handle or '' }}" placeholder="@nombrelocal">
+            </div>
+            <div style="flex:1; min-width:140px;">
+                <label for="phone-input">Teléfono</label>
+                <input type="tel" name="phone" id="phone-input" value="{{ venue.phone or '' }}" placeholder="+34 ...">
             </div>
         </div>
 
-        <label>Ubicación (clic en mapa para actualizar)</label>
-        <div id="edit-map" style="height: 250px; width: 100%; border-radius: 8px; margin-bottom: 1rem; z-index: 1;">
-        </div>
-
-        <div style="display: none;">
-            <input type="text" id="latitude" name="latitude" value="{{ venue.latitude or '' }}">
-            <input type="text" id="longitude" name="longitude" value="{{ venue.longitude or '' }}">
-        </div>
-
-        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+        <div style="display: flex; gap: 1rem; margin-top: 1.2rem;">
             <button type="submit" class="btn">Guardar Cambios</button>
             <a href="{{ url_for('routes.venue_view', id=venue.id) }}" class="btn btn-outline">Cancelar</a>
         </div>
@@ -61,30 +99,135 @@
 </div>
 
 <script>
-    var lat = {{ venue.latitude or 40.416775 }};
-    var lng = {{ venue.longitude or -3.703790 }};
-    var zoom = {{ 15 if venue.latitude else 13 }};
+    var hasInitialCoords = {{ 'true' if (venue.latitude and venue.longitude) else 'false' }};
+    var initialLat = {{ venue.latitude or 42.8467 }};
+    var initialLng = {{ venue.longitude or -2.6726 }};
+    var initialZoom = hasInitialCoords ? 16 : 13;
 
-    var map = L.map('edit-map').setView([lat, lng], zoom);
+    var map = L.map('edit-map').setView([initialLat, initialLng], initialZoom);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '© OpenStreetMap'
     }).addTo(map);
 
-    var marker = {% if venue.latitude %}L.marker([lat, lng]).addTo(map){% else %} null{% endif %};
+    setTimeout(function() {
+        map.invalidateSize();
+    }, 250);
 
-    map.on('click', function (e) {
-        var clickedLat = e.latlng.lat;
-        var clickedLng = e.latlng.lng;
+    var beerPinIcon = L.divIcon({
+        html: '<div style="background:#E8BC6A; color:#14161E; border:2px solid #FFFFFF; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 12px rgba(0,0,0,0.5); cursor:grab;">' + lucideSvg('store', 'icon-sm') + '</div>',
+        className: 'custom-venue-pin',
+        iconSize: [36, 36],
+        iconAnchor: [18, 18]
+    });
 
-        document.getElementById('latitude').value = clickedLat;
-        document.getElementById('longitude').value = clickedLng;
+    var marker = null;
+
+    function setCoordinates(lat, lng, labelText) {
+        document.getElementById('latitude').value = lat.toFixed(6);
+        document.getElementById('longitude').value = lng.toFixed(6);
 
         if (marker) {
-            map.removeLayer(marker);
+            marker.setLatLng([lat, lng]);
+        } else {
+            marker = L.marker([lat, lng], {
+                icon: beerPinIcon,
+                draggable: true
+            }).addTo(map);
+
+            marker.on('dragend', function(e) {
+                var pos = e.target.getLatLng();
+                setCoordinates(pos.lat, pos.lng, 'Punto ajustado arrastrando el pin');
+            });
         }
-        marker = L.marker([clickedLat, clickedLng]).addTo(map);
+
+        var banner = document.getElementById('geo-status-banner');
+        var textElem = document.getElementById('geo-status-text');
+        var badgeElem = document.getElementById('geo-coords-badge');
+
+        banner.style.background = 'var(--status-ok-bg)';
+        banner.style.color = 'var(--status-ok-fg)';
+        banner.style.borderColor = 'var(--status-ok-border)';
+        textElem.innerHTML = lucideSvg('badge-check', 'icon-sm') + ' ' + (labelText || 'Ubicación fijada en el mapa');
+        badgeElem.textContent = lat.toFixed(4) + ', ' + lng.toFixed(4);
+    }
+
+    if (hasInitialCoords) {
+        setCoordinates(initialLat, initialLng, 'Ubicación actual guardada en el local');
+    }
+
+    map.on('click', function(e) {
+        setCoordinates(e.latlng.lat, e.latlng.lng, 'Punto fijado con clic en el mapa');
     });
+
+    async function locateAddressOnMap() {
+        var address = (document.getElementById('address-input').value || '').trim();
+        var city = (document.getElementById('city-input').value || '').trim();
+
+        if (!address && !city) {
+            alert('Por favor escribe al menos la calle o la ciudad.');
+            return;
+        }
+
+        var query = address ? (address + ', ' + city) : city;
+        var banner = document.getElementById('geo-status-banner');
+        var textElem = document.getElementById('geo-status-text');
+        var btn = document.getElementById('btn-geocode');
+        
+        btn.disabled = true;
+        textElem.innerHTML = lucideSvg('clock', 'icon-sm') + ' Buscando "' + escapeHtml(query) + '" en el mapa...';
+
+        try {
+            var resp = await fetch('/api/geocode?q=' + encodeURIComponent(query));
+            if (resp.ok) {
+                var data = await resp.json();
+                if (data.found && data.latitude && data.longitude) {
+                    map.flyTo([data.latitude, data.longitude], 16);
+                    setCoordinates(data.latitude, data.longitude, 'Dirección encontrada y fijada');
+                    btn.disabled = false;
+                    return;
+                }
+            }
+
+            var nominatimUrl = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(query);
+            var nomResp = await fetch(nominatimUrl, { headers: { 'Accept': 'application/json' } });
+            if (nomResp.ok) {
+                var results = await nomResp.json();
+                if (results && results.length > 0) {
+                    var lat = parseFloat(results[0].lat);
+                    var lon = parseFloat(results[0].lon);
+                    map.flyTo([lat, lon], 16);
+                    setCoordinates(lat, lon, 'Dirección encontrada en el mapa');
+                    btn.disabled = false;
+                    return;
+                }
+            }
+
+            banner.style.background = 'var(--status-warn-bg)';
+            banner.style.color = 'var(--status-warn-fg)';
+            banner.style.borderColor = 'var(--status-warn-border)';
+            textElem.innerHTML = lucideSvg('alert-triangle', 'icon-sm') + ' No se encontró la dirección exacta. Haz clic en el mapa para situar el marcador.';
+        } catch (err) {
+            banner.style.background = 'var(--status-warn-bg)';
+            banner.style.color = 'var(--status-warn-fg)';
+            banner.style.borderColor = 'var(--status-warn-border)';
+            textElem.innerHTML = lucideSvg('alert-triangle', 'icon-sm') + ' Error al geolocalizar. Haz clic en el mapa para marcar la ubicación.';
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    function useMyLocation() {
+        window.getAppLocation(
+            function(pos) {
+                map.flyTo([pos.coords.latitude, pos.coords.longitude], 16);
+                setCoordinates(pos.coords.latitude, pos.coords.longitude, 'Ubicación tomada de tu GPS');
+            },
+            function(msg) {
+                alert('No se pudo obtener tu ubicación: ' + msg);
+            }
+        );
+    }
 </script>
 {% endblock %}

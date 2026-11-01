@@ -33,6 +33,9 @@
 
     var venues = {{ venues | tojson }};
     var bounds = [];
+    var urlParams = new URLSearchParams(window.location.search);
+    var targetVenueId = urlParams.get('venue');
+    var targetTriggerFn = null;
 
     var beerIcon = L.divIcon({
         html: '<div style="background:#161920; color:#F8FAFC; border:2px solid #94A3B8; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 10px rgba(0,0,0,0.45);">' + lucideSvg('store', 'icon-sm') + '</div>',
@@ -54,7 +57,7 @@
             var marker = L.marker([venue.latitude, venue.longitude], {icon: hasRadar ? radarIcon : beerIcon}).addTo(map);
             bounds.push([venue.latitude, venue.longitude]);
 
-            marker.on('click', function() {
+            function openThisVenue() {
                 document.getElementById('venue-name').innerText = venue.name;
                 document.getElementById('venue-address').innerText = venue.address + (venue.city ? ', ' + venue.city : '');
                 document.getElementById('venue-link').href = '/venue/' + venue.id;
@@ -67,11 +70,22 @@
                     radarNote.style.display = 'none';
                 }
                 document.getElementById('venue-info-card').style.display = 'block';
-            });
+            }
+
+            marker.on('click', openThisVenue);
+
+            if (targetVenueId && String(venue.id) === String(targetVenueId)) {
+                targetTriggerFn = function() {
+                    map.setView([venue.latitude, venue.longitude], 16);
+                    openThisVenue();
+                };
+            }
         }
     });
 
-    if (bounds.length > 0) {
+    if (targetTriggerFn) {
+        setTimeout(targetTriggerFn, 150);
+    } else if (bounds.length > 0) {
         map.fitBounds(bounds, {padding: [50, 50]});
     }
 
@@ -79,18 +93,21 @@
         document.getElementById('venue-info-card').style.display = 'none';
     }
 
-    window.getAppLocation(
-        function(pos) {
-            var latlng = [pos.coords.latitude, pos.coords.longitude];
-            map.setView(latlng, 15);
-            L.marker(latlng).addTo(map).bindPopup("Estás aquí").openPopup();
-            if (pos.coords.accuracy) {
-                L.circle(latlng, pos.coords.accuracy).addTo(map);
+    // Solo pedir geolocalización automática si el usuario no viene buscando un bar específico
+    if (!targetVenueId) {
+        window.getAppLocation(
+            function(pos) {
+                var latlng = [pos.coords.latitude, pos.coords.longitude];
+                map.setView(latlng, 15);
+                L.marker(latlng).addTo(map).bindPopup("Estás aquí").openPopup();
+                if (pos.coords.accuracy) {
+                    L.circle(latlng, pos.coords.accuracy).addTo(map);
+                }
+            },
+            function(err) {
+                console.warn("No se pudo obtener la ubicación para el mapa", err);
             }
-        },
-        function(err) {
-            console.warn("No se pudo obtener la ubicación para el mapa", err);
-        }
-    );
+        );
+    }
 </script>
 {% endblock %}
