@@ -426,7 +426,7 @@
                          data-id="{{ t.id }}"
                          data-state="{{ pref }}"
                          onclick="togglePreference(this)">
-                        {{ t.name }}
+                        {% if t.icon %}<span style="font-size:0.95em; margin-right:0.25rem;">{{ t.icon }}</span>{% endif %}{{ t.name }}
                     </div>
                 {% endfor %}
             </div>

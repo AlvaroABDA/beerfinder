@@ -99,6 +99,19 @@
                         ? `<span style="font-size: 0.78rem; color: var(--color-secondary); display: flex; align-items:center; gap:0.3rem; margin-top: 0.3rem;">${lucideSvg('sparkles', 'icon-sm')} ${escapeHtml(beer.reason)}</span>`
                         : '';
 
+                    let tagsHtml = '';
+                    if (beer.tags && beer.tags.length) {
+                        tagsHtml = `<div style="display:flex;flex-wrap:wrap;gap:0.3rem;margin-top:0.35rem;">
+                            ${beer.tags.map(t => {
+                                const isGf = t.toLowerCase().includes('gluten');
+                                if (isGf) {
+                                    return `<span style="font-size:0.73rem;padding:0.12rem 0.5rem;border-radius:var(--radius-pill);background:var(--status-ok-bg);border:1px solid var(--status-ok-border);color:var(--status-ok-fg);font-weight:600;display:inline-flex;align-items:center;gap:0.2rem;">🚫🌾 ${escapeHtml(t)}</span>`;
+                                }
+                                return `<span style="font-size:0.73rem;padding:0.12rem 0.5rem;border-radius:var(--radius-pill);background:var(--color-tertiary);border:1px solid var(--border-color);color:var(--text-secondary);">${escapeHtml(t)}</span>`;
+                            }).join('')}
+                        </div>`;
+                    }
+
                     card.innerHTML = `
                         <div class="card-header">
                             ${imgHtml}
@@ -107,6 +120,7 @@
                                 <p class="card-subtitle">${escapeHtml(beer.brewery)} · ${escapeHtml(beer.abv)}% ABV</p>
                                 ${distanceHtml}
                                 ${reasonHtml}
+                                ${tagsHtml}
                             </div>
                         </div>
                     `;

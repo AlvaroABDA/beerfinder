@@ -193,8 +193,9 @@
     {% if beer.tags_list %}
     <div style="margin: 0.9rem 0; display:flex; flex-wrap:wrap; gap:0.35rem;">
         {% for t in beer.tags_list %}
-        <span class="pill pill-amber" style="margin:0; font-size:0.76rem;">
-            {{ icon('tag', 'icon-sm') }} {{ t.name }}
+        <span class="pill {% if 'gluten' in t.name|lower %}pill-green{% else %}pill-amber{% endif %}" style="margin:0; font-size:0.76rem; display:inline-flex; align-items:center; gap:0.3rem;">
+            {% if t.icon %}<span style="font-size:0.95em;">{{ t.icon }}</span>{% else %}{{ icon('tag', 'icon-sm') }}{% endif %}
+            <span>{{ t.name }}</span>
         </span>
         {% endfor %}
     </div>

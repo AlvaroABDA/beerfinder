@@ -153,7 +153,13 @@
 
         const tagsHtml = (item.tags && item.tags.length)
             ? `<div style="display:flex;flex-wrap:wrap;gap:0.3rem;margin-top:0.45rem;">
-                 ${item.tags.map(t => `<span style="font-size:0.74rem;padding:0.15rem 0.55rem;border-radius:var(--radius-pill);background:var(--color-tertiary);border:1px solid var(--border-color);color:var(--text-secondary);">${escapeHtml(t)}</span>`).join('')}
+                 ${item.tags.map(t => {
+                     const isGf = t.toLowerCase().includes('gluten');
+                     if (isGf) {
+                         return `<span style="font-size:0.74rem;padding:0.15rem 0.55rem;border-radius:var(--radius-pill);background:var(--status-ok-bg);border:1px solid var(--status-ok-border);color:var(--status-ok-fg);font-weight:600;display:inline-flex;align-items:center;gap:0.25rem;">🚫🌾 ${escapeHtml(t)}</span>`;
+                     }
+                     return `<span style="font-size:0.74rem;padding:0.15rem 0.55rem;border-radius:var(--radius-pill);background:var(--color-tertiary);border:1px solid var(--border-color);color:var(--text-secondary);">${escapeHtml(t)}</span>`;
+                 }).join('')}
                </div>`
                 : '';
 

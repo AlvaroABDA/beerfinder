@@ -157,6 +157,7 @@ def api_explore():
     for b in filtered:
         st = styles_by_id.get(b.get('style_id'), {})
         t_info = taste_scores.get(b['id'], {'score': 50, 'reason': None})
+        b_tags = [tags_by_id[tid] for tid in beer_tags_map.get(b['id'], []) if tid in tags_by_id]
 
         min_dist = None
         if user_lat is not None and user_lon is not None:
@@ -169,6 +170,7 @@ def api_explore():
             'style': st.get('name') or b.get('style') or 'Artesana',
             'style_color': st.get('color') or '#F59E0B',
             'abv': b.get('abv', ''),
+            'tags': b_tags,
             'image_url': data_access.resolve_media_url('beers', b.get('image')),
             'view_url': url_for('routes.beer_view', id=b['id']),
             'distance': round(min_dist, 2) if min_dist is not None else 9999,

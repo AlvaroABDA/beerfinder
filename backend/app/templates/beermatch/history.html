@@ -126,7 +126,7 @@
             : '';
 
         return `
-        <a href="/beer/${encodeURIComponent(item.beer_id)}" class="beer-card" style="margin-bottom: 0.8rem;">
+        <a href="/beer/${encodeURIComponent(item.beer_id)}" class="beer-card" style="margin-bottom: 0.8rem; ${item.style_color ? 'border-left-color:' + item.style_color + ';' : ''}">
             <div class="card-header">
                 <div class="card-img" style="${imgStyle}">${emojiFallback}</div>
                 <div class="card-info">
