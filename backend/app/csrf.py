@@ -11,7 +11,11 @@ def get_csrf_token():
 def validate_csrf():
     if request.method not in ('POST', 'PUT', 'PATCH', 'DELETE'):
         return
+    # Las rutas de suscripción push del Service Worker / PWA se gestionan sin estado de sesión de pestaña
+    if request.path.startswith('/api/push/'):
+        return
     submitted = request.form.get('csrf_token') or request.headers.get('X-CSRFToken')
     expected = session.get('csrf_token')
     if not expected or not submitted or not secrets.compare_digest(submitted, expected):
         abort(403)
+

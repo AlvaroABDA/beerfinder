@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, timedelta
 from sqlalchemy import Boolean, Float, Integer, inspect, text
 
 from . import auth, data_access
@@ -6,10 +7,14 @@ from .models import (
     Beer,
     BeerFamily,
     BeerStyle,
+    Event,
+    Fabricante,
+    PushSubscription,
     Tag,
     User,
     UserBeerPreference,
     UserPreference,
+    Venue,
     db,
     parse_abv,
 )
@@ -217,17 +222,62 @@ def bootstrap_database(app=None):
                     b.fabricante_id = fab.id
 
         # Actualización de taxonomía Sin alcohol (<1%)
-        alc_fam = BeerFamily.query.filter((BeerFamily.id == 7) | (BeerFamily.name.ilike('%alcohol%'))).first()
-        if alc_fam:
+        alc_fam = BeerFamily.query.filter(BeerFamily.name.ilike('%alcohol%')).first()
+        if alc_fam and alc_fam.name != "Sin alcohol (<1%)":
             alc_fam.name = "Sin alcohol (<1%)"
             alc_fam.description = "Cervezas con graduación alcohólica menor al 1% (<1% ABV)."
-        alc_style = BeerStyle.query.filter((BeerStyle.id == 40) | (BeerStyle.name.ilike('%alcohol%'))).first()
-        if alc_style:
+        alc_style = BeerStyle.query.filter(BeerStyle.name.ilike('%alcohol%')).first()
+        if alc_style and alc_style.name != "Sin alcohol (<1%)":
             alc_style.name = "Sin alcohol (<1%)"
             alc_style.description = "Cerveza con graduación alcohólica menor al 1% (<1% ABV)."
             alc_style.color = "#E8C158"
 
+
+        # Semilla de eventos y catas de demostración si la tabla está vacía
+        if Event.query.count() == 0:
+            first_venue = Venue.query.filter(Venue.active == True).first()
+            laugar_fab = Fabricante.query.filter(Fabricante.name.ilike('%laugar%')).first()
+            ipa_style = BeerStyle.query.filter(BeerStyle.name.ilike('%ipa%')).first()
+            stout_style = BeerStyle.query.filter(BeerStyle.name.ilike('%stout%')).first()
+
+            if first_venue:
+                now_dt = datetime.now()
+                event1_date = (now_dt + timedelta(days=4, hours=3)).strftime('%Y-%m-%dT20:00')
+                event2_date = (now_dt + timedelta(days=11, hours=2)).strftime('%Y-%m-%dT19:30')
+
+                db.session.add(
+                    Event(
+                        venue_id=first_venue.id,
+                        fabricante_id=laugar_fab.id if laugar_fab else None,
+                        title="Cata Exclusiva: Joyas Lupuladas & Imperial Stouts",
+                        description="Recorrido guiado por 5 cervezas artesanales premium, maridadas con quesos locales y explicación directa de elaboración.",
+                        event_type="CATA",
+                        event_date=event1_date,
+                        price=18.0,
+                        capacity=16,
+                        booking_url="https://wa.me/34600000000?text=Hola,%20deseo%20reservar%20plaza%20para%20la%20cata",
+                        style_id=ipa_style.id if ipa_style else None,
+                        active=True,
+                    )
+                )
+                db.session.add(
+                    Event(
+                        venue_id=first_venue.id,
+                        fabricante_id=laugar_fab.id if laugar_fab else None,
+                        title="Tap Takeover & Meet the Brewer",
+                        description="Pinchamos 6 grifos especiales de edición limitada. Entrada libre hasta completar aforo con presencia del maestro cervecero.",
+                        event_type="TAP_TAKEOVER",
+                        event_date=event2_date,
+                        price=0.0,
+                        capacity=40,
+                        booking_url="",
+                        style_id=stout_style.id if stout_style else None,
+                        active=True,
+                    )
+                )
+
         db.session.commit()
+
 
         # Asegurar cuenta ADMIN inicial (local, PythonAnywhere o Cloud Run)
         admin_email = (os.environ.get('ADMIN_EMAIL') or 'admin@example.com').strip().lower()

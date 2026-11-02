@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="margin-bottom: 1.2rem;">
+    <a href="{{ url_for('routes.events_list') }}" class="btn-back" style="display:inline-flex; align-items:center; gap:0.4rem; color:var(--text-secondary); text-decoration:none; font-size:0.88rem; margin-bottom:0.8rem;">
+        {{ icon('arrow-left', 'icon-sm') }} Volver a Catas y Eventos
+    </a>
+</div>
+
+<!-- Tarjeta Principal del Evento en Vidrio Cromático Líquido -->
+<div class="beer-card" style="--beer-tint: {{ event.style.color if event.style else 'var(--color-primary)' }}; padding: 1.4rem; margin-bottom: 1.5rem;">
+    <!-- Badges superiores -->
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:0.6rem; flex-wrap:wrap; margin-bottom:0.8rem;">
+        <div style="display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap;">
+            <span class="pill" style="margin:0; font-size:0.75rem; font-weight:800; background:var(--color-primary-soft); color:var(--color-primary); border-color:var(--color-primary);">
+                {{ event.event_type_label }}
+            </span>
+            {% if event.style %}
+            <a href="{{ url_for('routes.styles_guide') }}#style-{{ event.style.id }}" class="pill" style="margin:0; font-size:0.75rem; background:rgba(255,255,255,0.06); text-decoration:none; color:var(--text-main);">
+                {{ event.style.name }}
+            </a>
+            {% endif %}
+            {% if event.fabricante %}
+            <span class="pill" style="margin:0; font-size:0.75rem; background:rgba(255,255,255,0.04); color:var(--text-secondary);">
+                🏭 {{ event.fabricante.name }}
+            </span>
+            {% endif %}
+        </div>
+
+        <div>
+            {% if event.price and event.price > 0 %}
+            <span style="font-size:1.35rem; font-weight:800; color:var(--text-main);">{{ "%.2f"|format(event.price) }} €</span>
+            <span style="font-size:0.76rem; color:var(--text-secondary);"> / persona</span>
+            {% else %}
+            <span style="font-size:1.15rem; font-weight:800; color:var(--status-ok-fg);">Entrada Libre</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Título -->
+    <h1 style="margin:0 0 0.8rem 0; font-size:1.55rem; font-weight:800; color:var(--text-main); line-height:1.2;">
+        {{ event.title }}
+    </h1>
+
+    <!-- Bloque Afinidad de Paladar -->
+    {% if event.has_affinity %}
+    <div style="margin-bottom:1.1rem; padding:0.65rem 0.9rem; background:rgba(229,133,75,0.15); border:1px solid rgba(229,133,75,0.35); border-radius:var(--radius-button); display:flex; align-items:center; gap:0.6rem;">
+        <span style="font-size:1.2rem;">🎯</span>
+        <div>
+            <strong style="font-size:0.86rem; color:var(--color-primary); display:block;">Recomendación Afín a tu Paladar</strong>
+            <span style="font-size:0.78rem; color:var(--text-secondary);">{{ event.affinity_reason or 'Este evento incluye estilos o cerveceras que te gustan en tu perfil de BeerMatch.' }}</span>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if event.image %}
+    <div style="margin-bottom:1.2rem; border-radius:var(--radius-button); overflow:hidden; max-height:340px;">
+        <img src="/static/images/events/{{ event.image }}" alt="{{ event.title }}" style="width:100%; height:auto; display:block; object-fit:cover;">
+    </div>
+    {% endif %}
+
+    <!-- Rejilla de Información: Cuándo y Dónde -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:0.9rem; margin-bottom:1.3rem;">
+        <!-- Cuándo -->
+        <div style="padding:0.9rem; background:rgba(0,0,0,0.18); border:1px solid var(--border-color); border-radius:var(--radius-button);">
+            <div style="font-size:0.72rem; font-weight:700; text-transform:uppercase; color:var(--color-primary); margin-bottom:0.35rem; display:flex; align-items:center; gap:0.3rem;">
+                {{ icon('calendar', 'icon-sm') }} Fecha y Horario
+            </div>
+            <div style="font-size:1.05rem; font-weight:800; color:var(--text-main); margin-bottom:0.2rem;">
+                {{ event.event_date.replace('T', ' ')[:16] }}
+            </div>
+            {% if event.end_date %}
+            <div style="font-size:0.8rem; color:var(--text-secondary);">
+                Hasta: {{ event.end_date.replace('T', ' ')[:16] }}
+            </div>
+            {% endif %}
+            {% if gcal_url %}
+            <div style="margin-top:0.6rem;">
+                <a href="{{ gcal_url }}" target="_blank" rel="noopener" style="font-size:0.78rem; color:var(--color-primary); text-decoration:none; font-weight:700; display:inline-flex; align-items:center; gap:0.25rem;">
+                    📅 Añadir a Google Calendar →
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Dónde -->
+        <div style="padding:0.9rem; background:rgba(0,0,0,0.18); border:1px solid var(--border-color); border-radius:var(--radius-button);">
+            <div style="font-size:0.72rem; font-weight:700; text-transform:uppercase; color:var(--color-primary); margin-bottom:0.35rem; display:flex; align-items:center; gap:0.3rem;">
+                {{ icon('map-pin', 'icon-sm') }} Establecimiento
+            </div>
+            {% if event.venue %}
+            <div style="font-size:1.05rem; font-weight:800; color:var(--text-main); margin-bottom:0.2rem;">
+                <a href="{{ url_for('routes.venue_view', id=event.venue.id) }}" style="color:inherit; text-decoration:none;">
+                    {{ event.venue.name }}
+                </a>
+            </div>
+            <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:0.4rem;">
+                {{ event.venue.address }}{% if event.venue.city %}, {{ event.venue.city }}{% endif %}
+            </div>
+            <div>
+                <a href="{{ url_for('routes.venue_view', id=event.venue.id) }}" style="font-size:0.78rem; color:var(--color-primary); text-decoration:none; font-weight:700;">
+                    Ver pizarra del bar →
+                </a>
+            </div>
+            {% else %}
+            <div style="font-size:0.95rem; color:var(--text-main);">Ubicación por confirmar</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Descripción detallada -->
+    <div style="margin-bottom:1.4rem;">
+        <h3 style="font-size:1.05rem; margin:0 0 0.5rem 0; color:var(--text-main);">Acerca de este evento</h3>
+        <p style="margin:0; font-size:0.9rem; color:var(--text-secondary); line-height:1.55; white-space:pre-line;">
+            {{ event.description or 'Acompaña al equipo cervecero y descubre nuevos matices, aromas y maridajes.' }}
+        </p>
+    </div>
+
+    {% if event.capacity %}
+    <div style="margin-bottom:1.4rem; font-size:0.85rem; color:var(--text-secondary); display:flex; align-items:center; gap:0.4rem;">
+        <span>👥</span>
+        <span>Aforo limitado: <strong>{{ event.capacity }} plazas</strong></span>
+    </div>
+    {% endif %}
+
+    <!-- Botones de Acción -->
+    <div style="display:flex; gap:0.75rem; flex-wrap:wrap; border-top:1px solid var(--border-color); padding-top:1.1rem;">
+        {% if event.booking_url %}
+        <a href="{{ event.booking_url }}" target="_blank" rel="noopener" class="btn" style="flex:1; min-width:200px; padding:0.75rem 1.2rem; font-size:0.95rem; text-align:center;">
+            🎟️ Reservar Plaza
+        </a>
+        {% elif event.venue and event.venue.phone %}
+        <a href="tel:{{ event.venue.phone }}" class="btn" style="flex:1; min-width:200px; padding:0.75rem 1.2rem; font-size:0.95rem; text-align:center;">
+            📞 Llamar al bar para reservar
+        </a>
+        {% endif %}
+
+        <button type="button" id="btn-share-event" class="btn btn-outline" style="width:auto; padding:0.75rem 1.1rem; font-size:0.95rem;">
+            🔗 Compartir
+        </button>
+    </div>
+</div>
+
+<!-- Panel de Gestión para Propietario / ADMIN -->
+{% if can_manage %}
+<div class="card" style="margin-bottom:1.5rem; border:1px solid var(--color-primary-soft); background:rgba(229,133,75,0.04);">
+    <div style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--color-primary); margin-bottom:0.6rem; display:flex; align-items:center; gap:0.35rem;">
+        {{ icon('settings', 'icon-sm') }} Gestión de este Evento (Propietario / Admin)
+    </div>
+
+    <div style="display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center;">
+        <a href="{{ url_for('routes.event_edit', id=event.id) }}" class="btn btn-outline" style="font-size:0.82rem; padding:0.45rem 0.9rem;">
+            ✏️ Editar datos
+        </a>
+
+        <!-- Botón para emitir aviso Push a usuarios en radio con afinidad -->
+        <form method="POST" action="{{ url_for('routes.event_notify', id=event.id) }}" style="margin:0;" onsubmit="return confirm('¿Deseas enviar una notificación Web Push a los usuarios cercanos con gustos afines a esta cata?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn" style="font-size:0.82rem; padding:0.45rem 0.9rem; background:var(--color-primary); color:var(--btn-primary-fg);">
+                🔔 Emitir aviso Push a usuarios cercanos
+            </button>
+        </form>
+
+        <form method="POST" action="{{ url_for('routes.event_delete', id=event.id) }}" style="margin:0;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este evento?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-outline" style="font-size:0.82rem; padding:0.45rem 0.9rem; color:var(--status-err-fg); border-color:var(--status-err-fg);">
+                🗑️ Eliminar
+            </button>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<script>
+document.getElementById('btn-share-event')?.addEventListener('click', function() {
+    if (navigator.share) {
+        navigator.share({
+            title: "{{ event.title|e }}",
+            text: "{{ event.event_type_label }}: {{ event.title|e }} en {{ event.venue_name|e }}",
+            url: window.location.href
+        }).catch(() => {});
+    } else {
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            alert('¡Enlace copiado al portapapeles!');
+        });
+    }
+});
+</script>
+{% endblock %}

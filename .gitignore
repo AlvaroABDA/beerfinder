@@ -1,6 +1,8 @@
 # Secrets & Environment
 backend/.secret_key
 .env
+instance/
+backend/instance/
 
 # Private Verification Uploads (never commit sensitive docs)
 backend/private_uploads/

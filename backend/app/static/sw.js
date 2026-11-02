@@ -46,3 +46,59 @@ self.addEventListener('fetch', (event) => {
             .catch(() => caches.match(event.request))
     );
 });
+
+// ==========================================
+// NOTIFICACIONES WEB PUSH (CATAS Y EVENTOS)
+// ==========================================
+self.addEventListener('push', (event) => {
+    let data = {
+        title: '🍺 Novedad Cervecera en BeerMap',
+        body: 'Hay una nueva cata o evento cervecero cerca de ti.',
+        icon: '/static/icons/icon-192.png',
+        badge: '/static/icons/icon-192.png',
+        data: { url: '/events' }
+    };
+
+    if (event.data) {
+        try {
+            const parsed = event.data.json();
+            data = Object.assign(data, parsed);
+        } catch (e) {
+            data.body = event.data.text();
+        }
+    }
+
+    const options = {
+        body: data.body,
+        icon: data.icon || '/static/icons/icon-192.png',
+        badge: data.badge || '/static/icons/icon-192.png',
+        vibrate: [100, 50, 100],
+        data: data.data || { url: '/events' },
+        actions: [
+            { action: 'open', title: 'Ver Evento 🍻' }
+        ]
+    };
+
+    event.waitUntil(
+        self.registration.showNotification(data.title, options)
+    );
+});
+
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    const targetUrl = (event.notification.data && event.notification.data.url) ? event.notification.data.url : '/events';
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+            for (const client of clientList) {
+                if (client.url.includes(targetUrl) && 'focus' in client) {
+                    return client.focus();
+                }
+            }
+            if (clients.openWindow) {
+                return clients.openWindow(targetUrl);
+            }
+        })
+    );
+});
+

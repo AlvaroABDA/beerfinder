@@ -8,7 +8,8 @@ from . import bp, can_access_b2b_venue, can_edit_entity
 @bp.route('/')
 def index():
     venues = data_access.list_venues(only_active=True)[:3]
-    return render_template('index.html', title='BeerMap', venues=venues)
+    upcoming_events = data_access.list_upcoming_events(user_id=session.get('user_id'), limit=4)
+    return render_template('index.html', title='BeerMap', venues=venues, upcoming_events=upcoming_events)
 
 
 @bp.route('/beers')
@@ -36,11 +37,14 @@ def map_view():
         if bid in radar_ids and bid in beers_by_id:
             radar_by_venue.setdefault(vid, []).append(beers_by_id[bid])
 
+    events_by_venue = data_access.get_venues_with_upcoming_events()
     enriched_venues = []
     for v in venues:
         vc = dict(v)
         vc['available_count'] = avail_by_venue.get(v['id'], 0)
         vc['radar_beers'] = radar_by_venue.get(v['id'], [])
+        vc['upcoming_events'] = events_by_venue.get(v['id'], [])
+        vc['has_events'] = len(vc['upcoming_events']) > 0
         enriched_venues.append(vc)
 
     return render_template('map.html', title='Mapa Cervecero', venues=enriched_venues)
@@ -434,6 +438,9 @@ def venue_view(id):
             entity_type='venue', entity_id=id, requesting_user_id=uid, status='PENDING'
         ).first() is not None
 
+    venue_events = data_access.get_venue_events(id, only_upcoming=True)
+    can_manage_events = can_b2b
+
     return render_template(
         'venue_view.html',
         title=venue['name'],
@@ -446,6 +453,8 @@ def venue_view(id):
         is_verified_venue=is_verified_venue,
         radar_demand_count=radar_demand_count,
         has_pending_claim=has_pending_claim,
+        venue_events=venue_events,
+        can_manage_events=can_manage_events,
     )
 
 
@@ -656,3 +665,278 @@ def styles_guide():
     )
 
 
+
+
+# ==========================================
+# RUTAS DE CATAS Y EVENTOS CERVECEROS
+# ==========================================
+
+@bp.route('/events')
+def events_list():
+    uid = session.get('user_id')
+    event_type = request.args.get('type')
+    q = (request.args.get('q') or '').strip().lower()
+    style_id = request.args.get('style_id', type=int)
+    family_id = request.args.get('family_id', type=int)
+
+    all_upcoming = data_access.list_upcoming_events(user_id=uid, limit=100)
+
+    # Filtrado en memoria para respuesta instantánea
+    filtered = []
+    for ev in all_upcoming:
+        if event_type and ev.get('event_type') != event_type:
+            continue
+        if style_id and ev.get('style_id') != style_id:
+            continue
+        if family_id and ev.get('family_id') != family_id:
+            continue
+        if q:
+            title_match = q in ev.get('title', '').lower()
+            desc_match = q in (ev.get('description') or '').lower()
+            venue_match = q in (ev.get('venue_name') or '').lower()
+            brewery_match = q in (ev.get('fabricante_name') or '').lower()
+            if not (title_match or desc_match or venue_match or brewery_match):
+                continue
+        filtered.append(ev)
+
+    styles = data_access.list_beer_styles()
+    families = data_access.list_beer_families()
+    event_types = data_access.EVENT_TYPE_LABELS
+
+    return render_template(
+        'events_list.html',
+        title='Catas y Eventos Cerveceros',
+        events=filtered,
+        styles=styles,
+        families=families,
+        event_types=event_types,
+        current_type=event_type,
+        current_query=q,
+        current_style_id=style_id,
+        current_family_id=family_id,
+    )
+
+
+@bp.route('/event/<int:id>')
+def event_view(id):
+    uid = session.get('user_id')
+    is_admin = session.get('role') == 'ADMIN'
+    ev = data_access.get_event(id)
+    if not ev or not ev.get('active'):
+        abort(404)
+
+    venue = ev.get('venue')
+    can_manage = is_admin or (uid and (ev.get('created_by') == uid or (venue and venue.get('owner_user_id') == uid)))
+
+    # Generación de enlace rápido para Google Calendar
+    gcal_url = None
+    try:
+        raw_date = ev.get('event_date', '')
+        # Formato esperado: YYYY-MM-DDTHH:MM
+        clean_date = raw_date.replace('-', '').replace(':', '').replace(' ', 'T')
+        if len(clean_date) >= 13:
+            start_str = clean_date[:13] + '00'
+            # Asumir 2 horas de duración
+            from datetime import datetime, timedelta
+            dt = datetime.strptime(raw_date[:16], '%Y-%m-%dT%H:%M' if 'T' in raw_date else '%Y-%m-%d %H:%M')
+            dt_end = dt + timedelta(hours=2)
+            end_str = dt_end.strftime('%Y%m%dT%H%M00')
+            import urllib.parse
+            title_enc = urllib.parse.quote(ev.get('title', 'Cata Cervecera'))
+            details_enc = urllib.parse.quote(ev.get('description') or 'Evento cervecero en BeerMap')
+            loc_enc = urllib.parse.quote(f"{ev.get('venue_name', '')}, {ev.get('venue_address', '')}")
+            gcal_url = f"https://calendar.google.com/calendar/render?action=TEMPLATE&text={title_enc}&dates={start_str}/{end_str}&details={details_enc}&location={loc_enc}"
+    except Exception:
+        gcal_url = None
+
+    return render_template(
+        'event_view.html',
+        title=ev['title'],
+        event=ev,
+        can_manage=can_manage,
+        gcal_url=gcal_url,
+    )
+
+
+@bp.route('/venue/<int:venue_id>/event/new', methods=['GET', 'POST'])
+@auth.login_required
+def venue_event_new(venue_id):
+    uid = session.get('user_id')
+    is_admin = session.get('role') == 'ADMIN'
+    venue = data_access.get_venue(venue_id)
+    if not venue:
+        abort(404)
+
+    if not can_access_b2b_venue(venue, uid, is_admin):
+        flash('Solo el hostelero propietario verificado o administradores pueden publicar eventos en este local.', 'error')
+        return redirect(url_for('routes.venue_view', id=venue_id))
+
+    if request.method == 'POST':
+        title = (request.form.get('title') or '').strip()
+        event_date = (request.form.get('event_date') or '').strip()
+        if not title or not event_date:
+            flash('El título y la fecha/hora del evento son obligatorios.', 'error')
+            return redirect(url_for('routes.venue_event_new', venue_id=venue_id))
+
+        img_filename = None
+        if 'image' in request.files and request.files['image'].filename:
+            img_filename = data_access.save_uploaded_image(request.files['image'], 'events')
+            if not img_filename:
+                flash('Formato de imagen no válido (usa PNG, JPG, GIF o WEBP).', 'error')
+                return redirect(url_for('routes.venue_event_new', venue_id=venue_id))
+
+        ev = data_access.create_event(
+            {
+                'venue_id': venue_id,
+                'fabricante_id': request.form.get('fabricante_id') or None,
+                'title': title,
+                'description': request.form.get('description') or '',
+                'event_type': request.form.get('event_type') or 'CATA',
+                'event_date': event_date,
+                'end_date': request.form.get('end_date') or None,
+                'price': request.form.get('price') or None,
+                'capacity': request.form.get('capacity') or None,
+                'booking_url': request.form.get('booking_url') or None,
+                'image': img_filename,
+                'family_id': request.form.get('family_id') or None,
+                'style_id': request.form.get('style_id') or None,
+            },
+            created_by=uid,
+        )
+
+        # Disparo de notificación Web Push proactiva a clientes en radio de cercanía con afinidad
+        try:
+            from ..services.push_notifications import notify_eligible_subscribers_for_event
+            sent_count, _ = notify_eligible_subscribers_for_event(ev.id, origin_url=request.host_url)
+            if sent_count > 0:
+                flash(f'¡Evento publicado! Se ha notificado a {sent_count} usuarios cercanos y con gustos afines.', 'success')
+            else:
+                flash('¡Evento publicado con éxito!', 'success')
+        except Exception:
+            flash('¡Evento publicado con éxito!', 'success')
+
+        return redirect(url_for('routes.event_view', id=ev.id))
+
+    styles = data_access.list_beer_styles()
+    families = data_access.list_beer_families()
+    fabricantes = data_access.list_fabricantes(only_active=True)
+    event_types = data_access.EVENT_TYPE_LABELS
+
+    return render_template(
+        'event_form.html',
+        title=f"Publicar Evento en {venue['name']}",
+        venue=venue,
+        styles=styles,
+        families=families,
+        fabricantes=fabricantes,
+        event_types=event_types,
+        is_edit=False,
+        event=None,
+    )
+
+
+@bp.route('/event/<int:id>/edit', methods=['GET', 'POST'])
+@auth.login_required
+def event_edit(id):
+    uid = session.get('user_id')
+    is_admin = session.get('role') == 'ADMIN'
+    ev = data_access.get_event(id)
+    if not ev:
+        abort(404)
+
+    venue = ev.get('venue')
+    can_manage = is_admin or (uid and (ev.get('created_by') == uid or (venue and venue.get('owner_user_id') == uid)))
+    if not can_manage:
+        flash('No tienes permiso para editar este evento.', 'error')
+        return redirect(url_for('routes.event_view', id=id))
+
+    if request.method == 'POST':
+        title = (request.form.get('title') or '').strip()
+        event_date = (request.form.get('event_date') or '').strip()
+        if not title or not event_date:
+            flash('El título y la fecha son obligatorios.', 'error')
+            return redirect(url_for('routes.event_edit', id=id))
+
+        update_data = {
+            'title': title,
+            'description': request.form.get('description') or '',
+            'event_type': request.form.get('event_type') or 'CATA',
+            'event_date': event_date,
+            'end_date': request.form.get('end_date') or None,
+            'price': request.form.get('price') or None,
+            'capacity': request.form.get('capacity') or None,
+            'booking_url': request.form.get('booking_url') or None,
+            'family_id': request.form.get('family_id') or None,
+            'style_id': request.form.get('style_id') or None,
+            'fabricante_id': request.form.get('fabricante_id') or None,
+        }
+
+        if 'image' in request.files and request.files['image'].filename:
+            img_filename = data_access.save_uploaded_image(request.files['image'], 'events')
+            if img_filename:
+                update_data['image'] = img_filename
+
+        data_access.update_event(id, update_data)
+        flash('Evento actualizado correctamente.', 'success')
+        return redirect(url_for('routes.event_view', id=id))
+
+    styles = data_access.list_beer_styles()
+    families = data_access.list_beer_families()
+    fabricantes = data_access.list_fabricantes(only_active=True)
+    event_types = data_access.EVENT_TYPE_LABELS
+
+    return render_template(
+        'event_form.html',
+        title=f"Editar Evento: {ev['title']}",
+        venue=venue,
+        styles=styles,
+        families=families,
+        fabricantes=fabricantes,
+        event_types=event_types,
+        is_edit=True,
+        event=ev,
+    )
+
+
+@bp.route('/event/<int:id>/delete', methods=['POST'])
+@auth.login_required
+def event_delete(id):
+    uid = session.get('user_id')
+    is_admin = session.get('role') == 'ADMIN'
+    ev = data_access.get_event(id)
+    if not ev:
+        abort(404)
+
+    venue = ev.get('venue')
+    can_manage = is_admin or (uid and (ev.get('created_by') == uid or (venue and venue.get('owner_user_id') == uid)))
+    if not can_manage:
+        flash('No tienes permiso para eliminar este evento.', 'error')
+        return redirect(url_for('routes.event_view', id=id))
+
+    venue_id = ev.get('venue_id')
+    data_access.delete_event(id)
+    flash('Evento eliminado correctamente.', 'info')
+    if venue_id:
+        return redirect(url_for('routes.venue_view', id=venue_id))
+    return redirect(url_for('routes.events_list'))
+
+
+@bp.route('/event/<int:id>/notify', methods=['POST'])
+@auth.login_required
+def event_notify(id):
+    uid = session.get('user_id')
+    is_admin = session.get('role') == 'ADMIN'
+    ev = data_access.get_event(id)
+    if not ev:
+        abort(404)
+
+    venue = ev.get('venue')
+    can_manage = is_admin or (uid and (ev.get('created_by') == uid or (venue and venue.get('owner_user_id') == uid)))
+    if not can_manage:
+        flash('No tienes permiso para emitir avisos de este evento.', 'error')
+        return redirect(url_for('routes.event_view', id=id))
+
+    from ..services.push_notifications import notify_eligible_subscribers_for_event
+    sent_count, msg = notify_eligible_subscribers_for_event(id, origin_url=request.host_url)
+    flash(msg, 'success' if sent_count > 0 else 'info')
+    return redirect(url_for('routes.event_view', id=id))

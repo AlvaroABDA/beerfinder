@@ -293,3 +293,46 @@ class GeocodingCache(db.Model, DictLikeMixin):
     latitude = db.Column(db.Float, nullable=True)
     longitude = db.Column(db.Float, nullable=True)
     created_at = db.Column(db.String(50), default=utc_now_iso)
+
+
+class Event(db.Model, DictLikeMixin):
+    __tablename__ = 'events'
+
+    id = db.Column(db.Integer, primary_key=True)
+    venue_id = db.Column(db.Integer, db.ForeignKey('venues.id', ondelete='CASCADE'), nullable=True, index=True)
+    fabricante_id = db.Column(db.Integer, db.ForeignKey('fabricantes.id', ondelete='SET NULL'), nullable=True, index=True)
+    title = db.Column(db.String(180), nullable=False, index=True)
+    description = db.Column(db.Text, nullable=True)
+    event_type = db.Column(db.String(50), default='CATA', nullable=False)  # 'CATA' | 'TAP_TAKEOVER' | 'MEET_BREWER' | 'MARIDAJE' | 'PRESENTACION' | 'OTRO'
+    event_date = db.Column(db.String(50), nullable=False, index=True)  # 'YYYY-MM-DDTHH:MM' o ISO
+    end_date = db.Column(db.String(50), nullable=True)
+    price = db.Column(db.Float, nullable=True)  # None o 0.0 = Entrada libre / gratis
+    capacity = db.Column(db.Integer, nullable=True)
+    booking_url = db.Column(db.String(255), nullable=True)
+    image = db.Column(db.String(255), nullable=True)
+    family_id = db.Column(db.Integer, db.ForeignKey('beer_families.id', ondelete='SET NULL'), nullable=True)
+    style_id = db.Column(db.Integer, db.ForeignKey('beer_styles.id', ondelete='SET NULL'), nullable=True, index=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
+    active = db.Column(db.Boolean, default=True, nullable=False)
+    created_at = db.Column(db.String(50), default=utc_now_iso)
+
+    def __repr__(self):
+        return f'<Event {self.title}>'
+
+
+class PushSubscription(db.Model, DictLikeMixin):
+    __tablename__ = 'push_subscriptions'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=True, index=True)
+    endpoint = db.Column(db.Text, unique=True, nullable=False)
+    p256dh = db.Column(db.String(255), nullable=False)
+    auth = db.Column(db.String(255), nullable=False)
+    latitude = db.Column(db.Float, nullable=True)
+    longitude = db.Column(db.Float, nullable=True)
+    max_distance = db.Column(db.Float, default=30.0, nullable=False)
+    created_at = db.Column(db.String(50), default=utc_now_iso)
+
+    def __repr__(self):
+        return f'<PushSubscription {self.id}>'
+

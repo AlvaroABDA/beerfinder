@@ -82,12 +82,15 @@
         <div style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--color-primary); margin-bottom:0.55rem; display:flex; align-items:center; gap:0.35rem;">
             {{ icon('badge-check', 'icon-sm') }} Herramientas para tu Local Verificado
         </div>
-        <div style="display: flex; gap: 0.6rem;">
-            <a href="{{ url_for('routes.venue_tv', id=venue.id) }}" target="_blank" class="btn btn-outline" style="flex: 1; font-size:0.82rem;">
+        <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+            <a href="{{ url_for('routes.venue_event_new', venue_id=venue.id) }}" class="btn" style="flex: 1; font-size:0.82rem; min-width: 130px; background:var(--color-primary); color:var(--btn-primary-fg);">
+                {{ icon('calendar', 'icon-sm') }} + Publicar Cata
+            </a>
+            <a href="{{ url_for('routes.venue_tv', id=venue.id) }}" target="_blank" class="btn btn-outline" style="flex: 1; font-size:0.82rem; min-width: 100px;">
                 {{ icon('tv', 'icon-sm') }} Modo TV
             </a>
-            <a href="{{ url_for('routes.venue_qr_poster', id=venue.id) }}" target="_blank" class="btn btn-outline" style="flex: 1; font-size:0.82rem;">
-                {{ icon('qr-code', 'icon-sm') }} Cartel QR Mesas
+            <a href="{{ url_for('routes.venue_qr_poster', id=venue.id) }}" target="_blank" class="btn btn-outline" style="flex: 1; font-size:0.82rem; min-width: 110px;">
+                {{ icon('qr-code', 'icon-sm') }} Cartel QR
             </a>
         </div>
         {% if radar_demand_count > 0 %}
@@ -169,6 +172,77 @@
         {% endif %}
     {% endif %}
 </div>
+
+{% if venue_events %}
+<div style="margin: 1.3rem 0;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+        <h3 style="margin:0; font-size:1.1rem; display:flex; align-items:center; gap:0.45rem;">
+            {{ icon('calendar', 'icon-sm') }} Próximas Catas y Eventos ({{ venue_events|length }})
+        </h3>
+        {% if can_manage_events %}
+        <a href="{{ url_for('routes.venue_event_new', venue_id=venue.id) }}" class="btn btn-outline" style="font-size:0.78rem; padding:0.35rem 0.75rem; width:auto;">+ Publicar Cata</a>
+        {% endif %}
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:0.75rem;">
+        {% for ev in venue_events %}
+        <div class="beer-card" style="--beer-tint: {{ ev.style.color if ev.style else 'var(--color-primary)' }}; padding:0.95rem;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.6rem; flex-wrap:wrap;">
+                <div style="flex:1; min-width:240px;">
+                    <div style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.3rem;">
+                        <span class="pill" style="margin:0; font-size:0.7rem; font-weight:800; background:var(--color-primary-soft); color:var(--color-primary); border-color:var(--color-primary);">
+                            {{ ev.event_type_label }}
+                        </span>
+                        {% if ev.style %}
+                        <span class="pill" style="margin:0; font-size:0.7rem; background:rgba(255,255,255,0.06); color:var(--text-main);">{{ ev.style.name }}</span>
+                        {% endif %}
+                        {% if ev.fabricante %}
+                        <span class="pill" style="margin:0; font-size:0.7rem; background:rgba(255,255,255,0.04); color:var(--text-secondary);">🏭 {{ ev.fabricante.name }}</span>
+                        {% endif %}
+                    </div>
+                    <h4 style="margin:0.2rem 0 0.35rem; font-size:1.05rem; font-weight:700; color:var(--text-main);">
+                        <a href="{{ url_for('routes.event_view', id=ev.id) }}" style="text-decoration:none; color:inherit;">{{ ev.title }}</a>
+                    </h4>
+                    <p style="margin:0 0 0.45rem; font-size:0.82rem; color:var(--text-secondary); line-height:1.35;">
+                        {{ ev.description|truncate(120) if ev.description else '' }}
+                    </p>
+                    <div style="display:flex; flex-wrap:wrap; align-items:center; gap:0.8rem; font-size:0.8rem; color:var(--text-main);">
+                        <span>📅 <strong>{{ ev.event_date.replace('T', ' ')[:16] }}</strong></span>
+                        {% if ev.price and ev.price > 0 %}
+                        <strong style="color:var(--text-main);">🎟️ {{ "%.2f"|format(ev.price) }} €</strong>
+                        {% else %}
+                        <span style="color:var(--status-ok-fg); font-weight:700;">🎟️ Entrada Libre</span>
+                        {% endif %}
+                        {% if ev.capacity %}
+                        <span style="color:var(--text-muted);">👥 {{ ev.capacity }} plazas</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:0.4rem; align-items:center;">
+                    <a href="{{ url_for('routes.event_view', id=ev.id) }}" class="btn" style="padding:0.4rem 0.85rem; font-size:0.82rem; width:auto;">
+                        Ver detalles
+                    </a>
+                    {% if ev.booking_url %}
+                    <a href="{{ ev.booking_url }}" target="_blank" rel="noopener" class="btn btn-outline" style="padding:0.4rem 0.75rem; font-size:0.82rem; width:auto;">
+                        Reservar
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% elif can_manage_events %}
+<div class="card" style="margin: 1.2rem 0; border: 1px dashed var(--color-primary); background: rgba(229,133,75,0.04); display:flex; justify-content:space-between; align-items:center; gap:0.8rem; flex-wrap:wrap;">
+    <div>
+        <strong style="font-size:0.92rem; color:var(--text-main);">¿Organizas catas o presentaciones en tu local?</strong>
+        <p style="margin:0.2rem 0 0; font-size:0.8rem; color:var(--text-secondary);">Publica un evento y avisaremos a los cerveceros cercanos con gustos afines.</p>
+    </div>
+    <a href="{{ url_for('routes.venue_event_new', venue_id=venue.id) }}" class="btn" style="font-size:0.82rem; padding:0.45rem 0.95rem; width:auto; flex-shrink:0;">+ Publicar Cata</a>
+</div>
+{% endif %}
 
 <div class="section-title">
     <span>{{ icon('beer') }} Pizarra de Cervezas</span>

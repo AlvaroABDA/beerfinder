@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="margin-bottom: 1.2rem;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.8rem; flex-wrap:wrap;">
+        <div>
+            <h2 style="margin: 0 0 0.3rem 0; font-size: 1.45rem; font-weight: 800; letter-spacing: -0.4px;">
+                Catas y Eventos Cerveceros
+            </h2>
+            <p style="margin: 0; font-size: 0.86rem; color: var(--text-secondary);">
+                Catas guiadas, tap takeovers y encuentros con maestros cerveceros cerca de ti.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Web Push Notification Banner -->
+<div id="push-alert-card" class="surface-radar" style="margin-bottom: 1.3rem; display:none;">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:0.8rem; flex-wrap:wrap;">
+        <div style="display:flex; align-items:center; gap:0.6rem;">
+            <span style="color:var(--color-primary); font-size:1.3rem;">🔔</span>
+            <div>
+                <strong style="font-size:0.92rem; color:var(--text-main); display:block;">Avisos inteligentes de catas</strong>
+                <span style="font-size:0.8rem; color:var(--text-secondary);">Recibe notificaciones en tu móvil solo cuando haya catas en tu zona afines a tus estilos favoritos (cero spam).</span>
+            </div>
+        </div>
+        <button type="button" id="btn-activate-push" class="btn" style="padding:0.45rem 1rem; font-size:0.82rem; width:auto;">
+            Activar avisos
+        </button>
+    </div>
+</div>
+
+<!-- Barra de búsqueda y filtros -->
+<form method="GET" action="{{ url_for('routes.events_list') }}" style="margin-bottom: 1.2rem;">
+    <div class="search-bar" style="margin-bottom: 0.75rem;">
+        <span style="color: var(--color-primary); display:flex; margin-right: 0.3rem;">{{ icon('search', 'icon-sm') }}</span>
+        <input type="text" name="q" value="{{ current_query or '' }}" placeholder="Buscar por título, local o cervecera...">
+        {% if current_query %}
+        <a href="{{ url_for('routes.events_list') }}" style="color:var(--text-muted); text-decoration:none; margin-left:0.4rem;">{{ icon('x', 'icon-sm') }}</a>
+        {% endif %}
+    </div>
+
+    <!-- Tipos de eventos scroll -->
+    <div class="quick-category-scroll" style="margin-bottom: 0.6rem;">
+        <a href="{{ url_for('routes.events_list', q=current_query) }}" class="quick-chip {% if not current_type %}active{% endif %}">
+            Todos los eventos
+        </a>
+        {% for code, label in event_types.items() %}
+        <a href="{{ url_for('routes.events_list', type=code, q=current_query) }}" class="quick-chip {% if current_type == code %}active{% endif %}">
+            {{ label }}
+        </a>
+        {% endfor %}
+    </div>
+</form>
+
+<!-- Lista de eventos -->
+<div style="display: flex; flex-direction: column; gap: 1rem;">
+    {% for ev in events %}
+    <div class="beer-card event-card" style="--beer-tint: {{ ev.style_color or 'var(--color-primary)' }}; padding: 1.1rem;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.8rem; flex-wrap:wrap;">
+            <div style="flex: 1; min-width: 250px;">
+                <div style="display:flex; align-items:center; gap:0.45rem; margin-bottom:0.4rem; flex-wrap:wrap;">
+                    <span class="pill" style="margin:0; font-size:0.72rem; font-weight:800; background:var(--color-primary-soft); color:var(--color-primary); border-color:var(--color-primary);">
+                        {{ ev.event_type_label }}
+                    </span>
+                    {% if ev.style_name %}
+                    <span class="pill" style="margin:0; font-size:0.72rem; background:rgba(255,255,255,0.06); color:var(--text-main);">
+                        {{ ev.style_name }}
+                    </span>
+                    {% endif %}
+                    {% if ev.fabricante_name %}
+                    <span class="pill" style="margin:0; font-size:0.72rem; background:rgba(255,255,255,0.04); color:var(--text-secondary);">
+                        🏭 {{ ev.fabricante_name }}
+                    </span>
+                    {% endif %}
+                </div>
+
+                <h3 style="margin: 0 0 0.45rem 0; font-size: 1.15rem; font-weight: 800; color:var(--text-main); line-height:1.25;">
+                    <a href="{{ url_for('routes.event_view', id=ev.id) }}" style="text-decoration:none; color:inherit;">
+                        {{ ev.title }}
+                    </a>
+                </h3>
+
+                <p style="margin: 0 0 0.65rem 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">
+                    {{ ev.description or 'Acompaña al equipo cervecero y descubre nuevos matices, aromas y maridajes.' }}
+                </p>
+
+                <!-- Datos clave: Fecha, Local, Distancia -->
+                <div style="display:flex; flex-wrap:wrap; align-items:center; gap:0.9rem; font-size:0.82rem; color:var(--text-main);">
+                    <div style="display:flex; align-items:center; gap:0.35rem;">
+                        <span style="color:var(--color-primary);">{{ icon('calendar', 'icon-sm') }}</span>
+                        <strong>{{ ev.event_date.replace('T', ' ')[:16] }}</strong>
+                    </div>
+
+                    <div style="display:flex; align-items:center; gap:0.35rem;">
+                        <span style="color:var(--color-primary);">{{ icon('map-pin', 'icon-sm') }}</span>
+                        <a href="{{ url_for('routes.venue_view', id=ev.venue_id) if ev.venue_id else '#' }}" style="color:inherit; text-decoration:none;">
+                            <strong>{{ ev.venue_name }}</strong>{% if ev.venue_city %} ({{ ev.venue_city }}){% endif %}
+                        </a>
+                        {% if ev.distance_km %}
+                        <span class="walk-badge" style="margin-left:0.25rem;">{{ ev.distance_km }} km</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if ev.has_affinity %}
+                <div style="margin-top:0.65rem; padding:0.35rem 0.65rem; background:rgba(229,133,75,0.15); border:1px solid rgba(229,133,75,0.3); border-radius:8px; font-size:0.78rem; color:var(--color-primary); font-weight:700; display:inline-flex; align-items:center; gap:0.35rem;">
+                    🎯 {{ ev.affinity_reason or 'Coincide con tu perfil de BeerMatch' }}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Precios y llamada a la acción -->
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:0.6rem; min-width:130px;">
+                <div style="text-align:right;">
+                    {% if ev.price and ev.price > 0 %}
+                    <span style="font-size:1.25rem; font-weight:800; color:var(--text-main); display:block;">{{ "%.2f"|format(ev.price) }} €</span>
+                    <span style="font-size:0.75rem; color:var(--text-secondary);">por persona</span>
+                    {% else %}
+                    <span style="font-size:1.1rem; font-weight:800; color:var(--status-ok-fg); display:block;">Entrada Libre</span>
+                    <span style="font-size:0.75rem; color:var(--text-secondary);">Hasta completar aforo</span>
+                    {% endif %}
+                </div>
+
+                {% if ev.capacity %}
+                <span style="font-size:0.76rem; color:var(--text-muted);">Aforo: {{ ev.capacity }} plazas</span>
+                {% endif %}
+
+                <div style="display:flex; gap:0.4rem; margin-top:0.3rem;">
+                    <a href="{{ url_for('routes.event_view', id=ev.id) }}" class="btn" style="padding:0.45rem 0.9rem; font-size:0.82rem;">
+                        Ver detalles
+                    </a>
+                    {% if ev.booking_url %}
+                    <a href="{{ ev.booking_url }}" target="_blank" rel="noopener" class="btn btn-outline" style="padding:0.45rem 0.75rem; font-size:0.82rem;">
+                        Reservar
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card" style="text-align: center; padding: 2.5rem 1.5rem;">
+        <span style="font-size: 2.2rem; display:block; margin-bottom: 0.6rem;">📅</span>
+        <h3 style="margin: 0 0 0.4rem 0; font-size: 1.15rem;">No se encontraron eventos activos</h3>
+        <p style="margin: 0 0 1.2rem 0; font-size: 0.88rem; color: var(--text-secondary);">
+            Prueba a eliminar los filtros o explora la pizarra de tus bares favoritos.
+        </p>
+        <a href="{{ url_for('routes.events_list') }}" class="btn" style="width: auto; display: inline-flex;">Ver todos</a>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+    const card = document.getElementById('push-alert-card');
+    const btn = document.getElementById('btn-activate-push');
+    if (!card || !btn || !window.BeerPush) return;
+
+    const status = await window.BeerPush.checkStatus();
+    if (status === 'default') {
+        card.style.display = 'block';
+    }
+
+    btn.addEventListener('click', async function() {
+        btn.disabled = true;
+        btn.innerText = 'Activando...';
+        try {
+            const ok = await window.BeerPush.subscribe();
+            if (ok) {
+                card.innerHTML = '<div style="color:var(--status-ok-fg); font-weight:700; font-size:0.88rem; padding:0.4rem 0;">✅ ¡Avisos activados! Te notificaremos de catas afines en tu zona.</div>';
+                setTimeout(() => { card.style.display = 'none'; }, 4000);
+            } else {
+                btn.disabled = false;
+                btn.innerText = 'Permiso no concedido';
+            }
+        } catch(err) {
+            btn.disabled = false;
+            btn.innerText = 'Reintentar';
+        }
+    });
+});
+</script>
+{% endblock %}

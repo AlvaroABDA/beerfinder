@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="margin-bottom: 1.2rem;">
+    <a href="{{ url_for('routes.venue_view', id=venue.id) if venue else url_for('routes.events_list') }}" class="btn-back" style="display:inline-flex; align-items:center; gap:0.4rem; color:var(--text-secondary); text-decoration:none; font-size:0.88rem; margin-bottom:0.8rem;">
+        {{ icon('arrow-left', 'icon-sm') }} Cancelar y volver
+    </a>
+    <h2 style="margin: 0 0 0.3rem 0; font-size: 1.4rem; font-weight: 800; letter-spacing: -0.4px;">
+        {% if is_edit %}Editar Evento: {{ event.title }}{% else %}Publicar Evento o Cata en {{ venue.name }}{% endif %}
+    </h2>
+    <p style="margin: 0; font-size: 0.86rem; color: var(--text-secondary);">
+        {% if is_edit %}Modifica los detalles del evento.{% else %}Publica una cata guiada, tap takeover o encuentro con cervecera para dinamizar tu local.{% endif %}
+    </p>
+</div>
+
+<div class="card" style="padding: 1.4rem;">
+    <form method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div style="margin-bottom: 1.1rem;">
+            <label style="display:block; font-size:0.82rem; font-weight:700; color:var(--text-main); margin-bottom:0.35rem;">
+                Título del evento o cata *
+            </label>
+            <input type="text" name="title" required value="{{ event.title if event else '' }}" placeholder="Ej. Cata Guiada: Maridaje de Quesos y Stouts Artesanales" style="width:100%; padding:0.65rem 0.85rem; font-size:0.92rem; border-radius:var(--radius-button); border:1px solid var(--border-color); background:var(--bg-panel); color:var(--text-main);">
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem; margin-bottom:1.1rem;">
+            <div>
+                <label style="display:block; font-size:0.82rem; font-weight:700; color:var(--text-main); margin-bottom:0.35rem;">
+                    Tipo de evento *
+                </label>
+                <select name="event_type" style="width:100%; padding:0.65rem 0.85rem; font-size:0.92rem; border-radius:var(--radius-button); border:1px solid var(--border-color); background:var(--bg-panel); color:var(--text-main);">
+                    {% for code, label in event_types.items() %}
+                    <option value="{{ code }}" {% if event and event.event_type == code %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label style="display:block; font-size:0.82rem; font-weight:700; color:var(--text-main); margin-bottom:0.35rem;">
+                    Fecha y hora de inicio *
+                </label>
+                <input type="datetime-local" name="event_date" required value="{{ event.event_date[:16] if event and event.event_date else '' }}" style="width:100%; padding:0.65rem 0.85rem; font-size:0.92rem; border-radius:var(--radius-button); border:1px solid var(--border-color); background:var(--bg-panel); color:var(--text-main);">
+            </div>
+
+            <div>
+                <label style="display:block; font-size:0.82rem; font-weight:700; color:var(--text-main); margin-bottom:0.35rem;">
+                    Fecha y hora de fin (opcional)
+                </label>
+                <input type="datetime-local" name="end_date" value="{{ event.end_date[:16] if event and event.end_date else '' }}" style="width:100%; padding:0.65rem 0.85rem; font-size:0.92rem; border-radius:var(--radius-button); border:1px solid var(--border-color); background:var(--bg-panel); color:var(--text-main);">
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem; margin-bottom:1.1rem;">
+            <div>
+                <label style="display:block; font-size:0.82rem; font-weight:700; color:var(--text-main); margin-bottom:0.35rem;">
+                    Precio por persona (€)
+                </label>
+                <input type="number" step="0.5" name="price" value="{{ event.price if event and event.price is not none else '' }}" placeholder="0.00 (dejar vacío para entrada libre)" style="width:100%; padding:0.65rem 0.85rem; font-size:0.92rem; border-radius:var(--radius-button); border:1px solid var(--border-color); background:var(--bg-panel); color:var(--text-main);">
+                <span style="font-size:0.75rem; color:var(--text-secondary); display:block; margin-top:0.25rem;">Deja 0 o vacío si es entrada libre hasta aforo.</span>
+            </div>
+
+            <div>
+                <label style="display:block; font-size:0.82rem; font-weight:700; color:var(--text-main); margin-bottom:0.35rem;">
+                    Aforo / Plazas (opcional)
+                </label>
+                <input type="number" name="capacity" value="{{ event.capacity if event and event.capacity else '' }}" placeholder="Ej. 20" style="width:100%; padding:0.65rem 0.85rem; font-size:0.92rem; border-radius:var(--radius-button); border:1px solid var(--border-color); background:var(--bg-panel); color:var(--text-main);">
+            </div>
+
+            <div>
+                <label style="display:block; font-size:0.82rem; font-weight:700; color:var(--text-main); margin-bottom:0.35rem;">
+                    Enlace de reserva o WhatsApp (opcional)
+                </label>
+                <input type="url" name="booking_url" value="{{ event.booking_url if event and event.booking_url else '' }}" placeholder="https://wa.me/346... o link de compra" style="width:100%; padding:0.65rem 0.85rem; font-size:0.92rem; border-radius:var(--radius-button); border:1px solid var(--border-color); background:var(--bg-panel); color:var(--text-main);">
+            </div>
+        </div>
+
+        <!-- Vinculación opcional con cervecera y estilo (para afinidad inteligente en Punto 4) -->
+        <div style="padding:0.9rem; background:rgba(229,133,75,0.06); border:1px solid rgba(229,133,75,0.2); border-radius:var(--radius-button); margin-bottom:1.1rem;">
+            <div style="font-size:0.78rem; font-weight:700; color:var(--color-primary); margin-bottom:0.5rem; display:flex; align-items:center; gap:0.35rem;">
+                🎯 Enfoque y afinidad de paladar (Opcional)
+            </div>
+            <p style="font-size:0.78rem; color:var(--text-secondary); margin:0 0 0.75rem 0;">
+                Si la cata o evento está centrado en una cervecera o estilo concreto, indícalo aquí para que el sistema avise prioritariamente a usuarios con afinidad de paladar.
+            </p>
+
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:0.8rem;">
+                <div>
+                    <label style="display:block; font-size:0.78rem; color:var(--text-main); margin-bottom:0.25rem;">Cervecera invitada / asociada</label>
+                    <select name="fabricante_id" style="width:100%; padding:0.5rem; font-size:0.85rem; border-radius:var(--radius-button); border:1px solid var(--border-color); background:var(--bg-panel); color:var(--text-main);">
+                        <option value="">-- Ninguna / Multimarca --</option>
+                        {% for f in fabricantes %}
+                        <option value="{{ f.id }}" {% if event and event.fabricante_id == f.id %}selected{% endif %}>{{ f.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label style="display:block; font-size:0.78rem; color:var(--text-main); margin-bottom:0.25rem;">Estilo cervecero protagonista</label>
+                    <select name="style_id" style="width:100%; padding:0.5rem; font-size:0.85rem; border-radius:var(--radius-button); border:1px solid var(--border-color); background:var(--bg-panel); color:var(--text-main);">
+                        <option value="">-- Varios estilos / No específico --</option>
+                        {% for s in styles %}
+                        <option value="{{ s.id }}" {% if event and event.style_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label style="display:block; font-size:0.78rem; color:var(--text-main); margin-bottom:0.25rem;">Familia cervecera</label>
+                    <select name="family_id" style="width:100%; padding:0.5rem; font-size:0.85rem; border-radius:var(--radius-button); border:1px solid var(--border-color); background:var(--bg-panel); color:var(--text-main);">
+                        <option value="">-- No específica --</option>
+                        {% for fam in families %}
+                        <option value="{{ fam.id }}" {% if event and event.family_id == fam.id %}selected{% endif %}>{{ fam.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 1.1rem;">
+            <label style="display:block; font-size:0.82rem; font-weight:700; color:var(--text-main); margin-bottom:0.35rem;">
+                Descripción del evento
+            </label>
+            <textarea name="description" rows="4" placeholder="Explica qué incluye la cata, cervezas a probar, maridajes o si habrá presencia del maestro cervecero..." style="width:100%; padding:0.65rem 0.85rem; font-size:0.92rem; border-radius:var(--radius-button); border:1px solid var(--border-color); background:var(--bg-panel); color:var(--text-main); font-family:inherit;">{{ event.description if event else '' }}</textarea>
+        </div>
+
+        <div style="margin-bottom: 1.4rem;">
+            <label style="display:block; font-size:0.82rem; font-weight:700; color:var(--text-main); margin-bottom:0.35rem;">
+                Imagen o cartel del evento (opcional)
+            </label>
+            <input type="file" name="image" accept="image/png, image/jpeg, image/webp" style="font-size:0.85rem; color:var(--text-secondary);">
+            {% if event and event.image %}
+            <div style="margin-top:0.4rem; font-size:0.78rem; color:var(--text-muted);">
+                Imagen actual: {{ event.image }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:0.75rem;">
+            <a href="{{ url_for('routes.venue_view', id=venue.id) if venue else url_for('routes.events_list') }}" class="btn btn-outline" style="width:auto; padding:0.6rem 1.2rem;">
+                Cancelar
+            </a>
+            <button type="submit" class="btn" style="width:auto; padding:0.6rem 1.4rem;">
+                {% if is_edit %}Guardar Cambios{% else %}Publicar Evento{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

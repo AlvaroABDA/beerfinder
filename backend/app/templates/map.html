@@ -20,6 +20,7 @@
                 {{ icon('map-pin', 'icon-sm') }} <span id="venue-address">Dirección</span>
             </p>
             <div id="venue-radar-note" class="notice-amber" style="display:none; margin:0.4rem 0; padding:0.45rem 0.7rem; font-size:0.78rem; font-weight:700;"></div>
+            <div id="venue-event-note" style="display:none; margin:0.4rem 0; padding:0.45rem 0.7rem; font-size:0.8rem; background:rgba(229,133,75,0.15); border:1px solid rgba(229,133,75,0.35); border-radius:var(--radius-button); color:var(--text-main);"></div>
             <a href="#" id="venue-link" class="btn" style="margin-top: 0.5rem; padding: 0.55rem;">Ver pizarra</a>
         </div>
         <button onclick="closeVenueCard()" class="menu-btn" style="width:32px; height:32px; align-self:flex-start;">{{ icon('x', 'icon-sm') }}</button>
@@ -54,17 +55,27 @@
         iconAnchor: [20, 20]
     });
 
+    var eventIcon = L.divIcon({
+        html: '<div style="background:var(--color-primary); color:var(--btn-primary-fg); border:2.5px solid #FFFFFF; border-radius:50%; width:42px; height:42px; display:flex; align-items:center; justify-content:center; box-shadow:0 0 20px rgba(229,133,75,0.9); font-size:18px;">📅</div>',
+        className: 'custom-div-icon event-pulsing-icon',
+        iconSize: [42, 42],
+        iconAnchor: [21, 21]
+    });
+
     venues.forEach(function(venue) {
         if (venue.latitude && venue.longitude) {
             var hasRadar = venue.radar_beers && venue.radar_beers.length > 0;
-            var marker = L.marker([venue.latitude, venue.longitude], {icon: hasRadar ? radarIcon : beerIcon}).addTo(map);
+            var hasEvents = venue.has_events;
+            var chosenIcon = hasEvents ? eventIcon : (hasRadar ? radarIcon : beerIcon);
+            var marker = L.marker([venue.latitude, venue.longitude], {icon: chosenIcon}).addTo(map);
             bounds.push([venue.latitude, venue.longitude]);
 
             function openThisVenue() {
                 document.getElementById('venue-name').innerText = venue.name;
                 document.getElementById('venue-address').innerText = venue.address + (venue.city ? ', ' + venue.city : '');
                 document.getElementById('venue-link').href = '/venue/' + venue.id;
-                document.getElementById('venue-card-icon').innerHTML = hasRadar ? lucideSvg('radar') : lucideSvg('store');
+                document.getElementById('venue-card-icon').innerHTML = hasEvents ? '📅' : (hasRadar ? lucideSvg('radar') : lucideSvg('store'));
+
                 var radarNote = document.getElementById('venue-radar-note');
                 if (hasRadar) {
                     radarNote.innerHTML = lucideSvg('radar', 'icon-sm') + ' <span>En tu radar aquí: ' + escapeHtml(venue.radar_beers.join(', ')) + '</span>';
@@ -72,8 +83,19 @@
                 } else {
                     radarNote.style.display = 'none';
                 }
+
+                var eventNote = document.getElementById('venue-event-note');
+                if (hasEvents && venue.upcoming_events && venue.upcoming_events.length > 0) {
+                    var ev0 = venue.upcoming_events[0];
+                    eventNote.innerHTML = '🎉 <strong>' + escapeHtml(ev0.event_type_label || 'Cata') + ':</strong> ' + escapeHtml(ev0.title) + '<br><span style="font-size:0.75rem; color:var(--text-secondary);">' + escapeHtml(ev0.event_date.replace('T', ' ').slice(0, 16)) + '</span> <a href="/event/' + ev0.id + '" style="color:var(--color-primary); font-weight:700; margin-left:0.4rem;">Ver cata →</a>';
+                    eventNote.style.display = 'block';
+                } else {
+                    eventNote.style.display = 'none';
+                }
+
                 document.getElementById('venue-info-card').style.display = 'block';
             }
+
 
             marker.on('click', openThisVenue);
 

@@ -10,7 +10,8 @@ from flask import url_for
 from .models import (
     db, utc_now_iso, parse_abv,
     User, Venue, Fabricante, BeerFamily, BeerStyle, Tag, Beer, BeerTag,
-    Availability, Claim, UserBeerPreference, UserPreference, AuditLog, GeocodingCache
+    Availability, Claim, UserBeerPreference, UserPreference, AuditLog, GeocodingCache,
+    Event, PushSubscription
 )
 from .services import storage
 
@@ -1210,3 +1211,344 @@ def revoke_ownership_atomic(entity_type, entity_id, admin_user_id):
     )
     db.session.commit()
     return True
+
+
+# ==========================================
+# GESTIÓN DE EVENTOS, CATAS Y WEB PUSH
+# ==========================================
+
+EVENT_TYPE_LABELS = {
+    'CATA': 'Cata guiada',
+    'TAP_TAKEOVER': 'Tap Takeover',
+    'MEET_BREWER': 'Meet the Brewer',
+    'MARIDAJE': 'Cata y Maridaje',
+    'PRESENTACION': 'Presentación de Lote',
+    'OTRO': 'Evento Cervecero',
+}
+
+
+def create_event(data, created_by=None):
+    """Crea un nuevo evento o cata."""
+    ev = Event(
+        venue_id=int(data['venue_id']) if data.get('venue_id') else None,
+        fabricante_id=int(data['fabricante_id']) if data.get('fabricante_id') else None,
+        title=data['title'].strip(),
+        description=(data.get('description') or '').strip(),
+        event_type=data.get('event_type') or 'CATA',
+        event_date=data['event_date'].strip(),
+        end_date=(data.get('end_date') or '').strip() or None,
+        price=float(data['price']) if data.get('price') not in (None, '', '0', 0) else 0.0,
+        capacity=int(data['capacity']) if data.get('capacity') else None,
+        booking_url=sanitize_url(data.get('booking_url')),
+        image=data.get('image'),
+        family_id=int(data['family_id']) if data.get('family_id') else None,
+        style_id=int(data['style_id']) if data.get('style_id') else None,
+        created_by=created_by,
+        active=True,
+    )
+    db.session.add(ev)
+    db.session.commit()
+    return ev
+
+
+def get_event(event_id):
+    """Obtiene un evento por ID con relaciones resueltas a diccionario."""
+    ev = db.session.get(Event, int(event_id))
+    if not ev:
+        return None
+    d = ev.to_dict()
+    d['event_type_label'] = EVENT_TYPE_LABELS.get(d.get('event_type'), 'Evento Cervecero')
+    if d.get('venue_id'):
+        v = db.session.get(Venue, d['venue_id'])
+        d['venue'] = v.to_dict() if v else None
+    else:
+        d['venue'] = None
+
+    if d.get('fabricante_id'):
+        f = db.session.get(Fabricante, d['fabricante_id'])
+        d['fabricante'] = f.to_dict() if f else None
+    else:
+        d['fabricante'] = None
+
+    if d.get('style_id'):
+        s = db.session.get(BeerStyle, d['style_id'])
+        d['style'] = s.to_dict() if s else None
+    else:
+        d['style'] = None
+
+    if d.get('family_id'):
+        fam = db.session.get(BeerFamily, d['family_id'])
+        d['family'] = fam.to_dict() if fam else None
+    else:
+        d['family'] = None
+
+    return d
+
+
+def update_event(event_id, data):
+    """Actualiza los campos de un evento existente."""
+    ev = db.session.get(Event, int(event_id))
+    if not ev:
+        return None
+    if 'title' in data:
+        ev.title = data['title'].strip()
+    if 'description' in data:
+        ev.description = (data.get('description') or '').strip()
+    if 'event_type' in data:
+        ev.event_type = data['event_type']
+    if 'event_date' in data:
+        ev.event_date = data['event_date'].strip()
+    if 'end_date' in data:
+        ev.end_date = (data.get('end_date') or '').strip() or None
+    if 'price' in data:
+        ev.price = float(data['price']) if data.get('price') not in (None, '', '0', 0) else 0.0
+    if 'capacity' in data:
+        ev.capacity = int(data['capacity']) if data.get('capacity') else None
+    if 'booking_url' in data:
+        ev.booking_url = sanitize_url(data.get('booking_url'))
+    if 'image' in data and data['image']:
+        ev.image = data['image']
+    if 'venue_id' in data:
+        ev.venue_id = int(data['venue_id']) if data.get('venue_id') else None
+    if 'fabricante_id' in data:
+        ev.fabricante_id = int(data['fabricante_id']) if data.get('fabricante_id') else None
+    if 'family_id' in data:
+        ev.family_id = int(data['family_id']) if data.get('family_id') else None
+    if 'style_id' in data:
+        ev.style_id = int(data['style_id']) if data.get('style_id') else None
+    if 'active' in data:
+        ev.active = bool(data['active'])
+    db.session.commit()
+    return ev
+
+
+def delete_event(event_id):
+    """Elimina un evento."""
+    ev = db.session.get(Event, int(event_id))
+    if not ev:
+        return False
+    db.session.delete(ev)
+    db.session.commit()
+    return True
+
+
+def list_upcoming_events(lat=None, lon=None, max_distance=None, user_id=None, limit=20, only_active=True):
+    """Lista eventos próximos enriquecidos con local, cervecera, distancia y afinidad con el paladar del usuario."""
+    today_str = datetime.now().strftime('%Y-%m-%d')
+    q = Event.query
+    if only_active:
+        q = q.filter(Event.active.is_(True))
+    q = q.filter(Event.event_date >= today_str).order_by(Event.event_date.asc())
+    events = q.all()
+
+    venues_by_id = {v.id: v.to_dict() for v in Venue.query.all()}
+    fabs_by_id = {f.id: f.to_dict() for f in Fabricante.query.all()}
+    styles_by_id = {s.id: s.to_dict() for s in BeerStyle.query.all()}
+    families_by_id = {fam.id: fam.to_dict() for fam in BeerFamily.query.all()}
+
+    user_liked_styles = set()
+    user_disliked_styles = set()
+    user_liked_families = set()
+    user_disliked_families = set()
+    user_liked_brewery_ids = set()
+
+    if user_id:
+        palate_prefs = list_user_palate_preferences(user_id)
+        for p in palate_prefs:
+            target_type = p.get('target_type')
+            target_id = p.get('target_id')
+            pref = p.get('preference')
+            if target_type == 'STYLE':
+                if pref == 'LIKE':
+                    user_liked_styles.add(target_id)
+                elif pref == 'DISLIKE':
+                    user_disliked_styles.add(target_id)
+            elif target_type == 'FAMILY':
+                if pref == 'LIKE':
+                    user_liked_families.add(target_id)
+                elif pref == 'DISLIKE':
+                    user_disliked_families.add(target_id)
+
+        bm_prefs = list_user_beer_preferences(user_id)
+        liked_beer_ids = [bp['beer_id'] for bp in bm_prefs if bp.get('preference') in ('LIKE', 'WISHLIST')]
+        if liked_beer_ids:
+            for b in Beer.query.filter(Beer.id.in_(liked_beer_ids)).all():
+                if b.fabricante_id:
+                    user_liked_brewery_ids.add(b.fabricante_id)
+
+    enriched = []
+    for ev in events:
+        d = ev.to_dict()
+        d['event_type_label'] = EVENT_TYPE_LABELS.get(d.get('event_type'), 'Evento')
+
+        v = venues_by_id.get(ev.venue_id)
+        d['venue'] = v
+        d['venue_name'] = v['name'] if v else 'Ubicación por confirmar'
+        d['venue_city'] = v.get('city') if v else ''
+        d['venue_address'] = v.get('address') if v else ''
+
+        f = fabs_by_id.get(ev.fabricante_id)
+        d['fabricante'] = f
+        d['fabricante_name'] = f['name'] if f else None
+
+        s = styles_by_id.get(ev.style_id)
+        d['style'] = s
+        d['style_name'] = s['name'] if s else None
+        d['style_color'] = s['color'] if s else '#F3E066'
+
+        fam = families_by_id.get(ev.family_id or (s.get('family_id') if s else None))
+        d['family'] = fam
+        d['family_name'] = fam['name'] if fam else None
+
+        d['distance_km'] = None
+        if lat is not None and lon is not None and v and v.get('latitude') and v.get('longitude'):
+            dist = haversine(float(lat), float(lon), float(v['latitude']), float(v['longitude']))
+            d['distance_km'] = round(dist, 1)
+            if max_distance is not None and dist > float(max_distance):
+                continue
+
+        d['has_affinity'] = False
+        d['affinity_reason'] = None
+        d['is_disliked'] = False
+
+        if user_id:
+            if ev.style_id and ev.style_id in user_disliked_styles:
+                d['is_disliked'] = True
+            elif ev.family_id and ev.family_id in user_disliked_families:
+                d['is_disliked'] = True
+            elif ev.style_id and ev.style_id in user_liked_styles:
+                d['has_affinity'] = True
+                d['affinity_reason'] = f"Estilo afín ({s['name']})" if s else "Estilo afín a tu paladar"
+            elif ev.fabricante_id and ev.fabricante_id in user_liked_brewery_ids:
+                d['has_affinity'] = True
+                d['affinity_reason'] = f"De tu cervecera favorita ({f['name']})" if f else "Cervecera afín"
+            elif ev.family_id and ev.family_id in user_liked_families:
+                d['has_affinity'] = True
+                d['affinity_reason'] = f"Familia afín ({fam['name']})" if fam else "Familia de cerveza afín"
+
+        enriched.append(d)
+
+    if user_id:
+        enriched.sort(key=lambda x: (not x['has_affinity'], x.get('event_date', '')))
+
+    return enriched[:limit]
+
+
+def get_venue_events(venue_id, only_upcoming=True):
+    """Devuelve los eventos de un local específico."""
+    q = Event.query.filter_by(venue_id=int(venue_id), active=True)
+    if only_upcoming:
+        today_str = datetime.now().strftime('%Y-%m-%d')
+        q = q.filter(Event.event_date >= today_str)
+    events = q.order_by(Event.event_date.asc()).all()
+
+    fabs_by_id = {f.id: f.to_dict() for f in Fabricante.query.all()}
+    styles_by_id = {s.id: s.to_dict() for s in BeerStyle.query.all()}
+
+    results = []
+    for ev in events:
+        d = ev.to_dict()
+        d['event_type_label'] = EVENT_TYPE_LABELS.get(d.get('event_type'), 'Evento')
+        d['fabricante'] = fabs_by_id.get(ev.fabricante_id)
+        d['style'] = styles_by_id.get(ev.style_id)
+        results.append(d)
+    return results
+
+
+def get_venues_with_upcoming_events():
+    """Devuelve un mapa {venue_id: [event_data, ...]} con los locales que tienen eventos próximos."""
+    today_str = datetime.now().strftime('%Y-%m-%d')
+    events = (
+        Event.query.filter(Event.active.is_(True), Event.event_date >= today_str)
+        .order_by(Event.event_date.asc())
+        .all()
+    )
+    res = {}
+    for ev in events:
+        if not ev.venue_id:
+            continue
+        d = ev.to_dict()
+        d['event_type_label'] = EVENT_TYPE_LABELS.get(d.get('event_type'), 'Evento')
+        res.setdefault(ev.venue_id, []).append(d)
+    return res
+
+
+def save_push_subscription(endpoint, p256dh, auth, user_id=None, lat=None, lon=None, max_distance=30.0):
+    """Registra o actualiza una suscripción de Web Push."""
+    sub = PushSubscription.query.filter_by(endpoint=endpoint).first()
+    if not sub:
+        sub = PushSubscription(
+            endpoint=endpoint,
+            p256dh=p256dh,
+            auth=auth,
+            user_id=int(user_id) if user_id else None,
+            latitude=float(lat) if lat is not None else None,
+            longitude=float(lon) if lon is not None else None,
+            max_distance=float(max_distance) if max_distance else 30.0,
+        )
+        db.session.add(sub)
+    else:
+        sub.p256dh = p256dh
+        sub.auth = auth
+        if user_id:
+            sub.user_id = int(user_id)
+        if lat is not None:
+            sub.latitude = float(lat)
+        if lon is not None:
+            sub.longitude = float(lon)
+        if max_distance:
+            sub.max_distance = float(max_distance)
+    db.session.commit()
+    return sub
+
+
+def delete_push_subscription(endpoint):
+    """Elimina una suscripción Push."""
+    sub = PushSubscription.query.filter_by(endpoint=endpoint).first()
+    if sub:
+        db.session.delete(sub)
+        db.session.commit()
+        return True
+    return False
+
+
+def get_eligible_push_subscriptions_for_event(event_id, default_radius_km=30.0):
+    """Selecciona suscripciones destinatarias para un evento geodistante y afín."""
+    ev = db.session.get(Event, int(event_id))
+    if not ev:
+        return []
+
+    venue = db.session.get(Venue, ev.venue_id) if ev.venue_id else None
+    all_subs = PushSubscription.query.all()
+    eligible = []
+
+    for sub in all_subs:
+        dist_km = None
+        if venue and venue.latitude and venue.longitude and sub.latitude and sub.longitude:
+            dist_km = haversine(sub.latitude, sub.longitude, venue.latitude, venue.longitude)
+            radius = sub.max_distance or default_radius_km
+            if dist_km > radius:
+                continue
+
+        affinity = False
+        if sub.user_id:
+            prefs = list_user_palate_preferences(sub.user_id)
+            disliked_styles = {p['target_id'] for p in prefs if p.get('target_type') == 'STYLE' and p.get('preference') == 'DISLIKE'}
+            disliked_fams = {p['target_id'] for p in prefs if p.get('target_type') == 'FAMILY' and p.get('preference') == 'DISLIKE'}
+
+            if ev.style_id and ev.style_id in disliked_styles:
+                continue
+            if ev.family_id and ev.family_id in disliked_fams:
+                continue
+
+            liked_styles = {p['target_id'] for p in prefs if p.get('target_type') == 'STYLE' and p.get('preference') == 'LIKE'}
+            if ev.style_id and ev.style_id in liked_styles:
+                affinity = True
+
+        eligible.append({
+            'subscription': sub,
+            'distance_km': dist_km,
+            'has_affinity': affinity,
+        })
+
+    return eligible

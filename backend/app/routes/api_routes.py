@@ -410,4 +410,83 @@ def api_geocode():
     return jsonify({'found': False, 'message': 'No se encontraron coordenadas'}), 404
 
 
+# ==========================================
+# EVENTOS, CATAS Y WEB PUSH API
+# ==========================================
+
+@bp.route('/api/events')
+def api_events():
+    lat, lon = _parse_coords()
+    uid = session.get('user_id')
+    max_dist = request.args.get('max_distance', type=float)
+    if not max_dist and uid:
+        u = data_access.get_user_by_id(uid)
+        if u and u.get('max_distance'):
+            max_dist = float(u['max_distance'])
+    events = data_access.list_upcoming_events(lat=lat, lon=lon, max_distance=max_dist, user_id=uid)
+    return jsonify(events)
+
+
+@bp.route('/api/push/vapid_public_key')
+def api_push_vapid_key():
+    from ..services.push_notifications import get_vapid_public_key
+    return jsonify({'publicKey': get_vapid_public_key()})
+
+
+@bp.route('/api/push/subscribe', methods=['POST'])
+def api_push_subscribe():
+    data = request.get_json(silent=True) or {}
+    endpoint = data.get('endpoint')
+    keys = data.get('keys') or {}
+    p256dh = keys.get('p256dh')
+    auth = keys.get('auth')
+
+    if not endpoint or not p256dh or not auth:
+        return jsonify({'error': 'Datos de suscripción incompletos'}), 400
+
+    uid = session.get('user_id')
+    lat = data.get('lat')
+    lon = data.get('lon')
+    max_dist = data.get('max_distance') or 30.0
+
+    sub = data_access.save_push_subscription(
+        endpoint=endpoint,
+        p256dh=p256dh,
+        auth=auth,
+        user_id=uid,
+        lat=lat,
+        lon=lon,
+        max_distance=max_dist,
+    )
+    return jsonify({'status': 'ok', 'subscription_id': sub.id})
+
+
+@bp.route('/api/push/unsubscribe', methods=['POST'])
+def api_push_unsubscribe():
+    data = request.get_json(silent=True) or {}
+    endpoint = data.get('endpoint')
+    if endpoint:
+        data_access.delete_push_subscription(endpoint)
+    return jsonify({'status': 'ok'})
+
+
+@bp.route('/api/events/<int:id>/notify', methods=['POST'])
+def api_event_notify(id):
+    uid = session.get('user_id')
+    is_admin = session.get('role') == 'ADMIN'
+    ev = data_access.get_event(id)
+    if not ev:
+        return jsonify({'error': 'Evento no encontrado'}), 404
+
+    venue = ev.get('venue')
+    can_manage = is_admin or (uid and (ev.get('created_by') == uid or (venue and venue.get('owner_user_id') == uid)))
+    if not can_manage:
+        return jsonify({'error': 'No autorizado'}), 403
+
+    from ..services.push_notifications import notify_eligible_subscribers_for_event
+    sent_count, msg = notify_eligible_subscribers_for_event(id, origin_url=request.host_url)
+    return jsonify({'sent_count': sent_count, 'message': msg})
+
+
+
 

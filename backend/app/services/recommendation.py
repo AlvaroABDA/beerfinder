@@ -1,6 +1,11 @@
 import random
-from app import data_access
-from app.models import Beer
+try:
+    from app import data_access
+    from app.models import Beer
+except ImportError:
+    from .. import data_access
+    from ..models import Beer
+
 
 WEIGHT_SIMILARITY = 40
 WEIGHT_TAGS = 30
