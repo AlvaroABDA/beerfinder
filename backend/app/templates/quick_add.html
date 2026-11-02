@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card" style="margin-bottom: 1.2rem;">
+    <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.4rem;">
+        <span style="color:var(--color-primary); display:flex;">{{ icon('plus-circle') }}</span>
+        <h2 style="margin:0; font-size:1.35rem; font-weight:800;">¿Qué quieres añadir?</h2>
+    </div>
+    <p style="margin:0 0 1.2rem 0; font-size:0.86rem; color:var(--text-secondary); line-height:1.4;">
+        Añade contenido a BeerFinder en menos de 1 minuto para que la comunidad cervecera lo descubra.
+    </p>
+
+    <div style="display:flex; flex-direction:column; gap:0.85rem;">
+        <!-- Opción 1: Cerveza -->
+        <a href="{{ url_for('routes.beer_new') }}" class="add-hub-option" style="display:flex; align-items:center; gap:1rem; padding:1.05rem 1.15rem; background:var(--bg-panel-raised); border-radius:var(--radius-card); border:1px solid var(--border-color); text-decoration:none; color:inherit; transition:all 0.18s ease; box-shadow:var(--card-shadow);">
+            <div style="width:52px; height:52px; border-radius:14px; background:rgba(245,158,11,0.18); color:var(--color-primary); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                {{ icon('beer') }}
+            </div>
+            <div style="flex:1; min-width:0;">
+                <strong style="font-size:1.02rem; color:var(--text-main); display:block; margin-bottom:0.2rem;">Añadir Cerveza</strong>
+                <span style="font-size:0.81rem; color:var(--text-secondary); line-height:1.35; display:block;">¿Bebiendo algo rico? Regístrala con su marca, graduación y estilo.</span>
+            </div>
+            <span style="color:var(--text-muted); display:flex; flex-shrink:0;">{{ icon('chevron-right') }}</span>
+        </a>
+
+        <!-- Opción 2: Bar o Local -->
+        <a href="{{ url_for('routes.venue_new') }}" class="add-hub-option" style="display:flex; align-items:center; gap:1rem; padding:1.05rem 1.15rem; background:var(--bg-panel-raised); border-radius:var(--radius-card); border:1px solid var(--border-color); text-decoration:none; color:inherit; transition:all 0.18s ease; box-shadow:var(--card-shadow);">
+            <div style="width:52px; height:52px; border-radius:14px; background:rgba(16,185,129,0.18); color:var(--color-green); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                {{ icon('store') }}
+            </div>
+            <div style="flex:1; min-width:0;">
+                <strong style="font-size:1.02rem; color:var(--text-main); display:block; margin-bottom:0.2rem;">Añadir Bar o Taproom</strong>
+                <span style="font-size:0.81rem; color:var(--text-secondary); line-height:1.35; display:block;">¿Un sitio guapo? Sitúalo en el mapa con tu GPS y comparte sus grifos.</span>
+            </div>
+            <span style="color:var(--text-muted); display:flex; flex-shrink:0;">{{ icon('chevron-right') }}</span>
+        </a>
+
+        <!-- Opción 3: Marca o Fábrica -->
+        <a href="{{ url_for('routes.fabricante_new') }}" class="add-hub-option" style="display:flex; align-items:center; gap:1rem; padding:1.05rem 1.15rem; background:var(--bg-panel-raised); border-radius:var(--radius-card); border:1px solid var(--border-color); text-decoration:none; color:inherit; transition:all 0.18s ease; box-shadow:var(--card-shadow);">
+            <div style="width:52px; height:52px; border-radius:14px; background:rgba(99,102,241,0.18); color:#818CF8; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                {{ icon('factory') }}
+            </div>
+            <div style="flex:1; min-width:0;">
+                <strong style="font-size:1.02rem; color:var(--text-main); display:block; margin-bottom:0.2rem;">Añadir Marca o Fábrica</strong>
+                <span style="font-size:0.81rem; color:var(--text-secondary); line-height:1.35; display:block;">Registra una cervecera artesana con su origen e historia.</span>
+            </div>
+            <span style="color:var(--text-muted); display:flex; flex-shrink:0;">{{ icon('chevron-right') }}</span>
+        </a>
+    </div>
+
+    <div style="margin-top:1.4rem; text-align:center;">
+        <a href="javascript:history.back()" class="btn btn-outline" style="width:auto; padding:0.5rem 1.4rem; font-size:0.85rem; border-radius:999px; display:inline-flex; align-items:center; gap:0.35rem;">
+            {{ icon('arrow-left', 'icon-sm') }} <span>Volver</span>
+        </a>
+    </div>
+</div>
+
+<style>
+.add-hub-option:hover, .add-hub-option:active {
+    border-color: var(--color-primary) !important;
+    transform: translateY(-2px);
+}
+</style>
+{% endblock %}
+

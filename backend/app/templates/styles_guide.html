@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="margin-bottom: 1.2rem;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.5rem;">
+        <div>
+            <h2 style="margin:0 0 0.25rem 0; font-size:1.35rem; font-weight:800; display:flex; align-items:center; gap:0.5rem;">
+                <span style="color:var(--color-primary);">{{ icon('book-open') }}</span> Guía de Estilos
+            </h2>
+            <span style="font-size:0.82rem; color:var(--text-secondary);">
+                La Biblia cervecera: {{ total_styles }} estilos en {{ total_families }} familias
+            </span>
+        </div>
+        <a href="{{ url_for('routes.beer_new') }}" class="btn" style="width:auto; padding:0.45rem 0.85rem; font-size:0.8rem; border-radius:999px; white-space:nowrap; display:inline-flex; align-items:center; gap:0.3rem;">
+            {{ icon('plus', 'icon-sm') }} <span>Añadir</span>
+        </a>
+    </div>
+
+    <!-- Buscador en vivo de estilos -->
+    <div class="search-bar" style="margin-bottom:0.8rem;">
+        <span style="color:var(--color-primary); display:flex; margin-right:0.3rem;">{{ icon('search', 'icon-sm') }}</span>
+        <input type="text" id="stylesSearch" placeholder="Buscar estilo, sabor o nota (ej. amargor, malta, trigo, ácida)..." oninput="filterStylesList(this.value)">
+    </div>
+
+    <!-- Chips de salto rápido por familia -->
+    <div class="quick-category-scroll" style="margin-bottom:1.1rem;">
+        <button type="button" class="quick-chip active family-filter-chip" onclick="filterByFamily('all', this)">Todas</button>
+        {% for g in grouped %}
+        <button type="button" class="quick-chip family-filter-chip" onclick="filterByFamily('fam-{{ g.family.id }}', this)">{{ g.family.name }}</button>
+        {% endfor %}
+    </div>
+</div>
+
+<div id="stylesGuideList" style="display:flex; flex-direction:column; gap:1.3rem;">
+    {% for g in grouped %}
+    <div class="family-section" id="fam-{{ g.family.id }}" data-family-id="fam-{{ g.family.id }}" style="background:var(--bg-panel); border-radius:var(--radius-card); border:1px solid var(--border-color); padding:1.1rem; box-shadow:var(--card-shadow);">
+        <div style="border-bottom:1px solid var(--border-color); padding-bottom:0.65rem; margin-bottom:0.85rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <strong style="color:var(--color-primary); font-size:1.05rem; display:inline-flex; align-items:center; gap:0.45rem;">
+                    {{ icon('hop', 'icon-sm') }} Familia {{ g.family.name }}
+                </strong>
+                <span style="font-size:0.75rem; color:var(--text-secondary); background:var(--bg-body); padding:2px 8px; border-radius:999px; border:1px solid var(--border-color);">
+                    {{ g.styles|length }} estilos
+                </span>
+            </div>
+            {% if g.family.description %}
+            <p style="margin:0.3rem 0 0 0; font-size:0.81rem; color:var(--text-secondary); line-height:1.35;">
+                {{ g.family.description }}
+            </p>
+            {% endif %}
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:0.75rem;">
+            {% for s in g.styles %}
+            <div class="style-item-card" id="style-{{ s.id }}" data-search="{{ (s.name ~ ' ' ~ (s.description or '') ~ ' ' ~ g.family.name)|lower }}" style="padding:0.9rem; background:var(--bg-panel-raised); border-radius:12px; border:1px solid var(--border-color); border-left:4px solid {{ s.color or '#F59E0B' }}; transition:all 0.15s ease;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.4rem;">
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                        <span style="width:12px; height:12px; border-radius:50%; background:{{ s.color or '#F59E0B' }}; display:inline-block; border:1px solid var(--border-color); flex-shrink:0;"></span>
+                        <strong style="font-size:0.98rem; color:var(--text-main);">{{ s.name }}</strong>
+                    </div>
+                    {% if s.beer_count > 0 %}
+                    <a href="{{ url_for('routes.beers_list') }}?style={{ s.name|urlencode }}" class="walk-badge walk-badge-green" style="text-decoration:none;" title="Ver cervezas disponibles de este estilo">
+                        {{ icon('beer', 'icon-sm') }} {{ s.beer_count }} en app
+                    </a>
+                    {% endif %}
+                </div>
+
+                <p style="margin:0 0 0.55rem 0; font-size:0.84rem; color:var(--text-secondary); line-height:1.4;">
+                    {{ s.description or 'Sin descripción disponible todavía.' }}
+                </p>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; padding-top:0.4rem; border-top:1px dashed var(--border-color);">
+                    <span style="color:var(--text-muted);">Familia: {{ g.family.name }}</span>
+                    <a href="{{ url_for('routes.beer_new') }}?style_id={{ s.id }}" style="color:var(--color-primary); font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:0.25rem;">
+                        {{ icon('plus', 'icon-sm') }} Añadir cerveza de este estilo
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div id="noStylesFound" style="display:none; text-align:center; padding:2.5rem 1rem; color:var(--text-secondary);">
+    {{ icon('search', 'icon-lg') }}
+    <p style="margin-top:0.6rem; font-size:0.95rem;">No se encontraron estilos que coincidan con la búsqueda.</p>
+</div>
+
+<script>
+    let activeFamilyFilter = 'all';
+
+    function filterByFamily(famId, btn) {
+        activeFamilyFilter = famId;
+        document.querySelectorAll('.family-filter-chip').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+
+        const q = (document.getElementById('stylesSearch').value || '').toLowerCase().trim();
+        applyAllFilters(q);
+    }
+
+    function filterStylesList(val) {
+        applyAllFilters((val || '').toLowerCase().trim());
+    }
+
+    function applyAllFilters(q) {
+        const sections = document.querySelectorAll('.family-section');
+        let totalVisible = 0;
+
+        sections.forEach(section => {
+            const famMatches = (activeFamilyFilter === 'all' || section.getAttribute('data-family-id') === activeFamilyFilter);
+            let sectionVisibleCount = 0;
+
+            const items = section.querySelectorAll('.style-item-card');
+            items.forEach(item => {
+                const searchData = item.getAttribute('data-search') || '';
+                const queryMatches = !q || searchData.includes(q);
+
+                if (famMatches && queryMatches) {
+                    item.style.display = 'block';
+                    sectionVisibleCount++;
+                    totalVisible++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            if (famMatches && sectionVisibleCount > 0) {
+                section.style.display = 'block';
+            } else {
+                section.style.display = 'none';
+            }
+        });
+
+        const noFound = document.getElementById('noStylesFound');
+        if (noFound) noFound.style.display = (totalVisible === 0) ? 'block' : 'none';
+    }
+
+    // Auto-scroll y resaltado si la URL trae un hash como #style-10
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.location.hash) {
+            const target = document.querySelector(window.location.hash);
+            if (target) {
+                setTimeout(() => {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    target.style.outline = '2px solid var(--color-primary)';
+                    target.style.boxShadow = '0 0 16px var(--color-primary-soft)';
+                    setTimeout(() => {
+                        target.style.transition = 'all 1s ease';
+                        target.style.outline = 'none';
+                        target.style.boxShadow = '';
+                    }, 2400);
+                }, 150);
+            }
+        }
+    });
+</script>
+{% endblock %}
+
