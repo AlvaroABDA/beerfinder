@@ -29,6 +29,7 @@
     <div class="quick-category-scroll">
         <a href="{{ url_for('routes.quick_add') }}" class="quick-chip" style="background:var(--color-primary-soft); border-color:var(--color-primary); color:var(--color-primary); font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:0.3rem;">{{ icon('plus', 'icon-sm') }} Añadir...</a>
         <a href="{{ url_for('routes.beers_list') }}" class="quick-chip active">{{ icon('search', 'icon-sm') }} Todas</a>
+        <a href="{{ url_for('routes.events_list') }}" class="quick-chip">{{ icon('calendar', 'icon-sm') }} Catas</a>
         <a href="{{ url_for('routes.map_view') }}" class="quick-chip">{{ icon('map-pin', 'icon-sm') }} Bares cerca</a>
         <a href="{{ url_for('routes.beers_list', q='IPA') }}" class="quick-chip">{{ icon('hop', 'icon-sm') }} IPAs</a>
         <a href="{{ url_for('routes.beers_list', q='Lager') }}" class="quick-chip">{{ icon('beer', 'icon-sm') }} Lager</a>
@@ -73,57 +74,47 @@
 {% endif %}
 
 {% if upcoming_events %}
-<div class="section-title" style="margin-top:1.3rem;">
-    <span>{{ icon('calendar') }} PRÓXIMAS CATAS Y EVENTOS</span>
-    <a href="{{ url_for('routes.events_list') }}">Ver todos →</a>
-</div>
-
-<div class="events-scroll-container" style="display:flex; gap:0.9rem; overflow-x:auto; padding-bottom:0.85rem; scrollbar-width:thin; margin-bottom:1.2rem;">
-    {% for ev in upcoming_events %}
-    <a href="{{ url_for('routes.event_view', id=ev.id) }}" class="beer-card" style="--beer-tint: {{ ev.style_color or 'var(--color-primary)' }}; min-width:270px; max-width:300px; flex-shrink:0; text-decoration:none; padding:1.05rem; display:flex; flex-direction:column; justify-content:space-between;">
-        <div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-                <span class="pill" style="margin:0; font-size:0.7rem; text-transform:uppercase; font-weight:800; background:var(--color-primary-soft); color:var(--color-primary); border-color:var(--color-primary);">
-                    {{ ev.event_type_label }}
+{% set next_ev = upcoming_events[0] %}
+<a href="{{ url_for('routes.events_list') }}" class="beer-card event-ribbon-pill" style="--beer-tint: {{ next_ev.style_color or 'var(--color-primary)' }}; display:flex; align-items:center; justify-content:space-between; gap:0.65rem; padding:0.65rem 0.95rem; text-decoration:none; margin: 0.85rem 0 1.15rem 0; border-radius:var(--radius-button); transition:transform 0.15s ease, box-shadow 0.15s ease;">
+    <div style="display:flex; align-items:center; gap:0.6rem; min-width:0;">
+        <span style="display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:50%; background:var(--color-primary-soft); color:var(--color-primary); flex-shrink:0; font-size:0.95rem;">
+            📅
+        </span>
+        <div style="min-width:0; line-height:1.25;">
+            <div style="display:flex; align-items:center; gap:0.4rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                <span class="pill" style="margin:0; font-size:0.66rem; font-weight:800; background:var(--color-primary-soft); color:var(--color-primary); border-color:var(--color-primary); padding:0.12rem 0.45rem; text-transform:uppercase;">
+                    {{ next_ev.event_type_label }}
                 </span>
-                {% if ev.price and ev.price > 0 %}
-                    <span style="font-size:0.88rem; font-weight:800; color:var(--text-main);">{{ "%.2f"|format(ev.price) }} €</span>
-                {% else %}
-                    <span style="font-size:0.8rem; font-weight:700; color:var(--status-ok-fg);">Entrada Libre</span>
+                <strong style="font-size:0.88rem; color:var(--text-main); font-weight:700; overflow:hidden; text-overflow:ellipsis;">
+                    {{ next_ev.title }}
+                </strong>
+                {% if next_ev.has_affinity %}
+                <span title="Afín a tu paladar" style="font-size:0.75rem; flex-shrink:0;">🎯</span>
                 {% endif %}
             </div>
-
-            <h4 style="margin:0 0 0.45rem 0; font-size:1.02rem; font-weight:700; color:var(--text-main); line-height:1.25;">
-                {{ ev.title }}
-            </h4>
-
-            <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:0.35rem; display:flex; align-items:center; gap:0.35rem;">
-                <span style="color:var(--color-primary);">{{ icon('calendar', 'icon-sm') }}</span>
-                <span>{{ ev.event_date.replace('T', ' ')[:16] }}</span>
+            <div style="font-size:0.76rem; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:0.12rem;">
+                <strong style="color:var(--text-main);">{{ next_ev.venue_name }}</strong> · <span>{{ next_ev.event_date.replace('T', ' ')[:16] }}</span>
+                {% if next_ev.price and next_ev.price > 0 %}
+                · <span style="font-weight:700; color:var(--text-main);">{{ "%.2f"|format(next_ev.price) }} €</span>
+                {% else %}
+                · <span style="font-weight:700; color:var(--status-ok-fg);">Entrada Libre</span>
+                {% endif %}
             </div>
-
-            <div style="font-size:0.8rem; color:var(--text-secondary); display:flex; align-items:center; gap:0.35rem;">
-                <span style="color:var(--color-primary);">{{ icon('map-pin', 'icon-sm') }}</span>
-                <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ ev.venue_name }}{% if ev.venue_city %} · {{ ev.venue_city }}{% endif %}</span>
-            </div>
-
-            {% if ev.has_affinity %}
-            <div style="margin-top:0.6rem; padding:0.25rem 0.5rem; background:rgba(229,133,75,0.15); border-radius:6px; font-size:0.74rem; color:var(--color-primary); font-weight:700; display:inline-flex; align-items:center; gap:0.3rem;">
-                🎯 {{ ev.affinity_reason or 'Afín a tu paladar' }}
-            </div>
-            {% endif %}
         </div>
+    </div>
 
-        <div style="margin-top:0.9rem; padding-top:0.6rem; border-top:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-size:0.76rem; color:var(--color-primary); font-weight:700;">Ver cata y reservar →</span>
-            {% if ev.capacity %}
-            <span style="font-size:0.72rem; color:var(--text-muted);">{{ ev.capacity }} plazas</span>
+    <div style="display:flex; align-items:center; gap:0.4rem; flex-shrink:0;">
+        <span class="pill" style="margin:0; font-size:0.72rem; font-weight:800; background:var(--color-primary-soft); color:var(--color-primary); border-color:var(--color-primary); padding:0.25rem 0.65rem;">
+            {% if upcoming_events|length > 1 %}
+                {{ upcoming_events|length }} Catas →
+            {% else %}
+                Ver cata →
             {% endif %}
-        </div>
-    </a>
-    {% endfor %}
-</div>
+        </span>
+    </div>
+</a>
 {% endif %}
+
 
 <div class="section-title">
     <span>{{ icon('beer') }} DESCUBRE PARA TI</span>

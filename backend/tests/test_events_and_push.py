@@ -32,9 +32,10 @@ class TestEventsAndPush(unittest.TestCase):
             self.assertIn('event_type_label', first)
 
     def test_events_http_routes(self):
-        # 1. Index shows upcoming events section
+        # 1. Index shows upcoming events compact ribbon
         r = self.client.get('/')
         self.assertEqual(r.status_code, 200)
+        self.assertIn('event-ribbon-pill', r.data.decode('utf-8'))
 
         # 2. Events catalog list
         r = self.client.get('/events')
