@@ -281,13 +281,17 @@ def list_fabricantes(q=None, only_active=False):
         query = query.filter(db.or_(Fabricante.name.ilike(like_q), Fabricante.country.ilike(like_q)))
     fabs = query.order_by(Fabricante.name.asc()).all()
 
-    # Precalcular el número de cervezas asociadas a cada fabricante
-    beer_counts = dict(
-        db.session.query(Beer.fabricante_id, db.func.count(Beer.id))
-        .filter(Beer.fabricante_id.isnot(None))
-        .group_by(Beer.fabricante_id)
-        .all()
-    )
+    # Precalcular el número de cervezas asociadas a cada fabricante de forma segura
+    beer_counts = {}
+    try:
+        beer_counts = dict(
+            db.session.query(Beer.fabricante_id, db.func.count(Beer.id))
+            .filter(Beer.fabricante_id.isnot(None))
+            .group_by(Beer.fabricante_id)
+            .all()
+        )
+    except Exception:
+        db.session.rollback()
 
     res = []
     for f in fabs:

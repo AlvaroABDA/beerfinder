@@ -86,4 +86,13 @@ def create_app(test_config=None):
     from .beermatch import beermatch_bp
     app.register_blueprint(beermatch_bp)
 
+    # Sincronización e inicialización idempotente de base de datos en cualquier entorno (local, WSGI, Cloud Run, PythonAnywhere)
+    if not app.config.get('TESTING') and not app.config.get('SKIP_BOOTSTRAP'):
+        with app.app_context():
+            try:
+                from .bootstrap import bootstrap_database
+                bootstrap_database(app)
+            except Exception as e:
+                app.logger.warning(f"Advertencia en auto-bootstrap de base de datos: {e}")
+
     return app

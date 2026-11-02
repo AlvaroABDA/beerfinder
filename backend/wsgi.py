@@ -6,6 +6,8 @@ if backend_dir not in sys.path:
     sys.path.insert(0, backend_dir)
 
 from app import create_app
+from app.bootstrap import bootstrap_database
 
 app = create_app()
+bootstrap_database(app)
 
