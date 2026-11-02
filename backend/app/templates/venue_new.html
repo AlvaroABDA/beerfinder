@@ -10,6 +10,18 @@
         ¿Conoces un bar con buena selección de cervezas? Añádelo para que aparezca en el mapa. Si es tu negocio, luego podrás verificar su propiedad desde su ficha.
     </p>
 
+    <div style="background:var(--color-primary-soft); border:1px solid var(--border-color-active); border-radius:var(--radius-card); padding:0.85rem 1rem; margin-bottom:1.2rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.6rem;">
+        <div>
+            <strong style="color:var(--color-primary); font-size:0.95rem; display:flex; align-items:center; gap:0.35rem;">
+                {{ icon('map-pin', 'icon-sm') }} ¿Estás en el bar ahora mismo?
+            </strong>
+            <span style="font-size:0.8rem; color:var(--text-secondary);">Fija el mapa y rellena la calle automáticamente con tu GPS.</span>
+        </div>
+        <button type="button" onclick="useMyLocation()" class="btn" style="width:auto; padding:0.45rem 0.95rem; font-size:0.85rem; border-radius:999px;">
+            {{ icon('navigation', 'icon-sm') }} Usar mi GPS
+        </button>
+    </div>
+
     <form method="POST" action="{{ url_for('routes.venue_new') }}" id="venueForm">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         
@@ -213,8 +225,30 @@
     function useMyLocation() {
         window.getAppLocation(
             function(pos) {
-                map.flyTo([pos.coords.latitude, pos.coords.longitude], 16);
-                setCoordinates(pos.coords.latitude, pos.coords.longitude, 'Ubicación tomada de tu GPS');
+                var lat = pos.coords.latitude;
+                var lon = pos.coords.longitude;
+                map.flyTo([lat, lon], 16);
+                setCoordinates(lat, lon, 'Ubicación tomada de tu GPS');
+
+                // Si la dirección o ciudad están vacías, intentar rellenar automáticamente
+                if (!addrInput.value.trim() || !cityInput.value.trim()) {
+                    var revUrl = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lon;
+                    fetch(revUrl, { headers: { 'Accept': 'application/json' } })
+                        .then(function(r) { return r.json(); })
+                        .then(function(data) {
+                            if (data && data.address) {
+                                if (!cityInput.value.trim()) {
+                                    cityInput.value = data.address.city || data.address.town || data.address.village || data.address.municipality || '';
+                                }
+                                if (!addrInput.value.trim()) {
+                                    var street = data.address.road || data.address.pedestrian || data.address.footway || '';
+                                    var num = data.address.house_number ? (' ' + data.address.house_number) : '';
+                                    addrInput.value = street ? (street + num) : '';
+                                }
+                            }
+                        })
+                        .catch(function() {});
+                }
             },
             function(msg) {
                 alert('No se pudo obtener tu ubicación: ' + msg);

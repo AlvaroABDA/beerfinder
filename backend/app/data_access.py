@@ -1,6 +1,8 @@
+import difflib
 import json
 import math
 import os
+import re
 from datetime import datetime, timedelta, timezone
 import requests
 from flask import url_for
@@ -228,13 +230,34 @@ def find_fabricante_by_name(name):
 
 
 def get_or_create_fabricante(name, created_by=None):
-    """Asegura integridad relacional: vincula o crea automáticamente el Fabricante cuando se da de alta una cerveza."""
+    """Asegura integridad relacional: vincula o crea automáticamente el Fabricante cuando se da de alta una cerveza,
+    con normalización inteligente de nombres y detección difusa de erratas."""
     if not name or not str(name).strip():
         return None
     clean_name = str(name).strip()
+
+    # 1. Búsqueda exacta (case-insensitive)
     existing = Fabricante.query.filter(db.func.lower(Fabricante.name) == clean_name.lower()).first()
     if existing:
         return existing
+
+    # 2. Búsqueda normalizada sin prefijos/sufijos redundantes (ej: "Cervezas Alhambra" -> "Alhambra")
+    norm_name = re.sub(r'^(cervezas?|brewery|cervecer[ií]a)\s+', '', clean_name, flags=re.IGNORECASE)
+    norm_name = re.sub(r'\s+(brewing(\s+co(\.|\b))?|beer|cerveza)$', '', norm_name, flags=re.IGNORECASE).strip()
+    if norm_name and norm_name.lower() != clean_name.lower():
+        cand = Fabricante.query.filter(db.func.lower(Fabricante.name) == norm_name.lower()).first()
+        if cand:
+            return cand
+
+    # 3. Fuzzy matching: si existe una marca con similitud >= 0.90 (ej: "Laugarr" -> "Laugar")
+    all_fabs = Fabricante.query.all()
+    fab_names = [f.name for f in all_fabs]
+    close = difflib.get_close_matches(clean_name, fab_names, n=1, cutoff=0.90)
+    if close:
+        match = Fabricante.query.filter(db.func.lower(Fabricante.name) == close[0].lower()).first()
+        if match:
+            return match
+
     new_fab = Fabricante(
         name=clean_name,
         country='',
@@ -256,7 +279,41 @@ def list_fabricantes(q=None, only_active=False):
     if q:
         like_q = f"%{q.strip()}%"
         query = query.filter(db.or_(Fabricante.name.ilike(like_q), Fabricante.country.ilike(like_q)))
-    return [f.to_dict() for f in query.order_by(Fabricante.name.asc()).all()]
+    fabs = query.order_by(Fabricante.name.asc()).all()
+
+    # Precalcular el número de cervezas asociadas a cada fabricante
+    beer_counts = dict(
+        db.session.query(Beer.fabricante_id, db.func.count(Beer.id))
+        .filter(Beer.fabricante_id.isnot(None))
+        .group_by(Beer.fabricante_id)
+        .all()
+    )
+
+    res = []
+    for f in fabs:
+        d = f.to_dict()
+        d['beer_count'] = beer_counts.get(f.id, 0)
+        res.append(d)
+    return res
+
+
+def merge_fabricantes(source_id, target_id):
+    """Fusiona source_id dentro de target_id: transfiere todas las cervezas y elimina la marca duplicada."""
+    if int(source_id) == int(target_id):
+        return False
+    source = db.session.get(Fabricante, int(source_id))
+    target = db.session.get(Fabricante, int(target_id))
+    if not source or not target:
+        return False
+
+    beers = Beer.query.filter_by(fabricante_id=source.id).all()
+    for b in beers:
+        b.fabricante_id = target.id
+        b.brewery = target.name
+
+    db.session.delete(source)
+    db.session.commit()
+    return True
 
 
 def create_fabricante(data, created_by=None):

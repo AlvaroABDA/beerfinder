@@ -63,6 +63,18 @@ def api_discover():
     tags_by_id = {t['id']: t['name'] for t in data_access.list_tags()}
     beer_tags_map = data_access.get_beer_tags_map([b['id'] for b in candidate_beers])
 
+    # Optimización: pre-indexar disponibilidad y distancias para evitar bucles O(N*M)
+    avail_by_beer = {}
+    for a in avail:
+        if a.get('status') == 'AVAILABLE':
+            avail_by_beer.setdefault(a['beer_id'], []).append(a['venue_id'])
+
+    venue_dists = {}
+    if has_location:
+        for vid, v in venues_by_id.items():
+            if v.get('latitude') is not None and v.get('longitude') is not None:
+                venue_dists[vid] = data_access.haversine(user_lat, user_lon, v['latitude'], v['longitude'])
+
     ranked = []
     for b in candidate_beers:
         t_info = taste_scores.get(b['id'], {'score': 50, 'reason': None})
@@ -70,19 +82,23 @@ def api_discover():
 
         nearest_venue = None
         min_dist = None
+        v_ids = avail_by_beer.get(b['id'], [])
+
         if has_location:
-            min_dist, nearest_venue = data_access.nearest_venue_for_beer(
-                b['id'], avail, venues_by_id, user_lat, user_lon
-            )
+            for vid in v_ids:
+                d = venue_dists.get(vid)
+                if d is not None and (min_dist is None or d < min_dist):
+                    min_dist = d
+                    nearest_venue = venues_by_id.get(vid)
             if min_dist is not None:
                 prox_score = max(0.0, 100.0 - (min(min_dist, max_dist) / max_dist) * 100.0)
                 combined = 0.55 * t_score + 0.45 * prox_score
             else:
                 combined = t_score * 0.65
         else:
-            for a in avail:
-                if a['beer_id'] == b['id'] and a['venue_id'] in venues_by_id:
-                    nearest_venue = venues_by_id[a['venue_id']]
+            for vid in v_ids:
+                if vid in venues_by_id:
+                    nearest_venue = venues_by_id[vid]
                     break
             combined = t_score + (10 if nearest_venue else 0)
 
@@ -153,6 +169,18 @@ def api_explore():
     avail = data_access.get_consolidated_availabilities(only_available=True)
     venues_by_id = {v['id']: v for v in data_access.list_venues(only_active=True)}
 
+    # Optimización: pre-indexar disponibilidad y distancias
+    avail_by_beer = {}
+    for a in avail:
+        if a.get('status') == 'AVAILABLE':
+            avail_by_beer.setdefault(a['beer_id'], []).append(a['venue_id'])
+
+    venue_dists = {}
+    if user_lat is not None and user_lon is not None:
+        for vid, v in venues_by_id.items():
+            if v.get('latitude') is not None and v.get('longitude') is not None:
+                venue_dists[vid] = data_access.haversine(user_lat, user_lon, v['latitude'], v['longitude'])
+
     out = []
     for b in filtered:
         st = styles_by_id.get(b.get('style_id'), {})
@@ -161,7 +189,10 @@ def api_explore():
 
         min_dist = None
         if user_lat is not None and user_lon is not None:
-            min_dist, _ = data_access.nearest_venue_for_beer(b['id'], avail, venues_by_id, user_lat, user_lon)
+            for vid in avail_by_beer.get(b['id'], []):
+                d = venue_dists.get(vid)
+                if d is not None and (min_dist is None or d < min_dist):
+                    min_dist = d
 
         out.append({
             'id': b['id'],

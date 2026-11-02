@@ -125,8 +125,9 @@
                </button>`
             : '';
 
+        const tintStyle = item.style_color ? `--beer-tint:${item.style_color}; border-left-color:${item.style_color};` : '';
         return `
-        <a href="/beer/${encodeURIComponent(item.beer_id)}" class="beer-card" style="margin-bottom: 0.8rem; ${item.style_color ? 'border-left-color:' + item.style_color + ';' : ''}">
+        <a href="/beer/${encodeURIComponent(item.beer_id)}" class="beer-card" style="margin-bottom: 0.8rem; ${tintStyle}">
             <div class="card-header">
                 <div class="card-img" style="${imgStyle}">${emojiFallback}</div>
                 <div class="card-info">

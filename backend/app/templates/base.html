@@ -76,6 +76,7 @@
             --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
             --card-backdrop: none;
             --card-left-stripe-width: 3.5px;
+            --glass-specular: 0.12;
             --radius-card: 16px;
             --radius-button: 12px;
             --radius-pill: 20px;
@@ -130,6 +131,7 @@
             --card-hover-shadow: 0 16px 36px rgba(2, 6, 16, 0.54), inset 0 1px 0 rgba(255, 255, 255, 0.28);
             --card-backdrop: blur(22px) saturate(140%);
             --card-left-stripe-width: 3.5px;
+            --glass-specular: 0.24;
             --radius-card: 22px;
             --radius-button: 15px;
             --radius-pill: 999px;
@@ -178,6 +180,7 @@
             --card-hover-shadow: 0 12px 32px rgba(1, 4, 12, 0.58), inset 0 1px 0 rgba(255, 255, 255, 0.32);
             --card-backdrop: blur(20px) saturate(140%);
             --card-left-stripe-width: 3.5px;
+            --glass-specular: 0.22;
             --radius-card: 4px;
             --radius-button: 4px;
             --radius-pill: 3px;
@@ -222,6 +225,7 @@
             --card-hover-shadow: 0 10px 24px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.06);
             --card-backdrop: none;
             --card-left-stripe-width: 3.5px;
+            --glass-specular: 0.06;
             --radius-card: 18px;
             --radius-button: 12px;
             --radius-pill: 999px;
@@ -266,6 +270,7 @@
             --card-hover-shadow: 0 12px 28px rgba(5, 7, 11, 0.40);
             --card-backdrop: none;
             --card-left-stripe-width: 3.5px;
+            --glass-specular: 0.50;
             --radius-card: 24px;
             --radius-button: 999px;
             --radius-pill: 999px;
@@ -285,7 +290,10 @@
             --status-ok-fg: #047857;
             --status-warn-fg: #92400E;
             --status-err-fg: #B91C1C;
-            box-shadow: 0 8px 20px rgba(5, 7, 11, 0.26);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 8px 20px rgba(5, 7, 11, 0.26);
+        }
+        html[data-theme="honey"] .beer-card:hover {
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 12px 28px rgba(5, 7, 11, 0.32);
         }
 
         /* En Estilo 4 (honey), el bloque destacado BeerMatch usa miel suave con tinta oscura */
@@ -355,6 +363,7 @@
             --card-hover-shadow: 0 10px 24px rgba(22, 24, 33, 0.11);
             --card-backdrop: none;
             --card-left-stripe-width: 3.5px;
+            --glass-specular: 0.65;
             --radius-card: 22px;
             --radius-button: 999px;
             --radius-pill: 999px;
@@ -470,6 +479,25 @@
             text-transform: uppercase;
         }
         .header-actions { display: flex; align-items: center; gap: 0.5rem; }
+        .btn-quick-add {
+            background: var(--color-primary);
+            color: #0E1015;
+            border: none;
+            border-radius: var(--radius-pill);
+            height: 36px;
+            padding: 0 0.85rem;
+            font-size: 0.84rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.22);
+            transition: transform 0.15s ease, filter 0.15s ease;
+            white-space: nowrap;
+        }
+        .btn-quick-add:active { transform: scale(0.96); }
+        .btn-quick-add:hover { filter: brightness(1.08); }
 
         .theme-select-wrapper {
             position: relative;
@@ -747,21 +775,37 @@
             transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.18s, box-shadow 0.18s;
         }
         .beer-card {
-            background: var(--bg-beer-card);
-            backdrop-filter: var(--card-backdrop);
-            -webkit-backdrop-filter: var(--card-backdrop);
+            --tint: var(--beer-tint, var(--color-primary));
+            background: linear-gradient(
+                135deg,
+                color-mix(in srgb, var(--tint) 14%, var(--bg-beer-card)) 0%,
+                color-mix(in srgb, var(--tint) 4%, var(--bg-beer-card)) 55%,
+                var(--bg-beer-card) 100%
+            );
+            backdrop-filter: var(--card-backdrop, blur(16px));
+            -webkit-backdrop-filter: var(--card-backdrop, blur(16px));
             border-radius: var(--radius-card);
             padding: 1.1rem;
             margin-bottom: 0.9rem;
-            border: 1px solid var(--border-color);
-            border-left-width: var(--card-left-stripe-width);
-            box-shadow: var(--card-shadow);
+            border: 1px solid color-mix(in srgb, var(--tint) 20%, var(--border-color));
+            border-left: var(--card-left-stripe-width) solid var(--tint);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, var(--glass-specular, 0.12)),
+                var(--card-shadow);
             text-decoration: none;
             color: var(--text-main);
             display: block;
-            transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.18s, box-shadow 0.18s;
+            transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.18s, box-shadow 0.18s, background 0.18s;
+            position: relative;
         }
-        .beer-card:hover, .venue-card:hover {
+        .beer-card:hover {
+            transform: translateY(-2px);
+            border-color: color-mix(in srgb, var(--tint, var(--border-color-active)) 45%, var(--border-color-active));
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, calc(var(--glass-specular, 0.12) + 0.1)),
+                0 10px 28px color-mix(in srgb, var(--tint, transparent) 16%, rgba(0, 0, 0, 0.35));
+        }
+        .venue-card:hover {
             transform: translateY(-2px);
             border-color: var(--border-color-active);
             box-shadow: var(--card-hover-shadow);
@@ -1045,10 +1089,73 @@
             color: var(--btn-primary-fg) !important;
         }
 
-        html[data-theme="glass-square"] #styleModal > div,
-        html[data-theme="glass-square"] #styleGuideModal > div {
+        body.modal-open {
+            overflow: hidden !important;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.72);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 3000;
+            cursor: pointer;
+            visibility: hidden;
+            opacity: 0;
+            pointer-events: none !important;
+            transition: opacity 0.18s ease, visibility 0.18s ease;
+        }
+
+        .modal-overlay.active {
+            visibility: visible;
+            opacity: 1;
+            pointer-events: auto !important;
+        }
+
+        .modal-overlay .modal-sheet {
+            cursor: default;
+            width: 100%;
+            max-width: 480px;
+            box-sizing: border-box;
+            transform: translateY(100%);
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .modal-overlay.active .modal-sheet {
+            transform: translateY(0);
+        }
+
+        html[data-theme="glass-square"] .modal-sheet {
             border-radius: 6px 6px 0 0 !important;
         }
+
+        .bottom-nav-add .add-icon-wrapper {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--color-primary);
+            color: #0E1015;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(245,158,11,0.35);
+            transition: transform 0.15s ease, filter 0.15s ease;
+        }
+        .bottom-nav-add:hover .add-icon-wrapper,
+        .bottom-nav-add:active .add-icon-wrapper {
+            transform: scale(1.1);
+            filter: brightness(1.12);
+        }
+
 
     </style>
     <script>
@@ -1127,7 +1234,7 @@
                 navigator.geolocation.getCurrentPosition(
                     (pos) => onSuccess(pos),
                     (err) => triggerError(err),
-                    { timeout: 15000, maximumAge: 60000 }
+                    { timeout: 6000, maximumAge: 300000, enableHighAccuracy: false }
                 );
             } else {
                 triggerError({ code: 0 });
@@ -1150,6 +1257,104 @@
                 return originalFetch(input, init);
             };
         })();
+
+        window.AppModal = {
+            activeModals: [],
+
+            open: function(modalId) {
+                var modal = (typeof modalId === 'string') ? document.getElementById(modalId) : modalId;
+                if (!modal) return;
+
+                // Close sidebar drawer if open
+                var sb = document.getElementById('sidebarMenu');
+                var so = document.getElementById('sidebarOverlay');
+                if (sb) sb.classList.remove('open');
+                if (so) so.classList.remove('open');
+
+                // Avoid duplicate entries in tracking array
+                var idx = this.activeModals.indexOf(modal);
+                if (idx !== -1) {
+                    this.activeModals.splice(idx, 1);
+                }
+
+                // Dynamic z-index for nested stacking (3000, 3020, 3040...)
+                var topZ = 3000 + (this.activeModals.length * 20);
+                modal.style.zIndex = topZ;
+                modal.style.pointerEvents = 'auto';
+                modal.classList.add('active');
+
+                this.activeModals.push(modal);
+                document.body.classList.add('modal-open');
+            },
+
+            close: function(modalId) {
+                var modal = null;
+                if (!modalId) {
+                    if (this.activeModals.length > 0) {
+                        modal = this.activeModals.pop();
+                    }
+                } else {
+                    modal = (typeof modalId === 'string') ? document.getElementById(modalId) : modalId;
+                    if (modal) {
+                        var idx = this.activeModals.indexOf(modal);
+                        if (idx !== -1) this.activeModals.splice(idx, 1);
+                    }
+                }
+
+                if (modal) {
+                    modal.classList.remove('active');
+                    // INSTANT click passthrough: completely disable pointer events & clear zIndex
+                    modal.style.pointerEvents = 'none';
+                    modal.style.zIndex = '';
+                }
+
+                if (this.activeModals.length === 0) {
+                    document.body.classList.remove('modal-open');
+                }
+            },
+
+            closeAll: function() {
+                var all = document.querySelectorAll('.modal-overlay');
+                all.forEach(function(m) {
+                    m.classList.remove('active');
+                    m.style.pointerEvents = 'none';
+                    m.style.zIndex = '';
+                });
+                this.activeModals = [];
+                document.body.classList.remove('modal-open');
+            }
+        };
+
+        window.openQuickAddModal = function(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            window.AppModal.open('quickAddModal');
+        };
+
+        window.closeQuickAddModal = function() {
+            window.AppModal.close('quickAddModal');
+        };
+
+        window.closeStyleModal = function() {
+            window.AppModal.close('styleInfoModal');
+        };
+
+        window.closeStyleGuideModal = function() {
+            window.AppModal.close('styleGuideModal');
+        };
+
+        window.openImageModal = function() {
+            window.AppModal.open('image-modal');
+        };
+
+        window.closeImageModal = function() {
+            window.AppModal.close('image-modal');
+        };
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                window.AppModal.close();
+            }
+        });
     </script>
 </head>
 <body>
@@ -1233,6 +1438,13 @@
             </select>
         </div>
 
+        <!-- Botón Rápido Añadir en el Menú Principal -->
+        <div style="padding: 0.2rem 1.2rem 0.7rem;">
+            <a href="{{ url_for('routes.quick_add') }}" style="width:100%; box-sizing:border-box; background:var(--color-primary); color:#0E1015; border:none; border-radius:var(--radius-button); padding:0.75rem 1rem; font-size:0.92rem; font-weight:700; display:flex; align-items:center; justify-content:center; gap:0.5rem; text-decoration:none; box-shadow:0 2px 10px rgba(0,0,0,0.25);">
+                {{ icon('plus') }} <span>Añadir (Cerveza, Bar, Marca)</span>
+            </a>
+        </div>
+
         {% if session.get('user_id') %}
             <div class="sidebar-session">
                 {{ icon('user') }}
@@ -1250,16 +1462,15 @@
 
         <a href="{{ url_for('routes.index') }}">{{ icon('home') }} Inicio</a>
         <a href="{{ url_for('routes.beers_list') }}">{{ icon('beer') }} Explorar cervezas</a>
+        <a href="{{ url_for('routes.styles_guide') }}">{{ icon('book-open') }} Guía de Estilos (Biblia)</a>
         <a href="{{ url_for('routes.map_view') }}">{{ icon('map-pin') }} Mapa</a>
+        <a href="{{ url_for('routes.quick_add') }}" style="color:var(--color-primary); font-weight:600;">{{ icon('plus') }} Añadir...</a>
 
         {% if session.get('user_id') %}
             <a href="{{ url_for('beermatch.swipe_view') }}" style="color: var(--color-primary); font-weight: 700;">{{ icon('heart') }} BeerMatch</a>
             <a href="{{ url_for('beermatch.history_view') }}" style="padding-left:2.4rem; font-size:0.88rem;">{{ icon('radar', 'icon-sm') }} Mis Cervezas y Radar</a>
             <a href="{{ url_for('routes.profile') }}">{{ icon('user') }} Mi Perfil</a>
             <a href="{{ url_for('routes.my_claims') }}">{{ icon('shield-check') }} Mis Verificaciones</a>
-            <a href="{{ url_for('routes.beer_new') }}">{{ icon('plus') }} Añadir cerveza</a>
-            <a href="{{ url_for('routes.venue_new') }}">{{ icon('store') }} Añadir bar</a>
-            <a href="{{ url_for('routes.fabricante_new') }}">{{ icon('factory') }} Añadir marca</a>
             {% if session.get('role') == 'ADMIN' %}
                 <a href="{{ url_for('routes.admin') }}">{{ icon('settings') }} Administración</a>
             {% endif %}
@@ -1282,6 +1493,9 @@
                 </a>
             </div>
             <div class="header-actions">
+                <a href="{{ url_for('routes.quick_add') }}" class="btn-quick-add" title="Añadir cerveza, bar o marca">
+                    {{ icon('plus', 'icon-sm') }} <span>Añadir</span>
+                </a>
                 {% if request.endpoint in ['routes.admin', 'routes.edit_user'] %}
                 <a href="{{ url_for('routes.admin') if request.endpoint != 'routes.admin' else url_for('routes.index') }}" class="session-badge" style="color:var(--color-primary); font-weight:700;">
                     {{ icon('arrow-left', 'icon-sm') if request.endpoint != 'routes.admin' else icon('home', 'icon-sm') }}
@@ -1323,6 +1537,12 @@
             <a href="{{ url_for('routes.beers_list') }}" class="bottom-nav-item {% if request.endpoint in ['routes.beers_list', 'routes.beer_view', 'routes.beer_new', 'routes.edit_beer'] %}active{% endif %}">
                 {{ icon('beer') }}
                 <span>Cervezas</span>
+            </a>
+            <a href="{{ url_for('routes.quick_add') }}" class="bottom-nav-item bottom-nav-add {% if request.endpoint == 'routes.quick_add' %}active{% endif %}" title="Añadir cerveza, bar o marca" aria-label="Añadir">
+                <div class="add-icon-wrapper">
+                    {{ icon('plus', 'icon-sm') }}
+                </div>
+                <span style="font-weight:700; color:var(--color-primary); font-size:0.68rem;">Añadir</span>
             </a>
             <a href="{{ url_for('beermatch.swipe_view') }}" class="bottom-nav-item bottom-nav-beermatch {% if request.endpoint in ['beermatch.swipe_view', 'beermatch.history_view'] %}active{% endif %}" title="BeerMatch">
                 <div class="beermatch-icon-wrapper">
@@ -1403,195 +1623,28 @@
     });
     </script>
 
-    <!-- Modal Ficha de Estilo (Biblia de la Cerveza) -->
-    <div id="styleInfoModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.68); z-index:2100; align-items:flex-end; justify-content:center; backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);" onclick="if(event.target===this) closeStyleModal()">
-        <div style="background:var(--bg-panel); backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px); width:100%; max-width:480px; max-height:85vh; border-radius:22px 22px 0 0; border:1px solid var(--border-color); border-bottom:none; padding:1.4rem; box-sizing:border-box; overflow-y:auto; box-shadow:0 -8px 32px rgba(0,0,0,0.45); position:relative;">
-            <div style="width:40px; height:4px; background:var(--border-color); border-radius:2px; margin:0 auto 1.2rem auto;"></div>
-
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.8rem;">
-                <div style="display:flex; align-items:center; gap:0.6rem;">
-                    <span id="styleModalColorDot" style="width:1.15rem; height:1.15rem; border-radius:50%; display:inline-block; border:2px solid var(--border-color); flex-shrink:0;"></span>
-                    <div>
-                        <h3 id="styleModalTitle" style="margin:0; font-size:1.25rem; font-weight:800; color:var(--text-main);"></h3>
-                        <span id="styleModalFamily" class="pill pill-amber" style="margin:0.25rem 0 0 0; font-size:0.74rem;"></span>
-                    </div>
-                </div>
-                <button onclick="closeStyleModal()" class="menu-btn" style="width:32px; height:32px;">{{ icon('x', 'icon-sm') }}</button>
-            </div>
-
-            <div style="background:var(--bg-body); border-left:3px solid var(--color-primary); padding:0.9rem 1rem; border-radius:12px; margin-bottom:1rem;">
-                <div style="font-size:0.74rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--color-primary); font-weight:700; margin-bottom:0.35rem; display:flex; align-items:center; gap:0.35rem;">
-                    {{ icon('book-open', 'icon-sm') }} Perfil de la Biblia Cervecera
-                </div>
-                <p id="styleModalDescription" style="margin:0; font-size:0.92rem; line-height:1.45; color:var(--text-main);"></p>
-            </div>
-
-            <div id="styleModalFamilyInfo" style="font-size:0.82rem; color:var(--text-secondary); margin-bottom:1.2rem; padding:0.65rem 0.85rem; background:var(--color-tertiary); border-radius:12px; border:1px solid var(--border-color);">
-                <strong>Sobre la familia:</strong> <span id="styleModalFamilyDesc"></span>
-            </div>
-
-            <div id="styleModalExamplesSection" style="display:none; margin-top:1rem;">
-                <div style="font-size:0.78rem; font-weight:700; color:var(--text-secondary); margin-bottom:0.5rem; text-transform:uppercase;">Cervezas en la app con este estilo</div>
-                <div id="styleModalExamplesList" style="display:flex; flex-direction:column; gap:0.4rem;"></div>
-            </div>
-        </div>
-    </div>
-
+    <!-- Fallbacks de navegación robusta (Opción 1: Sin modales ni drawers superpuestos) -->
     <script>
-    function showStyleInfo(styleId) {
-        if (!styleId) return;
-        const modal = document.getElementById('styleInfoModal');
-        if (!modal) return;
+    window.openQuickAddModal = function(e) {
+        if (e && e.preventDefault) e.preventDefault();
+        window.location.href = "{{ url_for('routes.quick_add') }}";
+    };
 
-        document.getElementById('styleModalTitle').textContent = 'Cargando...';
-        document.getElementById('styleModalFamily').textContent = '';
-        document.getElementById('styleModalDescription').textContent = '';
-        document.getElementById('styleModalFamilyDesc').textContent = '';
-        document.getElementById('styleModalExamplesSection').style.display = 'none';
-        modal.style.display = 'flex';
+    window.toggleQuickAddDrawer = function() {
+        window.location.href = "{{ url_for('routes.quick_add') }}";
+    };
 
-        fetch('/api/style/' + styleId)
-            .then(r => r.json())
-            .then(data => {
-                if (data.error) {
-                    document.getElementById('styleModalTitle').textContent = 'Estilo no encontrado';
-                    return;
-                }
-                document.getElementById('styleModalTitle').textContent = data.name;
-                document.getElementById('styleModalColorDot').style.background = data.color || '#F59E0B';
-                document.getElementById('styleModalFamily').textContent = 'Familia ' + data.family_name;
-                document.getElementById('styleModalDescription').textContent = data.description || 'Sin descripción disponible.';
-                document.getElementById('styleModalFamilyDesc').textContent = data.family_description || data.family_name;
+    window.openStyleGuideModal = function() {
+        window.location.href = "{{ url_for('routes.styles_guide') }}";
+    };
 
-                const exSec = document.getElementById('styleModalExamplesSection');
-                const exList = document.getElementById('styleModalExamplesList');
-                if (data.examples && data.examples.length > 0) {
-                    exList.innerHTML = data.examples.map(e => `
-                        <a href="/beer/${e.id}" style="display:flex; justify-content:space-between; align-items:center; padding:0.55rem 0.8rem; background:var(--bg-body); border-radius:10px; border:1px solid var(--border-color); text-decoration:none; color:inherit; font-size:0.85rem;">
-                            <span style="font-weight:600; color:var(--text-main); display:inline-flex; align-items:center; gap:0.4rem;">${lucideSvg('beer', 'icon-sm')} ${escapeHtml(e.name)}</span>
-                            <span style="color:var(--text-secondary); font-size:0.78rem;">${escapeHtml(e.brewery || '')}${e.abv ? ' · ' + escapeHtml(e.abv) + '%' : ''}</span>
-                        </a>
-                    `).join('');
-                    exSec.style.display = 'block';
-                } else {
-                    exSec.style.display = 'none';
-                }
-            })
-            .catch(() => {
-                document.getElementById('styleModalTitle').textContent = 'Error al cargar';
-            });
-    }
+    window.openStyleGuideDrawer = function(styleId) {
+        window.location.href = "{{ url_for('routes.styles_guide') }}" + (styleId ? '#style-' + styleId : '');
+    };
 
-    function closeStyleModal() {
-        const modal = document.getElementById('styleInfoModal');
-        if (modal) modal.style.display = 'none';
-    }
-
-    let allStylesCache = null;
-
-    function openStyleGuideModal() {
-        const modal = document.getElementById('styleGuideModal');
-        if (!modal) return;
-        modal.style.display = 'flex';
-
-        if (!allStylesCache) {
-            document.getElementById('styleGuideContent').innerHTML = '<p style="text-align:center; color:var(--text-secondary); padding:1.5rem 0;">Cargando estilos...</p>';
-            fetch('/api/styles')
-                .then(r => r.json())
-                .then(families => {
-                    allStylesCache = families;
-                    renderStyleGuide(families);
-                })
-                .catch(() => {
-                    document.getElementById('styleGuideContent').innerHTML = '<p style="text-align:center; color:var(--text-secondary);">Error al cargar estilos.</p>';
-                });
-        } else {
-            renderStyleGuide(allStylesCache);
-        }
-    }
-
-    function closeStyleGuideModal() {
-        const modal = document.getElementById('styleGuideModal');
-        if (modal) modal.style.display = 'none';
-    }
-
-    function renderStyleGuide(families, query) {
-        const container = document.getElementById('styleGuideContent');
-        if (!families || families.length === 0) {
-            container.innerHTML = '<p style="text-align:center; color:var(--text-secondary);">No se encontraron estilos.</p>';
-            return;
-        }
-
-        const q = (query || '').toLowerCase().trim();
-        let html = '';
-        families.forEach(fam => {
-            const filteredStyles = fam.styles.filter(s => {
-                if (!q) return true;
-                return s.name.toLowerCase().includes(q) || s.description.toLowerCase().includes(q) || fam.family_name.toLowerCase().includes(q);
-            });
-
-            if (filteredStyles.length === 0) return;
-
-            html += `
-                <div style="background:var(--bg-body); border-radius:14px; border:1px solid var(--border-color); padding:1rem;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.65rem; border-bottom:1px solid var(--border-color); padding-bottom:0.45rem;">
-                        <strong style="color:var(--color-primary); font-size:0.94rem; display:inline-flex; align-items:center; gap:0.4rem;">${lucideSvg('hop', 'icon-sm')} ${escapeHtml(fam.family_name)}</strong>
-                        <span style="font-size:0.75rem; color:var(--text-secondary);">${filteredStyles.length} estilos</span>
-                    </div>
-                    <div style="display:flex; flex-direction:column; gap:0.5rem;">
-                        ${filteredStyles.map(s => `
-                            <div onclick="showStyleInfo(${s.id})" style="padding:0.65rem 0.85rem; background:var(--bg-panel); border-radius:10px; border:1px solid var(--border-color); cursor:pointer;">
-                                <div style="display:flex; justify-content:space-between; align-items:center;">
-                                    <div style="display:flex; align-items:center; gap:0.5rem;">
-                                        <span style="width:0.75rem; height:0.75rem; border-radius:50%; background:${s.color || '#F59E0B'}; display:inline-block; border:1px solid var(--border-color);"></span>
-                                        <strong style="font-size:0.9rem; color:var(--text-main);">${escapeHtml(s.name)}</strong>
-                                    </div>
-                                    <span class="style-info-btn" style="font-size:0.7rem; padding:2px 7px;">Ver cata →</span>
-                                </div>
-                                <p style="margin:0.3rem 0 0 0; font-size:0.8rem; color:var(--text-secondary); line-height:1.35;">
-                                    ${escapeHtml(s.description)}
-                                </p>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        });
-
-        if (!html) {
-            html = '<p style="text-align:center; color:var(--text-secondary); padding:1.5rem 0;">No se encontraron estilos que coincidan con la búsqueda.</p>';
-        }
-        container.innerHTML = html;
-    }
-
-    function filterStyleGuide(val) {
-        if (allStylesCache) {
-            renderStyleGuide(allStylesCache, val);
-        }
-    }
+    window.showStyleInfo = function(styleId) {
+        window.location.href = "{{ url_for('routes.styles_guide') }}" + (styleId ? '#style-' + styleId : '');
+    };
     </script>
-
-    <!-- Modal Guía de Estilos Completa (Biblia) -->
-    <div id="styleGuideModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.68); z-index:2100; align-items:flex-end; justify-content:center; backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);" onclick="if(event.target===this) closeStyleGuideModal()">
-        <div style="background:var(--bg-panel); backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px); width:100%; max-width:480px; max-height:88vh; border-radius:22px 22px 0 0; border:1px solid var(--border-color); border-bottom:none; padding:1.4rem; box-sizing:border-box; overflow-y:auto; box-shadow:0 -8px 32px rgba(0,0,0,0.45); position:relative;">
-            <div style="width:40px; height:4px; background:var(--border-color); border-radius:2px; margin:0 auto 1rem auto;"></div>
-
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-                <div style="display:flex; align-items:center; gap:0.55rem;">
-                    <span style="color:var(--color-primary);">{{ icon('book-open') }}</span>
-                    <div>
-                        <h3 style="margin:0; font-size:1.2rem; font-weight:800; color:var(--text-main);">Guía de Estilos</h3>
-                        <span style="font-size:0.78rem; color:var(--text-secondary);">Biblia cervecera clasificada por familias</span>
-                    </div>
-                </div>
-                <button onclick="closeStyleGuideModal()" class="menu-btn" style="width:32px; height:32px;">{{ icon('x', 'icon-sm') }}</button>
-            </div>
-
-            <input type="text" id="styleGuideSearch" placeholder="Buscar estilo o sabor (ej. amargor, trigo, tostada)..." oninput="filterStyleGuide(this.value)" style="width:100%; padding:0.65rem 0.9rem; font-size:0.88rem; margin-bottom:1rem; box-sizing:border-box;">
-
-            <div id="styleGuideContent" style="display:flex; flex-direction:column; gap:1rem;"></div>
-        </div>
-    </div>
-
 </body>
 </html>

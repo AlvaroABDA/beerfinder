@@ -712,6 +712,40 @@
             </form>
         </div>
 
+        <!-- Fusión de Marcas Duplicadas / Limpieza -->
+        <div class="admin-form-box" style="margin-bottom:1.5rem; background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.25);">
+            <h4 style="margin:0 0 0.4rem 0; font-size:1rem; color:var(--color-primary); display:flex; align-items:center; gap:0.4rem;">
+                {{ icon('git-merge', 'icon-sm') }} Fusionar marcas duplicadas (Limpieza de catálogo)
+            </h4>
+            <p style="margin:0 0 1rem 0; font-size:0.82rem; color:var(--text-secondary);">
+                Si se ha creado una marca con errata (ej: "Mahouu"), traslada todas sus cervezas a la marca oficial y elimina la duplicada.
+            </p>
+            <form method="POST" action="{{ url_for('routes.merge_fabricantes_route') }}" onsubmit="return confirm('¿Seguro que deseas fusionar estas dos marcas? La marca con errata será eliminada y sus cervezas reasignadas.');" style="display:flex; gap:0.8rem; flex-wrap:wrap; align-items:flex-end;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div style="flex:1; min-width:200px;">
+                    <label style="font-size:0.82rem;">Marca errónea / a eliminar (Origen)</label>
+                    <select name="source_id" required style="margin:0; padding:0.5rem 0.7rem;">
+                        <option value="">Selecciona marca a eliminar...</option>
+                        {% for f in fabricantes %}
+                        <option value="{{ f.id }}">{{ f.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="flex:1; min-width:200px;">
+                    <label style="font-size:0.82rem;">Marca oficial / destino (Conservar)</label>
+                    <select name="target_id" required style="margin:0; padding:0.5rem 0.7rem;">
+                        <option value="">Selecciona marca correcta...</option>
+                        {% for f in fabricantes %}
+                        <option value="{{ f.id }}">{{ f.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn" style="width:auto; padding:0.55rem 1.2rem; background:var(--color-primary); color:#0E1015; font-weight:700;">
+                    Fusionar marcas
+                </button>
+            </form>
+        </div>
+
         {% if fabricantes %}
         <div class="admin-desktop-table-container">
             <table class="admin-table">
@@ -809,10 +843,10 @@
                 </form>
                 <div style="display:flex; flex-wrap:wrap; gap:0.4rem; max-height:240px; overflow-y:auto;">
                     {% for s in styles %}
-                    <span class="pill" onclick="showStyleInfo({{ s.id }})" style="cursor:pointer;">
+                    <a href="{{ url_for('routes.styles_guide') }}#style-{{ s.id }}" class="pill" target="_blank" title="Ver en Guía de Estilos">
                         {% if s.color %}<span style="width:0.65rem; height:0.65rem; border-radius:50%; background:{{ s.color }}; display:inline-block;"></span>{% endif %}
                         {{ s.name }}
-                    </span>
+                    </a>
                     {% endfor %}
                 </div>
             </div>

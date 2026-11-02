@@ -386,9 +386,9 @@
         <div class="pref-section">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
                 <h3 class="pref-title" style="margin:0;">Estilos específicos</h3>
-                <button type="button" onclick="openStyleGuideModal()" class="style-info-btn">
+                <a href="{{ url_for('routes.styles_guide') }}" class="style-info-btn">
                     {{ icon('book-open', 'icon-sm') }} Ver Guía BJCP
-                </button>
+                </a>
             </div>
             {% for f_id, styles in styles_by_family.items() %}
                 {% set fam_obj = (families | selectattr("id", "equalto", f_id) | first) %}

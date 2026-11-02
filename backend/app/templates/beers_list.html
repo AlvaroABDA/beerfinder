@@ -1,14 +1,19 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="search-bar" style="margin-bottom: 1rem;">
-    <span style="color: var(--color-primary); display:flex; margin-right:0.25rem;">{{ icon('search', 'icon-sm') }}</span>
-    <input type="text" id="searchInput" list="beer-list" placeholder="Buscar por nombre, fabricante..." oninput="debounceExplore()" value="{{ request.args.get('q', '') }}">
-    <datalist id="beer-list">
-        {% for b in beers %}
-        <option value="{{ b.name }}"></option>
-        {% endfor %}
-    </datalist>
+<div style="display:flex; gap:0.5rem; align-items:center; margin-bottom: 1rem;">
+    <div class="search-bar" style="margin-bottom: 0; flex:1;">
+        <span style="color: var(--color-primary); display:flex; margin-right:0.25rem;">{{ icon('search', 'icon-sm') }}</span>
+        <input type="text" id="searchInput" list="beer-list" placeholder="Buscar por nombre, fabricante..." oninput="debounceExplore()" value="{{ request.args.get('q', '') }}">
+        <datalist id="beer-list">
+            {% for b in beers %}
+            <option value="{{ b.name }}"></option>
+            {% endfor %}
+        </datalist>
+    </div>
+    <a href="{{ url_for('routes.beer_new') }}" class="btn" style="width:auto; padding:0.65rem 0.95rem; font-size:0.88rem; white-space:nowrap; display:inline-flex; align-items:center; gap:0.35rem; border-radius:var(--radius-button);">
+        {{ icon('plus', 'icon-sm') }} <span>Añadir</span>
+    </a>
 </div>
 
 <div class="card" style="margin-bottom: 1.4rem;">
@@ -20,9 +25,9 @@
         <div>
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
                 <label style="font-size: 0.84rem; color: var(--text-secondary); margin:0;">Estilo de Cerveza</label>
-                <button type="button" onclick="openStyleGuideModal()" class="style-info-btn">
+                <a href="{{ url_for('routes.styles_guide') }}" class="style-info-btn">
                     {{ icon('book-open', 'icon-sm') }} Guía de estilos
-                </button>
+                </a>
             </div>
             <input type="text" id="styleInput" list="style-list" placeholder="Escribe un estilo (ej. IPA, Pilsner)..." oninput="debounceExplore()" style="margin: 0; padding: 0.6rem 0.85rem; width: 100%;">
             <datalist id="style-list">
@@ -81,7 +86,10 @@
                     const card = document.createElement('a');
                     card.className = 'beer-card';
                     card.href = beer.view_url;
-                    if (beer.style_color) card.style.borderLeftColor = beer.style_color;
+                    if (beer.style_color) {
+                        card.style.setProperty('--beer-tint', beer.style_color);
+                        card.style.borderLeftColor = beer.style_color;
+                    }
 
                     let imgHtml = `<div class="card-img">${lucideSvg('beer', 'icon-lg')}</div>`;
                     if (beer.image_url) {
@@ -135,6 +143,10 @@
         timeout = setTimeout(exploreBeers, 300);
     }
 
+    // Carga inmediata sin bloqueo de GPS
+    exploreBeers();
+
+    // Refinar en segundo plano si hay GPS
     window.getAppLocation(
         pos => {
             currentLat = pos.coords.latitude;
@@ -142,10 +154,7 @@
             exploreBeers();
         },
         msg => {
-            const warning = document.getElementById('geoWarning');
-            warning.innerHTML = `${lucideSvg('map-pin', 'icon-sm')} <span>${escapeHtml(msg)} Mostrando resultados sin distancia.</span>`;
-            warning.style.display = 'flex';
-            exploreBeers();
+            // Ya cargado
         }
     );
 </script>

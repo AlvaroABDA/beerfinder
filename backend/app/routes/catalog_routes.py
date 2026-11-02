@@ -611,3 +611,48 @@ def report_venue_beer_soldout(venue_id, beer_id):
         flash(str(result), 'info')
     return redirect(url_for('routes.venue_view', id=venue_id))
 
+
+@bp.route('/add')
+def quick_add():
+    return render_template(
+        'quick_add.html',
+        title='¿Qué quieres añadir?'
+    )
+
+
+@bp.route('/styles')
+def styles_guide():
+    families = data_access.list_beer_families()
+    styles = data_access.list_beer_styles()
+    beers = data_access.list_beers(only_active=True)
+
+    style_beer_counts = {}
+    for b in beers:
+        sid = b.get('style_id')
+        if sid:
+            style_beer_counts[sid] = style_beer_counts.get(sid, 0) + 1
+
+    by_fam = {}
+    for s in styles:
+        s_dict = dict(s)
+        s_dict['beer_count'] = style_beer_counts.get(s['id'], 0)
+        by_fam.setdefault(s.get('family_id'), []).append(s_dict)
+
+    grouped = []
+    for f in families:
+        f_styles = by_fam.get(f['id'], [])
+        if f_styles:
+            grouped.append({
+                'family': f,
+                'styles': f_styles
+            })
+
+    return render_template(
+        'styles_guide.html',
+        title='Guía de Estilos (Biblia Cervecera)',
+        grouped=grouped,
+        total_styles=len(styles),
+        total_families=len(families)
+    )
+
+

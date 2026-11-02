@@ -66,13 +66,20 @@
         width: 100%;
         max-width: 340px;
         height: 100%;
-        background: var(--bg-panel);
-        backdrop-filter: var(--card-backdrop);
-        -webkit-backdrop-filter: var(--card-backdrop);
+        --tint: var(--beer-tint, var(--color-primary));
+        background: linear-gradient(
+            180deg,
+            var(--bg-panel) 0%,
+            color-mix(in srgb, var(--tint) 12%, var(--bg-panel)) 100%
+        );
+        backdrop-filter: var(--card-backdrop, blur(18px));
+        -webkit-backdrop-filter: var(--card-backdrop, blur(18px));
         border-radius: var(--radius-card);
-        border: 1px solid var(--border-color);
-        border-top: 4px solid var(--border-color);
-        box-shadow: var(--card-shadow);
+        border: 1px solid color-mix(in srgb, var(--tint) 20%, var(--border-color));
+        border-top: 4px solid var(--tint);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, var(--glass-specular, 0.16)),
+            var(--card-shadow);
         overflow: hidden;
         display: flex;
         flex-direction: column;
@@ -251,7 +258,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const card = document.createElement('div');
         card.className = 'beermatch-card';
         card.id = `card-${i}`;
-        if (b.style_color) card.style.borderTopColor = b.style_color;
+        if (b.style_color) {
+            card.style.setProperty('--beer-tint', b.style_color);
+            card.style.borderTopColor = b.style_color;
+        }
 
         const bgStyle = b.image_url ? `background-image: url('${b.image_url}');` : '';
         const fallbackIcon = b.image_url ? '' : '<svg class="icon" style="width:64px;height:64px;opacity:0.65;" viewBox="0 0 24 24">' + window.LUCIDE_PATHS['beer'] + '</svg>';

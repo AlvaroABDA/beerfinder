@@ -79,7 +79,7 @@
     }
 </style>
 
-<div class="card">
+<div class="card" style="border-left: 4px solid {{ beer.style_color or 'var(--color-primary)' }}; {% if beer.style_color %}background: linear-gradient(135deg, color-mix(in srgb, {{ beer.style_color }} 13%, var(--bg-panel)) 0%, color-mix(in srgb, {{ beer.style_color }} 3%, var(--bg-panel)) 60%, var(--bg-panel) 100%); border-color: color-mix(in srgb, {{ beer.style_color }} 20%, var(--border-color));{% endif %}">
     <div style="display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 0.85rem;">
         <div class="card-img" onclick="openImageModal()" style="width: 84px; height: 84px; flex-shrink: 0; border-radius: 14px; {% if beer.image_url %}cursor: zoom-in; background-image: url('{{ beer.image_url }}'); background-size: cover; background-position: center;{% endif %}">
             {% if not beer.image_url %}{{ icon('beer', 'icon-xl') }}{% endif %}
@@ -110,9 +110,9 @@
                 {% if beer.style_color %}<span style="width:0.75rem; height:0.75rem; border-radius:50%; background:{{ beer.style_color }}; display:inline-block; border:1px solid var(--border-color);"></span>{% endif %}
                 <span>{{ beer.style_name }}</span>
                 {% if beer.style_id %}
-                <button type="button" onclick="showStyleInfo({{ beer.style_id }})" class="style-info-btn">
-                    {{ icon('info', 'icon-sm') }} ¿Qué es?
-                </button>
+                <a href="{{ url_for('routes.styles_guide') }}#style-{{ beer.style_id }}" class="style-info-btn" title="Ver perfil del estilo en la guía">
+                    {{ icon('book-open', 'icon-sm') }} Ver estilo
+                </a>
                 {% endif %}
             </p>
             {% if beer.abv %}
@@ -280,9 +280,11 @@
 </div>
 
 {% if beer.image_url %}
-<div id="image-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center;" onclick="closeImageModal()">
-    <button type="button" class="menu-btn" style="position: absolute; top: 20px; right: 24px;">{{ icon('x') }}</button>
-    <img src="{{ beer.image_url }}" alt="{{ beer.name }}" style="max-width: 90%; max-height: 90%; border-radius: 14px; box-shadow: 0 0 24px rgba(0,0,0,0.7);">
+<div id="image-modal" class="modal-overlay" onclick="AppModal.close(this)" style="align-items: center; justify-content: center;">
+    <div class="modal-sheet" onclick="event.stopPropagation()" style="position: relative; display: flex; align-items: center; justify-content: center; max-width: 92%; max-height: 90%;">
+        <button type="button" onclick="AppModal.close('image-modal')" class="menu-btn" style="position: absolute; top: -14px; right: -14px; width: 36px; height: 36px; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 50%; z-index: 10; cursor: pointer;" aria-label="Cerrar">{{ icon('x') }}</button>
+        <img src="{{ beer.image_url }}" alt="{{ beer.name }}" style="max-width: 100%; max-height: 85vh; border-radius: 14px; box-shadow: 0 0 32px rgba(0,0,0,0.85); object-fit: contain;">
+    </div>
 </div>
 {% endif %}
 
@@ -395,12 +397,20 @@ function toggleBeerClaimFields(method) {
 })();
 
 function openImageModal() {
-    const m = document.getElementById('image-modal');
-    if (m) m.style.display = 'flex';
+    if (window.AppModal) {
+        window.AppModal.open('image-modal');
+    } else {
+        const m = document.getElementById('image-modal');
+        if (m) m.classList.add('active');
+    }
 }
 function closeImageModal() {
-    const m = document.getElementById('image-modal');
-    if (m) m.style.display = 'none';
+    if (window.AppModal) {
+        window.AppModal.close('image-modal');
+    } else {
+        const m = document.getElementById('image-modal');
+        if (m) m.classList.remove('active');
+    }
 }
 </script>
 {% endblock %}

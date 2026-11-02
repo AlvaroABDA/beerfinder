@@ -180,7 +180,7 @@
 </div>
 
 {% for beer in available_beers %}
-<div class="beer-card" style="display: block; cursor: pointer; {% if beer.style_color %}border-left-color: {{ beer.style_color }};{% endif %}" onclick="window.location.href='{{ url_for('routes.beer_view', id=beer.id) }}'">
+<div class="beer-card" style="display: block; cursor: pointer; {% if beer.style_color %}--beer-tint: {{ beer.style_color }}; border-left-color: {{ beer.style_color }};{% endif %}" onclick="window.location.href='{{ url_for('routes.beer_view', id=beer.id) }}'">
     <div class="card-header" style="align-items: center;">
         <div class="card-img" {% if beer.image_url %}style="width: 80px; height: 80px; background-image: url('{{ beer.image_url }}'); background-size: cover; background-position: center; border-radius: 14px; flex-shrink: 0;"{% else %}style="width: 80px; height: 80px; flex-shrink: 0;"{% endif %}>
             {% if not beer.image_url %}{{ icon('beer', 'icon-xl') }}{% endif %}

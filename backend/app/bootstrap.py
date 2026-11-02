@@ -21,7 +21,7 @@ DEFAULT_FAMILIES = [
     (4, "Sour", "Ácidas y refrescantes, acidificadas de forma controlada."),
     (5, "Belgian", "Tradición belga: especiadas, frutales y a menudo de alta graduación."),
     (6, "Specialty", "Estilos especiales: ahumadas, barleywine o experimentales."),
-    (7, "Sin alcohol", "Cervezas con contenido de alcohol mínimo o nulo (0,0%-0,5%)."),
+    (7, "Sin alcohol (<1%)", "Cervezas con graduación alcohólica menor al 1% (<1% ABV)."),
     (8, "Fermentación espontánea", "Fermentadas con levaduras salvajes del ambiente."),
 ]
 
@@ -70,7 +70,7 @@ DEFAULT_STYLES = [
     (6, "Barleywine", "Ale licorosa de guarda, densa y intensamente maltosa.", "#7A3B14"),
     (6, "Smoked Beer", "Elaborada con malta secada al humo de madera.", "#4A3020"),
     (6, "Experimental", "Elaboraciones fuera de estilo clásico con técnicas o ingredientes singulares.", "#8A5A2E"),
-    (7, "Sin alcohol", "Cerveza de graduación mínima o nula (0,0%-0,5%).", "#E8C158"),
+    (7, "Sin alcohol (<1%)", "Cerveza con graduación alcohólica menor al 1% (<1% ABV).", "#E8C158"),
     (8, "Lambic", "Fermentación espontánea con perfil complejo, ácido y silvestre.", "#D4B33C"),
 ]
 
@@ -215,6 +215,18 @@ def bootstrap_database(app=None):
                 fab = data_access.get_or_create_fabricante(b.brewery, created_by=b.created_by)
                 if fab:
                     b.fabricante_id = fab.id
+
+        # Actualización de taxonomía Sin alcohol (<1%)
+        alc_fam = BeerFamily.query.filter((BeerFamily.id == 7) | (BeerFamily.name.ilike('%alcohol%'))).first()
+        if alc_fam:
+            alc_fam.name = "Sin alcohol (<1%)"
+            alc_fam.description = "Cervezas con graduación alcohólica menor al 1% (<1% ABV)."
+        alc_style = BeerStyle.query.filter((BeerStyle.id == 40) | (BeerStyle.name.ilike('%alcohol%'))).first()
+        if alc_style:
+            alc_style.name = "Sin alcohol (<1%)"
+            alc_style.description = "Cerveza con graduación alcohólica menor al 1% (<1% ABV)."
+            alc_style.color = "#E8C158"
+
         db.session.commit()
 
         # Asegurar cuenta ADMIN inicial (local, PythonAnywhere o Cloud Run)

@@ -27,6 +27,7 @@
     </form>
 
     <div class="quick-category-scroll">
+        <a href="{{ url_for('routes.quick_add') }}" class="quick-chip" style="background:var(--color-primary-soft); border-color:var(--color-primary); color:var(--color-primary); font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:0.3rem;">{{ icon('plus', 'icon-sm') }} Añadir...</a>
         <a href="{{ url_for('routes.beers_list') }}" class="quick-chip active">{{ icon('search', 'icon-sm') }} Todas</a>
         <a href="{{ url_for('routes.map_view') }}" class="quick-chip">{{ icon('map-pin', 'icon-sm') }} Bares cerca</a>
         <a href="{{ url_for('routes.beers_list', q='IPA') }}" class="quick-chip">{{ icon('hop', 'icon-sm') }} IPAs</a>
@@ -167,7 +168,8 @@
             ? `<p style="margin:0.35rem 0 0;font-size:0.78rem;color:var(--color-secondary);display:flex;align-items:center;gap:0.3rem;">${lucideSvg('sparkles', 'icon-sm')} <span>${escapeHtml(item.reason)}</span></p>`
             : '';
 
-            return `<a href="${item.view_url}" class="beer-card" style="${item.style_color ? 'border-left-color:' + item.style_color + ';' : ''}">
+            const tintStyle = item.style_color ? `--beer-tint:${item.style_color}; border-left-color:${item.style_color};` : '';
+            return `<a href="${item.view_url}" class="beer-card" style="${tintStyle}">
             <div class="card-header">
                 <div class="card-img" style="${imgStyle}">${imgFallback}</div>
                 <div class="card-info">
@@ -268,13 +270,17 @@
                 });
         }
 
+        // Carga inmediata sin esperar GPS para respuesta instantánea (<50ms)
+        loadDiscover(null, null);
+
+        // Refinamiento en segundo plano si hay ubicación GPS
         window.getAppLocation(
             function (pos) {
                 loadDiscover(pos.coords.latitude, pos.coords.longitude);
                 loadNearbyVenues(pos.coords.latitude, pos.coords.longitude);
             },
             function () {
-                loadDiscover(null, null);
+                // Ya se cargó el feed sin ubicación
             }
         );
     })();

@@ -23,6 +23,36 @@
         color: var(--btn-primary-fg);
     }
     .tag-chip-icon { font-size: 1.05rem; line-height: 1; display: inline-flex; align-items: center; }
+
+    .autocomplete-dropdown {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        right: 0;
+        background: var(--bg-panel);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-card);
+        box-shadow: 0 10px 28px rgba(0,0,0,0.48);
+        z-index: 200;
+        max-height: 230px;
+        overflow-y: auto;
+    }
+    .autocomplete-item {
+        padding: 0.65rem 0.9rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.9rem;
+        transition: background 0.15s ease;
+    }
+    .autocomplete-item:last-child {
+        border-bottom: none;
+    }
+    .autocomplete-item:hover {
+        background: var(--bg-panel-raised);
+    }
 </style>
 <div class="card">
     <h2 style="display:flex; align-items:center; gap:0.5rem;">{{ icon('beer') }} {% if beer %}Editar Cerveza: {{ beer.name }}{% else %}Añadir Cerveza{% endif %}</h2>
@@ -33,37 +63,83 @@
         <input type="text" name="name" value="{{ beer.name if beer else '' }}" required>
 
         <label>Fabricante (Cervecera)</label>
-        <input type="text" name="brewery" list="fabricantes-list" placeholder="Selecciona o escribe uno nuevo..." value="{{ beer.brewery if beer else request.args.get('brewery', '') }}" required>
-        <datalist id="fabricantes-list">
-            {% for f in fabricantes %}
-            <option value="{{ f.name }}"></option>
-            {% endfor %}
-        </datalist>
+        <div style="position: relative;">
+            <input type="text" id="breweryInput" name="brewery" placeholder="Escribe la marca (ej: Basqueland, Laugar)..." value="{{ beer.brewery if beer else request.args.get('brewery', '') }}" required autocomplete="off" oninput="onBreweryInput(this.value)" onfocus="onBreweryInput(this.value)">
+            <div id="brewerySuggestions" class="autocomplete-dropdown" style="display: none;"></div>
+        </div>
+        <div id="breweryStatusVerified" style="display:none; margin-top:0.35rem; font-size:0.8rem; color:var(--status-ok-fg); align-items:center; gap:0.3rem;">
+            {{ icon('check-circle', 'icon-sm') }} <span id="breweryVerifiedText"></span>
+        </div>
+        <div id="breweryTypoNotice" style="display:none; margin-top:0.45rem; padding:0.4rem 0.75rem; border-radius:var(--radius-button); background:var(--status-warn-bg); border:1px solid var(--status-warn-border); font-size:0.82rem; color:var(--status-warn-fg); display:flex; align-items:center; justify-content:space-between; gap:0.5rem;">
+            <span id="breweryTypoMsg" style="display:flex; align-items:center; gap:0.3rem;"></span>
+            <button type="button" id="btn-fix-typo" onclick="applyTypoFix()" class="btn" style="width:auto; padding:0.25rem 0.65rem; font-size:0.75rem; border-radius:999px;">Corregir</button>
+        </div>
+        <div id="breweryStatusNew" style="display:none; margin-top:0.35rem; font-size:0.8rem; color:var(--color-primary); align-items:center; gap:0.3rem;">
+            {{ icon('plus-circle', 'icon-sm') }} <span>Nueva marca: se registrará automáticamente en el catálogo</span>
+        </div>
+
+        <!-- Selección rápida de estilo (1 toque) -->
+        <div style="margin: 0.9rem 0; padding: 0.85rem; border-radius: var(--radius-card); background: var(--bg-panel-raised); border: 1px solid var(--border-color);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                <label style="margin:0; font-weight:700; font-size:0.86rem; color:var(--text-main); display:inline-flex; align-items:center; gap:0.35rem;">
+                    {{ icon('zap', 'icon-sm') }} Estilo rápido (1 toque)
+                </label>
+                <span style="font-size:0.75rem; color:var(--text-secondary);">o afina abajo</span>
+            </div>
+            <div style="display:flex; flex-wrap:wrap; gap:0.4rem;">
+                <button type="button" class="btn btn-outline quick-style-btn" data-style-id="2" onclick="selectQuickStyle(1, 2, this)" style="width:auto; padding:0.35rem 0.75rem; font-size:0.82rem; border-radius:999px;">🍺 Rubia / Lager</button>
+                <button type="button" class="btn btn-outline quick-style-btn" data-style-id="10" onclick="selectQuickStyle(2, 10, this)" style="width:auto; padding:0.35rem 0.75rem; font-size:0.82rem; border-radius:999px;">🌿 IPA / Lupulada</button>
+                <button type="button" class="btn btn-outline quick-style-btn" data-style-id="17" onclick="selectQuickStyle(2, 17, this)" style="width:auto; padding:0.35rem 0.75rem; font-size:0.82rem; border-radius:999px;">🔥 Tostada / Ámbar</button>
+                <button type="button" class="btn btn-outline quick-style-btn" data-style-id="22" onclick="selectQuickStyle(2, 22, this)" style="width:auto; padding:0.35rem 0.75rem; font-size:0.82rem; border-radius:999px;">🍫 Negra / Stout</button>
+                <button type="button" class="btn btn-outline quick-style-btn" data-style-id="24" onclick="selectQuickStyle(3, 24, this)" style="width:auto; padding:0.35rem 0.75rem; font-size:0.82rem; border-radius:999px;">🌾 Trigo</button>
+                <button type="button" class="btn btn-outline quick-style-btn" data-style-id="30" onclick="selectQuickStyle(4, 30, this)" style="width:auto; padding:0.35rem 0.75rem; font-size:0.82rem; border-radius:999px;">🍏 Ácida / Sour</button>
+                <button type="button" class="btn btn-outline quick-style-btn" data-style-id="40" onclick="selectQuickStyle(7, 40, this)" style="width:auto; padding:0.35rem 0.75rem; font-size:0.82rem; border-radius:999px;">🚫🌾 Sin alcohol (&lt;1%)</button>
+            </div>
+        </div>
 
         <div style="display:flex; gap:1rem; flex-wrap:wrap;">
             <div style="flex:1; min-width:140px;">
                 <label>Familia</label>
-                <select id="family-select" name="family_id">
-                    <option value="">Selecciona Familia...</option>
+                <select id="family-select" name="family_id" onchange="onFamilySelectChange(this)">
+                    <option value="">Todas las familias</option>
                     {% for f in families %}
-                    <option value="{{ f.id }}" {% if beer and beer.family_id == f.id %}selected{% endif %}>{{ f.name }}</option>
+                    <option value="{{ f.id }}" {% if (beer and beer.family_id == f.id) or (request.args.get('family_id')|int == f.id) %}selected{% endif %}>{{ f.name }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div style="flex:1; min-width:140px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.2rem;">
                     <label style="margin:0;">Estilo</label>
-                    <button type="button" id="btn-style-help" onclick="showSelectedStyleInfo()" class="style-info-btn" style="font-size:0.7rem; display:none; align-items:center; gap:0.25rem;">
-                        {{ icon('info', 'icon-sm') }} Ver guía
-                    </button>
+                    <a href="{{ url_for('routes.styles_guide') }}" target="_blank" style="font-size:0.72rem; color:var(--color-primary); display:inline-flex; align-items:center; gap:0.2rem; text-decoration:none;" title="Abrir la Guía de estilos en una pestaña">
+                        {{ icon('book-open', 'icon-sm') }} Ver Biblia
+                    </a>
                 </div>
-                <select id="style-select" name="style_id" onchange="updateStyleHelpBtn(this.value)">
+                <select id="style-select" name="style_id" onchange="onStyleSelectChange(this)">
                     <option value="" data-family="">Selecciona Estilo...</option>
-                    {% for s in styles %}
-                    <option value="{{ s.id }}" data-family="{{ s.family_id }}" {% if beer and beer.style_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+                    {% for f in families %}
+                    <optgroup label="{{ f.name }}">
+                        {% for s in styles if s.family_id == f.id %}
+                        <option value="{{ s.id }}" data-family="{{ s.family_id }}" {% if (beer and beer.style_id == s.id) or (request.args.get('style_id')|int == s.id) %}selected{% endif %}>{{ s.name }}</option>
+                        {% endfor %}
+                    </optgroup>
                     {% endfor %}
                 </select>
             </div>
+        </div>
+
+        <!-- Ficha de estilo INLINE (aparece automáticamente sin modales ni bloqueos) -->
+        <div id="inlineStyleCard" style="display:none; margin: 0.75rem 0 0.9rem 0; padding: 0.85rem 1rem; border-radius: var(--radius-card); background: var(--bg-panel-raised); border: 1px solid var(--border-color); border-left: 4px solid var(--color-primary); box-shadow: var(--card-shadow); transition: all 0.18s ease;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <span id="inlineStyleDot" style="width:13px; height:13px; border-radius:50%; display:inline-block; border:1px solid var(--border-color); flex-shrink:0;"></span>
+                    <strong id="inlineStyleTitle" style="font-size:0.95rem; color:var(--text-main);"></strong>
+                    <span id="inlineStyleFamilyBadge" class="pill pill-amber" style="margin:0; font-size:0.72rem; padding:2px 7px;"></span>
+                </div>
+                <a id="inlineStyleBibleLink" href="{{ url_for('routes.styles_guide') }}" target="_blank" style="font-size:0.75rem; color:var(--color-primary); font-weight:600; text-decoration:none;">
+                    Biblia completa →
+                </a>
+            </div>
+            <p id="inlineStyleDesc" style="margin:0; font-size:0.83rem; line-height:1.4; color:var(--text-secondary);"></p>
         </div>
 
         <label>Graduación (ABV %)</label>
@@ -84,49 +160,255 @@
         </div>
 
         <script>
-            (function() {
-                const familySelect = document.getElementById('family-select');
-                const styleSelect = document.getElementById('style-select');
+            const allStylesList = {{ styles | tojson }};
+            const allFamiliesList = {{ families | tojson }};
+            const stylesMap = {};
+            allStylesList.forEach(s => { stylesMap[s.id] = s; });
+            const familiesMap = {};
+            allFamiliesList.forEach(f => { familiesMap[f.id] = f; });
 
-                function filterStyles(preserveCurrent) {
-                    const familyId = familySelect.value;
-                    const currentVal = styleSelect.value;
-                    let currentStillValid = false;
+            function updateInlineStyleCard(styleId) {
+                const card = document.getElementById('inlineStyleCard');
+                if (!card) return;
 
-                    for (let i = 0; i < styleSelect.options.length; i++) {
-                        const opt = styleSelect.options[i];
-                        const optFam = opt.getAttribute('data-family');
-                        if (optFam === "") continue;
-                        if (familyId === "" || optFam === familyId) {
-                            opt.style.display = '';
-                            if (opt.value === currentVal) currentStillValid = true;
-                        } else {
-                            opt.style.display = 'none';
-                        }
-                    }
-
-                    if (!preserveCurrent || !currentStillValid) {
-                        styleSelect.value = currentStillValid && preserveCurrent ? currentVal : "";
-                    }
-                    updateStyleHelpBtn(styleSelect.value);
+                const style = stylesMap[styleId];
+                if (!style) {
+                    card.style.display = 'none';
+                    return;
                 }
 
-                familySelect.addEventListener('change', function() {
-                    filterStyles(false);
+                const dot = document.getElementById('inlineStyleDot');
+                const title = document.getElementById('inlineStyleTitle');
+                const famBadge = document.getElementById('inlineStyleFamilyBadge');
+                const desc = document.getElementById('inlineStyleDesc');
+                const bibleLink = document.getElementById('inlineStyleBibleLink');
+
+                const fam = familiesMap[style.family_id] || { name: 'General' };
+                const color = style.color || '#F59E0B';
+
+                if (dot) dot.style.background = color;
+                if (title) title.textContent = style.name;
+                if (famBadge) famBadge.textContent = fam.name;
+                if (desc) desc.textContent = style.description || 'Sin notas de cata registradas.';
+                card.style.borderLeftColor = color;
+
+                if (bibleLink) {
+                    bibleLink.href = '/styles#style-' + style.id;
+                    bibleLink.onclick = null;
+                }
+
+                card.style.display = 'block';
+            }
+
+            function onStyleSelectChange(sel) {
+                const opt = sel.options[sel.selectedIndex];
+                const famId = opt ? opt.getAttribute('data-family') : '';
+                const famSelect = document.getElementById('family-select');
+                if (famId && famSelect && famSelect.value !== famId) {
+                    famSelect.value = famId;
+                }
+                updateInlineStyleCard(sel.value);
+                syncQuickStyleButtons(sel.value);
+            }
+
+            function onFamilySelectChange(sel) {
+                const famId = sel.value;
+                const styleSelect = document.getElementById('style-select');
+                if (!styleSelect) return;
+
+                if (!famId) {
+                    updateInlineStyleCard(styleSelect.value);
+                    return;
+                }
+
+                const opt = styleSelect.options[styleSelect.selectedIndex];
+                const curFam = opt ? opt.getAttribute('data-family') : '';
+
+                if (curFam !== famId) {
+                    for (let i = 0; i < styleSelect.options.length; i++) {
+                        if (styleSelect.options[i].getAttribute('data-family') === famId) {
+                            styleSelect.selectedIndex = i;
+                            break;
+                        }
+                    }
+                    updateInlineStyleCard(styleSelect.value);
+                    syncQuickStyleButtons(styleSelect.value);
+                }
+            }
+
+            function syncQuickStyleButtons(currentStyleId) {
+                document.querySelectorAll('.quick-style-btn').forEach(function(b) {
+                    const match = b.getAttribute('data-style-id') === String(currentStyleId);
+                    b.style.background = match ? 'var(--color-primary)' : '';
+                    b.style.borderColor = match ? 'var(--color-primary)' : '';
+                    b.style.color = match ? '#0E1015' : '';
+                    b.style.fontWeight = match ? '700' : 'normal';
+                });
+            }
+
+            function selectQuickStyle(famId, styleId, btn) {
+                const famSelect = document.getElementById('family-select');
+                const styleSelect = document.getElementById('style-select');
+                if (famSelect) famSelect.value = famId;
+                if (styleSelect) styleSelect.value = styleId;
+                updateInlineStyleCard(styleId);
+                syncQuickStyleButtons(styleId);
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                const styleSelect = document.getElementById('style-select');
+                if (styleSelect && styleSelect.value) {
+                    updateInlineStyleCard(styleSelect.value);
+                    syncQuickStyleButtons(styleSelect.value);
+                }
+            });
+
+            // ==========================================
+            // AUTOCOMPLETADO Y DETECTOR DE ERRATAS DE MARCA
+            // ==========================================
+            const fabricantesList = {{ fabricantes | tojson }};
+            let suggestedTypoFix = null;
+
+            function levenshtein(a, b) {
+                const m = [];
+                for (let i = 0; i <= b.length; i++) m[i] = [i];
+                for (let j = 0; j <= a.length; j++) m[0][j] = j;
+                for (let i = 1; i <= b.length; i++) {
+                    for (let j = 1; j <= a.length; j++) {
+                        if (b.charAt(i - 1).toLowerCase() === a.charAt(j - 1).toLowerCase()) {
+                            m[i][j] = m[i - 1][j - 1];
+                        } else {
+                            m[i][j] = Math.min(m[i - 1][j - 1] + 1, m[i][j - 1] + 1, m[i - 1][j] + 1);
+                        }
+                    }
+                }
+                return m[b.length][a.length];
+            }
+
+            function onBreweryInput(val) {
+                val = (val || '').trim();
+                const suggestions = document.getElementById('brewerySuggestions');
+                const verifiedBox = document.getElementById('breweryStatusVerified');
+                const typoBox = document.getElementById('breweryTypoNotice');
+                const newBox = document.getElementById('breweryStatusNew');
+
+                if (!val || val.length === 0) {
+                    suggestions.style.display = 'none';
+                    verifiedBox.style.display = 'none';
+                    typoBox.style.display = 'none';
+                    newBox.style.display = 'none';
+                    return;
+                }
+
+                const valLower = val.toLowerCase();
+
+                // 1. Coincidencia exacta
+                const exact = fabricantesList.find(f => f.name.toLowerCase() === valLower);
+                if (exact) {
+                    verifiedBox.style.display = 'flex';
+                    document.getElementById('breweryVerifiedText').textContent = `Marca registrada: ${exact.name} (${exact.beer_count || 0} cervezas en catálogo)`;
+                    typoBox.style.display = 'none';
+                    newBox.style.display = 'none';
+                } else {
+                    verifiedBox.style.display = 'none';
+                }
+
+                // 2. Coincidencias parciales (filtro de autocompletado)
+                const matches = fabricantesList.filter(f => f.name.toLowerCase().includes(valLower));
+
+                // 3. Detección de posibles erratas (fuzzy match con marcas existentes)
+                suggestedTypoFix = null;
+                if (!exact && val.length >= 3) {
+                    let bestMatch = null;
+                    let bestSim = 0;
+                    for (const f of fabricantesList) {
+                        const dist = levenshtein(valLower, f.name.toLowerCase());
+                        const maxLen = Math.max(val.length, f.name.length);
+                        const sim = 1 - (dist / maxLen);
+                        if (sim >= 0.72 && sim > bestSim) {
+                            bestSim = sim;
+                            bestMatch = f;
+                        }
+                    }
+                    if (bestMatch && bestMatch.name.toLowerCase() !== valLower) {
+                        suggestedTypoFix = bestMatch.name;
+                        document.getElementById('breweryTypoMsg').innerHTML = `💡 ¿Querías decir <strong>«${escapeHtml(bestMatch.name)}»</strong>?`;
+                        typoBox.style.display = 'flex';
+                    } else {
+                        typoBox.style.display = 'none';
+                    }
+                } else {
+                    typoBox.style.display = 'none';
+                }
+
+                // Si no es exacta ni errata detectada, mostrar aviso de nueva marca
+                if (!exact && !suggestedTypoFix && val.length >= 2) {
+                    newBox.style.display = 'flex';
+                } else {
+                    newBox.style.display = 'none';
+                }
+
+                // Renderizar dropdown de sugerencias si no hay coincidencia exacta ya escrita
+                if (exact && matches.length === 1) {
+                    suggestions.style.display = 'none';
+                    return;
+                }
+
+                let html = '';
+                matches.slice(0, 5).forEach(f => {
+                    const safeName = escapeHtml(f.name);
+                    html += `
+                        <div class="autocomplete-item" onclick="selectBrewery('${safeName.replace(/'/g, "\\'")}')">
+                            <span style="display:inline-flex; align-items:center; gap:0.4rem; color:var(--text-main); font-weight:600;">
+                                🍺 ${safeName}
+                            </span>
+                            <span style="font-size:0.75rem; color:var(--text-secondary);">${f.beer_count || 0} cervezas</span>
+                        </div>
+                    `;
                 });
 
-                filterStyles(true);
-            })();
+                if (!exact) {
+                    const safeVal = escapeHtml(val);
+                    html += `
+                        <div class="autocomplete-item" onclick="selectBrewery('${safeVal.replace(/'/g, "\\'")}')">
+                            <span style="display:inline-flex; align-items:center; gap:0.4rem; color:var(--color-primary); font-weight:600;">
+                                ➕ Usar nueva marca: "${safeVal}"
+                            </span>
+                            <span style="font-size:0.72rem; color:var(--text-secondary);">Nueva</span>
+                        </div>
+                    `;
+                }
 
-            function updateStyleHelpBtn(val) {
-                const btn = document.getElementById('btn-style-help');
-                if (btn) btn.style.display = val ? 'inline-flex' : 'none';
+                suggestions.innerHTML = html;
+                suggestions.style.display = html ? 'block' : 'none';
             }
 
-            function showSelectedStyleInfo() {
-                const sel = document.getElementById('style-select');
-                if (sel && sel.value) showStyleInfo(sel.value);
+            function selectBrewery(name) {
+                const input = document.getElementById('breweryInput');
+                input.value = name;
+                document.getElementById('brewerySuggestions').style.display = 'none';
+                onBreweryInput(name);
             }
+
+            function applyTypoFix() {
+                if (suggestedTypoFix) {
+                    selectBrewery(suggestedTypoFix);
+                }
+            }
+
+            document.addEventListener('click', function(e) {
+                const container = document.getElementById('breweryInput');
+                const drop = document.getElementById('brewerySuggestions');
+                if (drop && !drop.contains(e.target) && e.target !== container) {
+                    drop.style.display = 'none';
+                }
+            });
+
+            // Verificar valor inicial si ya viene relleno
+            window.addEventListener('DOMContentLoaded', function() {
+                const inp = document.getElementById('breweryInput');
+                if (inp && inp.value) onBreweryInput(inp.value);
+            });
         </script>
 
         <label>Foto de la Cerveza {% if beer %}(dejar vacío para mantener la actual){% endif %}</label>

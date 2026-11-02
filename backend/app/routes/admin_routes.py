@@ -276,6 +276,23 @@ def delete_fabricante(id):
     return redirect(url_for('routes.admin', type='fabricantes'))
 
 
+@bp.route('/admin/fabricante/merge', methods=['POST'])
+@auth.admin_required
+def merge_fabricantes_route():
+    source_id = request.form.get('source_id')
+    target_id = request.form.get('target_id')
+    if not source_id or not target_id or source_id == target_id:
+        flash('Debes seleccionar dos marcas distintas para fusionar.', 'error')
+        return redirect(url_for('routes.admin', type='fabricantes'))
+
+    ok = data_access.merge_fabricantes(source_id, target_id)
+    if ok:
+        flash('¡Marcas fusionadas con éxito! Las cervezas se han reasignado a la marca principal.', 'success')
+    else:
+        flash('Error al fusionar las marcas. Revisa que ambas existan.', 'error')
+    return redirect(url_for('routes.admin', type='fabricantes'))
+
+
 @bp.route('/admin/taxonomy/family', methods=['POST'])
 @auth.admin_required
 def add_family():
