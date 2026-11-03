@@ -2,8 +2,74 @@
 
 {% block content %}
 
+{% if upcoming_events %}
+{% set next_ev = upcoming_events[0] %}
+<div id="top-event-ribbon" class="event-ribbon-wrapper" style="margin-bottom: 0.85rem;">
+    <div class="beer-card event-ribbon-pill" style="--beer-tint: {{ next_ev.style_color or 'var(--color-primary)' }}; display:flex; align-items:center; justify-content:space-between; gap:0.6rem; padding:0.55rem 0.85rem; text-decoration:none; margin: 0; border-radius:var(--radius-button); position:relative; background:var(--bg-panel); border:1px solid var(--border-color); box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <a href="{{ url_for('routes.events_list') }}" style="display:flex; align-items:center; gap:0.6rem; min-width:0; flex:1; text-decoration:none; color:inherit;">
+            <span style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; background:var(--color-primary-soft); color:var(--color-primary); flex-shrink:0; font-size:0.9rem;">
+                📅
+            </span>
+            <div style="min-width:0; line-height:1.25;">
+                <div style="display:flex; align-items:center; gap:0.4rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                    <span class="pill" style="margin:0; font-size:0.65rem; font-weight:800; background:var(--color-primary-soft); color:var(--color-primary); border-color:var(--color-primary); padding:0.1rem 0.4rem; text-transform:uppercase;">
+                        {{ next_ev.event_type_label }}
+                    </span>
+                    <strong style="font-size:0.86rem; color:var(--text-main); font-weight:700; overflow:hidden; text-overflow:ellipsis;">
+                        {{ next_ev.title }}
+                    </strong>
+                    {% if next_ev.has_affinity %}
+                    <span title="Afín a tu paladar" style="font-size:0.75rem; flex-shrink:0;">🎯</span>
+                    {% endif %}
+                </div>
+                <div style="font-size:0.74rem; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:0.1rem;">
+                    <strong style="color:var(--text-main);">{{ next_ev.venue_name }}</strong> · <span>{{ next_ev.event_date.replace('T', ' ')[:16] }}</span>
+                    {% if next_ev.price and next_ev.price > 0 %}
+                    · <span style="font-weight:700; color:var(--text-main);">{{ "%.2f"|format(next_ev.price) }} €</span>
+                    {% else %}
+                    · <span style="font-weight:700; color:var(--status-ok-fg);">Entrada Libre</span>
+                    {% endif %}
+                </div>
+            </div>
+        </a>
+
+        <div style="display:flex; align-items:center; gap:0.4rem; flex-shrink:0;">
+            <a href="{{ url_for('routes.events_list') }}" class="pill" style="margin:0; font-size:0.72rem; font-weight:800; background:var(--color-primary-soft); color:var(--color-primary); border-color:var(--color-primary); padding:0.22rem 0.55rem; text-decoration:none;">
+                {% if upcoming_events|length > 1 %}
+                    {{ upcoming_events|length }} Catas →
+                {% else %}
+                    Ver cata →
+                {% endif %}
+            </a>
+            <button type="button" id="dismiss-event-ribbon-btn" aria-label="Cerrar aviso de catas" style="background:transparent; border:none; color:var(--text-secondary); cursor:pointer; font-size:1.15rem; line-height:1; padding:0.2rem 0.35rem; display:inline-flex; align-items:center; justify-content:center; border-radius:4px;" title="Descartar por ahora">
+                &times;
+            </button>
+        </div>
+    </div>
+</div>
+<script>
+(function() {
+    try {
+        var ribbon = document.getElementById('top-event-ribbon');
+        if (ribbon && sessionStorage.getItem('dismissed_event_ribbon_v1') === '1') {
+            ribbon.style.display = 'none';
+        }
+        var btn = document.getElementById('dismiss-event-ribbon-btn');
+        if (btn && ribbon) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                sessionStorage.setItem('dismissed_event_ribbon_v1', '1');
+                ribbon.style.display = 'none';
+            });
+        }
+    } catch(e) {}
+})();
+</script>
+{% endif %}
+
 {% if not session.get('user_id') %}
-<div class="surface-feature" style="padding: 0.95rem 1.1rem;">
+<div class="surface-feature" style="padding: 0.95rem 1.1rem; margin-bottom: 0.85rem;">
     <div style="display:flex; justify-content:space-between; align-items:center; gap:0.8rem;">
         <div>
             <h4 style="margin:0 0 0.2rem 0; font-size:0.94rem; color:var(--text-main); display:flex; align-items:center; gap:0.4rem;">
@@ -27,7 +93,6 @@
     </form>
 
     <div class="quick-category-scroll">
-        <a href="{{ url_for('routes.quick_add') }}" class="quick-chip" style="background:var(--color-primary-soft); border-color:var(--color-primary); color:var(--color-primary); font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:0.3rem;">{{ icon('plus', 'icon-sm') }} Añadir...</a>
         <a href="{{ url_for('routes.beers_list') }}" class="quick-chip active">{{ icon('search', 'icon-sm') }} Todas</a>
         <a href="{{ url_for('routes.events_list') }}" class="quick-chip">{{ icon('calendar', 'icon-sm') }} Catas</a>
         <a href="{{ url_for('routes.map_view') }}" class="quick-chip">{{ icon('map-pin', 'icon-sm') }} Bares cerca</a>
@@ -71,48 +136,6 @@
         </a>
     </div>
 </div>
-{% endif %}
-
-{% if upcoming_events %}
-{% set next_ev = upcoming_events[0] %}
-<a href="{{ url_for('routes.events_list') }}" class="beer-card event-ribbon-pill" style="--beer-tint: {{ next_ev.style_color or 'var(--color-primary)' }}; display:flex; align-items:center; justify-content:space-between; gap:0.65rem; padding:0.65rem 0.95rem; text-decoration:none; margin: 0.85rem 0 1.15rem 0; border-radius:var(--radius-button); transition:transform 0.15s ease, box-shadow 0.15s ease;">
-    <div style="display:flex; align-items:center; gap:0.6rem; min-width:0;">
-        <span style="display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:50%; background:var(--color-primary-soft); color:var(--color-primary); flex-shrink:0; font-size:0.95rem;">
-            📅
-        </span>
-        <div style="min-width:0; line-height:1.25;">
-            <div style="display:flex; align-items:center; gap:0.4rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                <span class="pill" style="margin:0; font-size:0.66rem; font-weight:800; background:var(--color-primary-soft); color:var(--color-primary); border-color:var(--color-primary); padding:0.12rem 0.45rem; text-transform:uppercase;">
-                    {{ next_ev.event_type_label }}
-                </span>
-                <strong style="font-size:0.88rem; color:var(--text-main); font-weight:700; overflow:hidden; text-overflow:ellipsis;">
-                    {{ next_ev.title }}
-                </strong>
-                {% if next_ev.has_affinity %}
-                <span title="Afín a tu paladar" style="font-size:0.75rem; flex-shrink:0;">🎯</span>
-                {% endif %}
-            </div>
-            <div style="font-size:0.76rem; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:0.12rem;">
-                <strong style="color:var(--text-main);">{{ next_ev.venue_name }}</strong> · <span>{{ next_ev.event_date.replace('T', ' ')[:16] }}</span>
-                {% if next_ev.price and next_ev.price > 0 %}
-                · <span style="font-weight:700; color:var(--text-main);">{{ "%.2f"|format(next_ev.price) }} €</span>
-                {% else %}
-                · <span style="font-weight:700; color:var(--status-ok-fg);">Entrada Libre</span>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <div style="display:flex; align-items:center; gap:0.4rem; flex-shrink:0;">
-        <span class="pill" style="margin:0; font-size:0.72rem; font-weight:800; background:var(--color-primary-soft); color:var(--color-primary); border-color:var(--color-primary); padding:0.25rem 0.65rem;">
-            {% if upcoming_events|length > 1 %}
-                {{ upcoming_events|length }} Catas →
-            {% else %}
-                Ver cata →
-            {% endif %}
-        </span>
-    </div>
-</a>
 {% endif %}
 
 

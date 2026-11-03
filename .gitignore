@@ -6,6 +6,8 @@ backend/instance/
 
 # Private Verification Uploads (never commit sensitive docs)
 backend/private_uploads/
+backend/app/static/images/events/*
+!backend/app/static/images/events/.gitkeep
 
 # Local SQLite Databases & Journals
 backend/data/*.db
