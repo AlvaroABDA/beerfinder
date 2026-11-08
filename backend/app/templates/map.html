@@ -171,7 +171,7 @@
         border-color: #64748B transparent transparent transparent;
     }
 
-    /* Controles Inferiores del Mapa (Botón Pinta + GPS + Nuevo Bar) */
+    /* Controles Inferiores del Mapa (Botón Pinta + GPS) */
     .map-bottom-controls {
         position: absolute;
         bottom: 84px;
@@ -180,7 +180,7 @@
         z-index: 1000;
         display: flex;
         justify-content: space-between;
-        align-items: flex-end;
+        align-items: center;
         pointer-events: none;
     }
     .map-bottom-controls > * {
@@ -213,67 +213,32 @@
         height: 28px;
         display: block;
     }
-    .map-right-controls {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 10px;
-    }
     .map-btn-gps {
-        width: 44px;
-        height: 44px;
+        width: 48px;
+        height: 48px;
         border-radius: 50%;
         background: #FFFFFF;
-        border: 1.5px solid rgba(255, 255, 255, 0.95);
+        border: 2px solid rgba(255, 255, 255, 0.95);
         color: #D97706;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.32);
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.32);
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease;
         -webkit-tap-highlight-color: transparent;
     }
     .map-btn-gps:hover {
-        transform: scale(1.06);
+        transform: scale(1.08);
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.42);
     }
     .map-btn-gps:active {
         transform: scale(0.92);
     }
     .map-btn-gps .icon {
-        width: 20px;
-        height: 20px;
+        width: 22px;
+        height: 22px;
         color: #D97706 !important;
-    }
-    .map-btn-new-bar {
-        background: linear-gradient(135deg, #D97706 0%, #B45309 100%);
-        color: #FFFFFF !important;
-        font-weight: 800;
-        font-size: 0.88rem;
-        padding: 0.64rem 1.15rem;
-        border-radius: 999px;
-        box-shadow: 0 4px 18px rgba(180, 83, 9, 0.45);
-        border: 1.5px solid rgba(255, 255, 255, 0.25);
-        display: inline-flex;
-        align-items: center;
-        gap: 0.38rem;
-        text-decoration: none;
-        cursor: pointer;
-        transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.16s ease;
-        -webkit-tap-highlight-color: transparent;
-        white-space: nowrap;
-    }
-    .map-btn-new-bar:hover {
-        transform: scale(1.05);
-        box-shadow: 0 6px 22px rgba(180, 83, 9, 0.55);
-    }
-    .map-btn-new-bar:active {
-        transform: scale(0.94);
-    }
-    .map-btn-new-bar .icon {
-        width: 17px;
-        height: 17px;
-        color: #FFFFFF !important;
     }
 
     /* Venue Offer Bottom Sheet */
@@ -343,8 +308,9 @@
     <!-- Map Canvas -->
     <div id="map"></div>
 
-    <!-- Controles Inferiores del Mapa (Pinta / GPS / Nuevo Bar) -->
+    <!-- Controles Inferiores del Mapa (Pinta a la izquierda + GPS a la derecha) -->
     <div class="map-bottom-controls">
+        <!-- Único botón para añadir contenido (Cerveza, Bar o Marca) -->
         <a href="{{ url_for('routes.quick_add') }}" class="map-btn-pinta" title="Añadir cerveza, bar o marca" aria-label="Añadir...">
             <svg class="map-pinta-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M5.5 3h13l-1.9 16.3c-.08.73-.69 1.27-1.42 1.27H8.82c-.73 0-1.34-.54-1.42-1.27L5.5 3z" fill="#F59E0B" stroke="#D97706" stroke-width="1.8" stroke-linejoin="round"/>
@@ -354,15 +320,10 @@
             </svg>
         </a>
 
-        <div class="map-right-controls">
-            <button type="button" class="map-btn-gps" onclick="locateUserOnMap()" title="Centrar en mi ubicación" aria-label="Mi ubicación">
-                {{ icon('target', 'icon-sm') }}
-            </button>
-            <a href="{{ url_for('routes.venue_new') }}" class="map-btn-new-bar" title="Añadir nuevo bar" aria-label="Nuevo Bar">
-                {{ icon('plus', 'icon-sm') }}
-                <span>Nuevo Bar</span>
-            </a>
-        </div>
+        <!-- Botón de geolocalización GPS (Centrar en mi ubicación) -->
+        <button type="button" class="map-btn-gps" onclick="locateUserOnMap()" title="Centrar en mi ubicación (GPS)" aria-label="Mi ubicación actual">
+            {{ icon('locate', 'icon-sm') }}
+        </button>
     </div>
 
     <!-- Bottom Sheet: Sumatorio de Oferta del Bar -->
