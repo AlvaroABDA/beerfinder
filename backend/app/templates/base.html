@@ -677,6 +677,15 @@
             padding-bottom: calc(var(--bottom-nav-height) + 24px + env(safe-area-inset-bottom, 0px));
         }
 
+        /* Vista de mapa a pantalla completa sin scroll vertical redundante */
+        .content.content-map {
+            padding: 0 !important;
+            padding-bottom: 0 !important;
+            height: calc(100vh - 58px) !important;
+            min-height: calc(100vh - 58px) !important;
+            overflow: hidden !important;
+        }
+
         .alert { padding: 0.85rem 1.05rem; margin-bottom: 1rem; border-radius: var(--radius-card); font-size: 0.88rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; }
         .alert-success { background: var(--status-ok-bg); color: var(--status-ok-fg); border: 1px solid var(--status-ok-border); }
         .alert-danger, .alert-error { background: var(--status-err-bg); color: var(--status-err-fg); border: 1px solid var(--status-err-border); }
@@ -1098,149 +1107,48 @@
             border-radius: 3px;
         }
 
-        /* Botón Flotante Pinta (Añadir rápido) */
-        .floating-pinta-wrapper {
+        /* Botón Flotante Pinta en vistas generales (Añadir rápido) */
+        .app-floating-pinta-wrapper {
             position: fixed;
-            bottom: 82px;
-            left: 20px;
-            z-index: 1040;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            padding: 0 16px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: flex-start;
+            pointer-events: none;
+            z-index: 1030;
         }
-        .floating-pinta-btn {
-            width: 48px;
-            height: 48px;
+        .app-floating-pinta-wrapper > * {
+            pointer-events: auto;
+        }
+        .app-floating-pinta-btn {
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             background: #FFFFFF;
-            color: #0E1015;
-            border: 1px solid rgba(0, 0, 0, 0.08);
-            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+            color: #D97706;
+            border: 2px solid rgba(255, 255, 255, 0.95);
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.38);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.35rem;
+            font-size: 1.45rem;
+            text-decoration: none;
             cursor: pointer;
-            transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease;
+            transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.16s ease;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
         }
-        .floating-pinta-btn:hover {
+        .app-floating-pinta-btn:hover {
             transform: scale(1.08);
-            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.42);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
         }
-        .floating-pinta-btn:active {
+        .app-floating-pinta-btn:active {
             transform: scale(0.92);
-        }
-
-        /* Quick Add Action Sheet */
-        .quick-add-backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.65);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
-            z-index: 2000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.2s ease, visibility 0.2s ease;
-        }
-        .quick-add-backdrop.active {
-            opacity: 1;
-            visibility: visible;
-        }
-        .quick-add-sheet {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translate(-50%, 100%);
-            width: 100%;
-            max-width: 460px;
-            background: var(--bg-panel);
-            border: 1px solid var(--border-color);
-            border-radius: 24px 24px 0 0;
-            z-index: 2001;
-            padding: 1rem 1.2rem 2.2rem;
-            box-sizing: border-box;
-            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.45);
-            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .quick-add-sheet.active {
-            transform: translate(-50%, 0);
-        }
-        .quick-add-sheet-handle {
-            width: 36px;
-            height: 4px;
-            border-radius: 4px;
-            background: var(--text-muted);
-            opacity: 0.45;
-            margin: 0 auto 0.9rem;
-        }
-        .quick-add-sheet-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1rem;
-        }
-        .quick-add-close-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 1.4rem;
-            cursor: pointer;
-            padding: 0.2rem 0.4rem;
-            line-height: 1;
-        }
-        .quick-add-sheet-options {
-            display: flex;
-            flex-direction: column;
-            gap: 0.6rem;
-        }
-        .quick-add-sheet-item {
-            display: flex;
-            align-items: center;
-            gap: 0.85rem;
-            padding: 0.72rem 0.95rem;
-            background: var(--bg-panel-raised);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-button);
-            text-decoration: none;
-            color: var(--text-main);
-            transition: transform 0.12s ease, border-color 0.12s ease;
-        }
-        .quick-add-sheet-item:hover, .quick-add-sheet-item:active {
-            border-color: var(--color-primary);
-            transform: translateY(-1px);
-        }
-        .sheet-icon-squircle {
-            width: 38px;
-            height: 38px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            flex-shrink: 0;
-        }
-        .sheet-item-text {
-            flex: 1;
-            min-width: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 0.1rem;
-        }
-        .sheet-item-text strong {
-            font-size: 0.92rem;
-            color: var(--text-main);
-        }
-        .sheet-item-text span {
-            font-size: 0.76rem;
-            color: var(--text-secondary);
-        }
-        .sheet-item-arrow {
-            color: var(--color-primary);
-            font-weight: 700;
-            font-size: 1.1rem;
         }
         .bottom-nav-item {
             flex: 1;
@@ -1723,7 +1631,7 @@
             </div>
         </header>
 
-        <div class="content">
+        <div class="content {% if request.endpoint == 'routes.map_view' %}content-map{% endif %}">
             {% with messages = get_flashed_messages(with_categories=true) %}
               {% if messages %}
                 {% for category, message in messages %}
@@ -1735,58 +1643,19 @@
             {% block content %}{% endblock %}
         </div>
 
-        <!-- Botón Flotante Pinta (Abajo a la izquierda - Añadir cerveza, bar, marca) -->
-        <div class="floating-pinta-wrapper">
-            <button type="button" id="floatingPintaBtn" class="floating-pinta-btn" onclick="toggleQuickAddSheet()" aria-label="Añadir..." title="Añadir cerveza, bar o marca">
-                <span>🍺</span>
-            </button>
+        {% if request.endpoint != 'routes.map_view' %}
+        <!-- Botón Flotante Pinta (Añadir rápido en vistas generales) -->
+        <div class="app-floating-pinta-wrapper">
+            <a href="{{ url_for('routes.quick_add') }}" class="app-floating-pinta-btn" title="Añadir cerveza, bar o marca" aria-label="Añadir...">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:26px; height:26px; display:block;">
+                    <path d="M5.5 3h13l-1.9 16.3c-.08.73-.69 1.27-1.42 1.27H8.82c-.73 0-1.34-.54-1.42-1.27L5.5 3z" fill="#F59E0B" stroke="#D97706" stroke-width="1.8" stroke-linejoin="round"/>
+                    <path d="M5.5 3h13v3.2c0 .2-.1.3-.3.3H5.8c-.2 0-.3-.1-.3-.3V3z" fill="#FFFFFF"/>
+                    <line x1="5.5" y1="3" x2="18.5" y2="3" stroke="#D97706" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M8.8 8l-.6 8" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/>
+                </svg>
+            </a>
         </div>
-
-        <!-- Action Sheet Deslizante de Añadir -->
-        <div id="quickAddBackdrop" class="quick-add-backdrop" onclick="toggleQuickAddSheet(false)"></div>
-        <div id="quickAddSheet" class="quick-add-sheet" aria-modal="true" role="dialog">
-            <div class="quick-add-sheet-handle"></div>
-            <div class="quick-add-sheet-header">
-                <h3 style="margin:0; font-size:1.05rem; display:flex; align-items:center; gap:0.45rem;">
-                    <span>🍺</span> ¿Qué quieres añadir?
-                </h3>
-                <button type="button" onclick="toggleQuickAddSheet(false)" class="quick-add-close-btn" aria-label="Cerrar">&times;</button>
-            </div>
-            <div class="quick-add-sheet-options">
-                <a href="{{ url_for('routes.beer_new') }}" class="quick-add-sheet-item" onclick="toggleQuickAddSheet(false)">
-                    <div class="sheet-icon-squircle" style="background:rgba(245, 158, 11, 0.15); color:var(--color-primary);">🍺</div>
-                    <div class="sheet-item-text">
-                        <strong>Añadir Cerveza</strong>
-                        <span>Estilo, ABV, IBU, descripción y foto</span>
-                    </div>
-                    <span class="sheet-item-arrow">→</span>
-                </a>
-                <a href="{{ url_for('routes.venue_new') }}" class="quick-add-sheet-item" onclick="toggleQuickAddSheet(false)">
-                    <div class="sheet-icon-squircle" style="background:rgba(16, 185, 129, 0.15); color:var(--color-green);">📍</div>
-                    <div class="sheet-item-text">
-                        <strong>Añadir Bar o Local</strong>
-                        <span>Nombre, ubicación y pizarra de grifos</span>
-                    </div>
-                    <span class="sheet-item-arrow">→</span>
-                </a>
-                <a href="{{ url_for('routes.fabricante_new') }}" class="quick-add-sheet-item" onclick="toggleQuickAddSheet(false)">
-                    <div class="sheet-icon-squircle" style="background:rgba(139, 92, 246, 0.15); color:#8B5CF6;">🏢</div>
-                    <div class="sheet-item-text">
-                        <strong>Añadir Marca o Fábrica</strong>
-                        <span>Cervecera artesana, logo y contacto</span>
-                    </div>
-                    <span class="sheet-item-arrow">→</span>
-                </a>
-                <a href="{{ url_for('routes.events_list') }}" class="quick-add-sheet-item" onclick="toggleQuickAddSheet(false)">
-                    <div class="sheet-icon-squircle" style="background:rgba(234, 88, 12, 0.15); color:var(--color-accent);">📅</div>
-                    <div class="sheet-item-text">
-                        <strong>Catas y Eventos</strong>
-                        <span>Ver calendario o proponer cata</span>
-                    </div>
-                    <span class="sheet-item-arrow">→</span>
-                </a>
-            </div>
-        </div>
+        {% endif %}
 
         <!-- Menú Flotante Inferior de 3 Pilares -->
         <nav class="floating-bottom-nav" aria-label="Navegación principal">
@@ -1816,22 +1685,6 @@
         function toggleMenu() {
             document.getElementById('sidebarMenu').classList.toggle('open');
             document.getElementById('sidebarOverlay').classList.toggle('open');
-        }
-
-        function toggleQuickAddSheet(show) {
-            const sheet = document.getElementById('quickAddSheet');
-            const backdrop = document.getElementById('quickAddBackdrop');
-            if (!sheet || !backdrop) return;
-            const shouldOpen = (typeof show === 'boolean') ? show : !sheet.classList.contains('active');
-            if (shouldOpen) {
-                backdrop.classList.add('active');
-                sheet.classList.add('active');
-                document.body.classList.add('modal-open');
-            } else {
-                backdrop.classList.remove('active');
-                sheet.classList.remove('active');
-                document.body.classList.remove('modal-open');
-            }
         }
 
         if ('serviceWorker' in navigator) {
