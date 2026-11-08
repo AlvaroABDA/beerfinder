@@ -764,8 +764,8 @@
             backdrop-filter: var(--card-backdrop);
             -webkit-backdrop-filter: var(--card-backdrop);
             border-radius: var(--radius-card);
-            padding: 1.1rem;
-            margin-bottom: 0.9rem;
+            padding: 0.75rem 0.95rem;
+            margin-bottom: 0.65rem;
             border: 1px solid var(--border-color);
             border-left-width: var(--card-left-stripe-width);
             box-shadow: var(--card-shadow);
@@ -785,8 +785,8 @@
             backdrop-filter: var(--card-backdrop, blur(16px));
             -webkit-backdrop-filter: var(--card-backdrop, blur(16px));
             border-radius: var(--radius-card);
-            padding: 1.1rem;
-            margin-bottom: 0.9rem;
+            padding: 0.75rem 0.95rem;
+            margin-bottom: 0.65rem;
             border: 1px solid color-mix(in srgb, var(--tint) 20%, var(--border-color));
             border-left: var(--card-left-stripe-width) solid var(--tint);
             box-shadow:
@@ -820,8 +820,8 @@
             box-shadow: var(--card-shadow);
             backdrop-filter: var(--card-backdrop);
             -webkit-backdrop-filter: var(--card-backdrop);
-            padding: 1.1rem;
-            margin-bottom: 1.35rem;
+            padding: 0.85rem 1rem;
+            margin-bottom: 0.95rem;
             color: var(--text-main);
         }
         .surface-radar {
@@ -831,7 +831,7 @@
             box-shadow: var(--card-shadow);
             backdrop-filter: var(--card-backdrop);
             -webkit-backdrop-filter: var(--radar-backdrop, var(--card-backdrop));
-            padding: 1rem;
+            padding: 0.85rem 1rem;
         }
         .radar-hit-row {
             display: flex;
@@ -841,7 +841,7 @@
             background: var(--radar-item-bg);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-button);
-            padding: 0.68rem 0.85rem;
+            padding: 0.55rem 0.75rem;
             text-decoration: none;
             color: inherit;
             transition: border-color 0.15s, transform 0.15s;
@@ -849,32 +849,32 @@
         .radar-hit-row:hover { border-color: var(--border-color-active); transform: translateY(-1px); }
 
         .notice-amber {
-            padding: 0.65rem 0.9rem;
+            padding: 0.55rem 0.8rem;
             border-radius: var(--radius-button);
             background: var(--status-warn-bg);
             border: 1px solid var(--status-warn-border);
-            font-size: 0.83rem;
+            font-size: 0.82rem;
             color: var(--status-warn-fg);
             display: flex;
             align-items: center;
             gap: 0.45rem;
         }
         .notice-green {
-            padding: 0.75rem 0.95rem;
+            padding: 0.65rem 0.85rem;
             border-radius: var(--radius-button);
             background: var(--status-ok-bg);
             border: 1px solid var(--status-ok-border);
-            font-size: 0.84rem;
+            font-size: 0.83rem;
             color: var(--status-ok-fg);
         }
 
-        .card-header { display: flex; gap: 0.9rem; margin-bottom: 0.2rem; justify-content: space-between; align-items: center; }
+        .card-header { display: flex; gap: 0.75rem; margin-bottom: 0.1rem; justify-content: space-between; align-items: center; }
         .card-img {
-            width: 58px;
-            height: 58px;
+            width: 46px;
+            height: 46px;
             background: var(--bg-panel-raised);
             border: 1px solid var(--border-color);
-            border-radius: var(--radius-button);
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -882,12 +882,23 @@
             flex-shrink: 0;
         }
         .card-info { flex: 1; min-width: 0; }
-        .card-title { margin: 0 0 0.2rem 0; font-size: var(--text-base); font-weight: 700; color: var(--text-main); }
-        .card-subtitle { margin: 0 0 0.35rem 0; font-size: var(--text-sm); color: var(--text-secondary); }
+        .card-title { margin: 0 0 0.12rem 0; font-size: 0.96rem; font-weight: 700; color: var(--text-main); line-height: 1.25; }
+        .card-subtitle { margin: 0 0 0.2rem 0; font-size: 0.8rem; color: var(--text-secondary); }
 
         .pill {
             display: inline-flex;
             align-items: center;
+            gap: 0.25rem;
+            background-color: var(--color-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            padding: 2.5px 8px;
+            border-radius: var(--radius-pill);
+            font-size: 11.5px;
+            font-weight: 600;
+            margin-right: 3px;
+            margin-bottom: 3px;
+        }
             gap: 0.3rem;
             background-color: var(--color-tertiary);
             color: var(--text-secondary);
@@ -1017,24 +1028,219 @@
             transform: translateY(-1px);
         }
 
-        .bottom-nav {
+        /* =====================================================================
+           Barra Flotante Inferior de 3 Pilares y Botón Flotante Pinta
+           ===================================================================== */
+        .floating-bottom-nav {
             position: fixed;
-            bottom: 0;
+            bottom: 14px;
             left: 50%;
             transform: translateX(-50%);
-            width: 100%;
-            max-width: 480px;
-            height: var(--bottom-nav-height);
+            width: calc(100% - 32px);
+            max-width: 380px;
+            height: 56px;
             background: var(--bg-nav-glass);
-            backdrop-filter: blur(22px) saturate(140%);
-            -webkit-backdrop-filter: blur(22px) saturate(140%);
-            border-top: 1px solid var(--border-color);
+            backdrop-filter: blur(24px) saturate(160%);
+            -webkit-backdrop-filter: blur(24px) saturate(160%);
+            border: 1px solid var(--border-color);
+            border-radius: 999px;
             display: flex;
             justify-content: space-around;
             align-items: center;
-            z-index: 100;
-            padding-bottom: env(safe-area-inset-bottom, 0px);
-            box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.22);
+            z-index: 1050;
+            padding: 0 10px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.36);
+            box-sizing: border-box;
+        }
+        .floating-nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.74rem;
+            font-weight: 700;
+            transition: color 0.15s ease, transform 0.12s ease;
+            position: relative;
+            padding: 4px 0;
+            border-radius: 999px;
+        }
+        .floating-nav-item .floating-nav-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            transition: transform 0.15s ease, color 0.15s ease;
+        }
+        .floating-nav-item .floating-nav-icon .icon {
+            width: 20px;
+            height: 20px;
+        }
+        .floating-nav-item:active { transform: scale(0.92); }
+        .floating-nav-item.active {
+            color: var(--color-primary);
+        }
+        .floating-nav-item.active .floating-nav-icon {
+            color: var(--color-primary);
+            transform: translateY(-1px);
+        }
+        .floating-nav-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            width: 14px;
+            height: 3px;
+            background: var(--color-primary);
+            border-radius: 3px;
+        }
+
+        /* Botón Flotante Pinta (Añadir rápido) */
+        .floating-pinta-wrapper {
+            position: fixed;
+            bottom: 82px;
+            left: 20px;
+            z-index: 1040;
+        }
+        .floating-pinta-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            color: #0E1015;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem;
+            cursor: pointer;
+            transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .floating-pinta-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.42);
+        }
+        .floating-pinta-btn:active {
+            transform: scale(0.92);
+        }
+
+        /* Quick Add Action Sheet */
+        .quick-add-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+        }
+        .quick-add-backdrop.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .quick-add-sheet {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translate(-50%, 100%);
+            width: 100%;
+            max-width: 460px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 24px 24px 0 0;
+            z-index: 2001;
+            padding: 1rem 1.2rem 2.2rem;
+            box-sizing: border-box;
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.45);
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .quick-add-sheet.active {
+            transform: translate(-50%, 0);
+        }
+        .quick-add-sheet-handle {
+            width: 36px;
+            height: 4px;
+            border-radius: 4px;
+            background: var(--text-muted);
+            opacity: 0.45;
+            margin: 0 auto 0.9rem;
+        }
+        .quick-add-sheet-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        .quick-add-close-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.4rem;
+            cursor: pointer;
+            padding: 0.2rem 0.4rem;
+            line-height: 1;
+        }
+        .quick-add-sheet-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+        .quick-add-sheet-item {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            padding: 0.72rem 0.95rem;
+            background: var(--bg-panel-raised);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-button);
+            text-decoration: none;
+            color: var(--text-main);
+            transition: transform 0.12s ease, border-color 0.12s ease;
+        }
+        .quick-add-sheet-item:hover, .quick-add-sheet-item:active {
+            border-color: var(--color-primary);
+            transform: translateY(-1px);
+        }
+        .sheet-icon-squircle {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        .sheet-item-text {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+        }
+        .sheet-item-text strong {
+            font-size: 0.92rem;
+            color: var(--text-main);
+        }
+        .sheet-item-text span {
+            font-size: 0.76rem;
+            color: var(--text-secondary);
+        }
+        .sheet-item-arrow {
+            color: var(--color-primary);
+            font-weight: 700;
+            font-size: 1.1rem;
         }
         .bottom-nav-item {
             flex: 1;
@@ -1361,6 +1567,7 @@
 <body>
     {% macro icon(name, extra_class='') -%}
         {% if name == 'home' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        {% elif name == 'compass' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
         {% elif name == 'beer' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 11h1a3 3 0 0 1 0 6h-1"/><path d="M9 12v6"/><path d="M13 12v6"/><path d="M14 7.5c-1 0-1.44.5-3 .5s-2-.5-3-.5-1.72.5-2.5.5a2.5 2.5 0 0 1 0-5c.78 0 1.57.5 2.5.5S9.44 2 11 2s2 1.5 3 1.5 1.72-.5 2.5-.5a2.5 2.5 0 0 1 0 5c-.78 0-1.5-.5-2.5-.5Z"/><path d="M5 8v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8"/></svg>
         {% elif name == 'hop' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.82 16.12c1.69.6 3.91.79 5.18.88.55.04 1-.42.97-.97-.09-1.27-.28-3.49-.88-5.18"/><path d="M11.5 6.5c1.64 0 3.77.31 5.06.57.56.11.98-.32.92-.89-.15-1.36-.57-3.62-1.48-5.18"/><path d="M6.5 11.5c0 1.64.31 3.77.57 5.06.11.56-.32.98-.89.92-1.36-.15-3.62-.57-5.18-1.48"/><path d="M16.95 16.95c1.5.57 3.55.92 4.82 1.04.58.05 1.05-.42 1-1-.12-1.27-.47-3.32-1.04-4.82"/><path d="M12.5 2.5C9.5 2.5 5 5 4 9c1.5 2.5 4.5 4 8.5 3.5.5-4-1-6.5 0-10Z"/></svg>
         {% elif name == 'radar' %}<svg class="icon {{ extra_class }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.07 4.93A10 10 0 0 0 6.99 3.34"/><path d="M4 6h.01"/><path d="M2.29 9.62A10 10 0 1 0 21.31 8.35"/><path d="M16.24 7.76A6 6 0 1 0 8.23 16.67"/><path d="M12 18h.01"/><path d="M17.99 11.66A6 6 0 0 1 15.77 16.67"/><circle cx="12" cy="12" r="2"/><path d="m13.41 10.59 5.66-5.66"/></svg>
@@ -1495,9 +1702,6 @@
                 </a>
             </div>
             <div class="header-actions">
-                <a href="{{ url_for('routes.quick_add') }}" class="btn-quick-add" title="Añadir cerveza, bar o marca">
-                    {{ icon('plus', 'icon-sm') }} <span>Añadir</span>
-                </a>
                 {% if request.endpoint in ['routes.admin', 'routes.edit_user'] %}
                 <a href="{{ url_for('routes.admin') if request.endpoint != 'routes.admin' else url_for('routes.index') }}" class="session-badge" style="color:var(--color-primary); font-weight:700;">
                     {{ icon('arrow-left', 'icon-sm') if request.endpoint != 'routes.admin' else icon('home', 'icon-sm') }}
@@ -1531,39 +1735,77 @@
             {% block content %}{% endblock %}
         </div>
 
-        <nav class="bottom-nav" aria-label="Navegación principal">
-            <a href="{{ url_for('routes.index') }}" class="bottom-nav-item {% if request.endpoint == 'routes.index' %}active{% endif %}">
-                {{ icon('home') }}
-                <span>Inicio</span>
-            </a>
-            <a href="{{ url_for('routes.beers_list') }}" class="bottom-nav-item {% if request.endpoint in ['routes.beers_list', 'routes.beer_view', 'routes.beer_new', 'routes.edit_beer'] %}active{% endif %}">
-                {{ icon('beer') }}
-                <span>Cervezas</span>
-            </a>
-            <a href="{{ url_for('routes.quick_add') }}" class="bottom-nav-item bottom-nav-add {% if request.endpoint == 'routes.quick_add' %}active{% endif %}" title="Añadir cerveza, bar o marca" aria-label="Añadir">
-                <div class="add-icon-wrapper">
-                    {{ icon('plus', 'icon-sm') }}
-                </div>
-                <span style="font-weight:700; color:var(--color-primary); font-size:0.68rem;">Añadir</span>
-            </a>
-            <a href="{{ url_for('beermatch.swipe_view') }}" class="bottom-nav-item bottom-nav-beermatch {% if request.endpoint in ['beermatch.swipe_view', 'beermatch.history_view'] %}active{% endif %}" title="BeerMatch">
-                <div class="beermatch-icon-wrapper">
-                    {{ icon('heart') }}
-                </div>
-                <span>Match</span>
-            </a>
-            <a href="{{ url_for('routes.map_view') }}" class="bottom-nav-item {% if request.endpoint in ['routes.map_view', 'routes.venue_view', 'routes.venue_new', 'routes.edit_venue'] %}active{% endif %}">
-                {{ icon('map-pin') }}
+        <!-- Botón Flotante Pinta (Abajo a la izquierda - Añadir cerveza, bar, marca) -->
+        <div class="floating-pinta-wrapper">
+            <button type="button" id="floatingPintaBtn" class="floating-pinta-btn" onclick="toggleQuickAddSheet()" aria-label="Añadir..." title="Añadir cerveza, bar o marca">
+                <span>🍺</span>
+            </button>
+        </div>
+
+        <!-- Action Sheet Deslizante de Añadir -->
+        <div id="quickAddBackdrop" class="quick-add-backdrop" onclick="toggleQuickAddSheet(false)"></div>
+        <div id="quickAddSheet" class="quick-add-sheet" aria-modal="true" role="dialog">
+            <div class="quick-add-sheet-handle"></div>
+            <div class="quick-add-sheet-header">
+                <h3 style="margin:0; font-size:1.05rem; display:flex; align-items:center; gap:0.45rem;">
+                    <span>🍺</span> ¿Qué quieres añadir?
+                </h3>
+                <button type="button" onclick="toggleQuickAddSheet(false)" class="quick-add-close-btn" aria-label="Cerrar">&times;</button>
+            </div>
+            <div class="quick-add-sheet-options">
+                <a href="{{ url_for('routes.beer_new') }}" class="quick-add-sheet-item" onclick="toggleQuickAddSheet(false)">
+                    <div class="sheet-icon-squircle" style="background:rgba(245, 158, 11, 0.15); color:var(--color-primary);">🍺</div>
+                    <div class="sheet-item-text">
+                        <strong>Añadir Cerveza</strong>
+                        <span>Estilo, ABV, IBU, descripción y foto</span>
+                    </div>
+                    <span class="sheet-item-arrow">→</span>
+                </a>
+                <a href="{{ url_for('routes.venue_new') }}" class="quick-add-sheet-item" onclick="toggleQuickAddSheet(false)">
+                    <div class="sheet-icon-squircle" style="background:rgba(16, 185, 129, 0.15); color:var(--color-green);">📍</div>
+                    <div class="sheet-item-text">
+                        <strong>Añadir Bar o Local</strong>
+                        <span>Nombre, ubicación y pizarra de grifos</span>
+                    </div>
+                    <span class="sheet-item-arrow">→</span>
+                </a>
+                <a href="{{ url_for('routes.fabricante_new') }}" class="quick-add-sheet-item" onclick="toggleQuickAddSheet(false)">
+                    <div class="sheet-icon-squircle" style="background:rgba(139, 92, 246, 0.15); color:#8B5CF6;">🏢</div>
+                    <div class="sheet-item-text">
+                        <strong>Añadir Marca o Fábrica</strong>
+                        <span>Cervecera artesana, logo y contacto</span>
+                    </div>
+                    <span class="sheet-item-arrow">→</span>
+                </a>
+                <a href="{{ url_for('routes.events_list') }}" class="quick-add-sheet-item" onclick="toggleQuickAddSheet(false)">
+                    <div class="sheet-icon-squircle" style="background:rgba(234, 88, 12, 0.15); color:var(--color-accent);">📅</div>
+                    <div class="sheet-item-text">
+                        <strong>Catas y Eventos</strong>
+                        <span>Ver calendario o proponer cata</span>
+                    </div>
+                    <span class="sheet-item-arrow">→</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Menú Flotante Inferior de 3 Pilares -->
+        <nav class="floating-bottom-nav" aria-label="Navegación principal">
+            <a href="{{ url_for('routes.map_view') }}" class="floating-nav-item {% if request.endpoint in ['routes.map_view', 'routes.venue_view', 'routes.venue_new', 'routes.edit_venue'] %}active{% endif %}" title="Mapa Cervecero">
+                <span class="floating-nav-icon">{{ icon('map-pin') }}</span>
                 <span>Mapa</span>
             </a>
+            <a href="{{ url_for('routes.index') }}" class="floating-nav-item {% if request.endpoint in ['routes.index', 'routes.beers_list', 'routes.beer_view', 'routes.beer_new', 'routes.edit_beer', 'beermatch.swipe_view', 'beermatch.history_view', 'routes.events_list', 'routes.event_view'] %}active{% endif %}" title="Explorar">
+                <span class="floating-nav-icon">{{ icon('compass') }}</span>
+                <span>Explorar</span>
+            </a>
             {% if session.get('user_id') %}
-                <a href="{{ url_for('routes.profile') }}" class="bottom-nav-item {% if request.endpoint in ['routes.profile', 'routes.my_claims', 'routes.admin'] %}active{% endif %}">
-                    {{ icon('user') }}
+                <a href="{{ url_for('routes.profile') }}" class="floating-nav-item {% if request.endpoint in ['routes.profile', 'routes.my_claims', 'routes.admin'] %}active{% endif %}" title="Mi Perfil">
+                    <span class="floating-nav-icon">{{ icon('user') }}</span>
                     <span>Perfil</span>
                 </a>
             {% else %}
-                <a href="{{ url_for('routes.login') }}" class="bottom-nav-item {% if request.endpoint in ['routes.login', 'routes.register'] %}active{% endif %}">
-                    {{ icon('log-in') }}
+                <a href="{{ url_for('routes.login') }}" class="floating-nav-item {% if request.endpoint in ['routes.login', 'routes.register'] %}active{% endif %}" title="Iniciar sesión">
+                    <span class="floating-nav-icon">{{ icon('log-in') }}</span>
                     <span>Entrar</span>
                 </a>
             {% endif %}
@@ -1574,6 +1816,22 @@
         function toggleMenu() {
             document.getElementById('sidebarMenu').classList.toggle('open');
             document.getElementById('sidebarOverlay').classList.toggle('open');
+        }
+
+        function toggleQuickAddSheet(show) {
+            const sheet = document.getElementById('quickAddSheet');
+            const backdrop = document.getElementById('quickAddBackdrop');
+            if (!sheet || !backdrop) return;
+            const shouldOpen = (typeof show === 'boolean') ? show : !sheet.classList.contains('active');
+            if (shouldOpen) {
+                backdrop.classList.add('active');
+                sheet.classList.add('active');
+                document.body.classList.add('modal-open');
+            } else {
+                backdrop.classList.remove('active');
+                sheet.classList.remove('active');
+                document.body.classList.remove('modal-open');
+            }
         }
 
         if ('serviceWorker' in navigator) {

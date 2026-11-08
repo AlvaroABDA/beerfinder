@@ -26,25 +26,99 @@ def map_view():
     venues = data_access.list_venues(only_active=True)
     avail = data_access.get_consolidated_availabilities(only_available=True)
     radar_ids = data_access.get_user_radar_beer_ids(uid) if uid else set()
-    beers_by_id = {b['id']: b['name'] for b in data_access.list_beers(only_active=True)} if radar_ids else {}
+    beers = data_access.list_beers(only_active=True)
+    beers_by_id = {b['id']: b for b in beers}
 
-    avail_by_venue = {}
-    radar_by_venue = {}
+    liked_ids = set()
+    if uid:
+        try:
+            from ..models import UserBeerPreference
+            liked_prefs = UserBeerPreference.query.filter_by(user_id=int(uid), preference='LIKE').all()
+            liked_ids = {r.beer_id for r in liked_prefs}
+        except Exception:
+            liked_ids = set()
+
+    venue_data = {}
     for a in avail:
         vid = a['venue_id']
         bid = a['beer_id']
-        avail_by_venue[vid] = avail_by_venue.get(vid, 0) + 1
-        if bid in radar_ids and bid in beers_by_id:
-            radar_by_venue.setdefault(vid, []).append(beers_by_id[bid])
+        beer = beers_by_id.get(bid)
+        if not beer:
+            continue
+
+        v_entry = venue_data.setdefault(vid, {
+            'draft_count': 0,
+            'bottle_count': 0,
+            'styles_count': {},
+            'breweries': set(),
+            'radar_beers': [],
+            'matched_beers': []
+        })
+
+        stype = (a.get('serving_type') or 'DRAFT').upper()
+        if stype in ('BOTTLE', 'CAN'):
+            v_entry['bottle_count'] += 1
+        else:
+            v_entry['draft_count'] += 1
+
+        style = beer.get('style') or 'Artesana'
+        v_entry['styles_count'][style] = v_entry['styles_count'].get(style, 0) + 1
+
+        if beer.get('brewery'):
+            v_entry['breweries'].add(beer['brewery'])
+
+        if bid in radar_ids:
+            v_entry['radar_beers'].append(beer['name'])
+        if bid in liked_ids or bid in radar_ids:
+            if beer['name'] not in v_entry['matched_beers']:
+                v_entry['matched_beers'].append(beer['name'])
 
     events_by_venue = data_access.get_venues_with_upcoming_events()
     enriched_venues = []
     for v in venues:
+        vid = v['id']
+        v_offer = venue_data.get(vid, {
+            'draft_count': 0,
+            'bottle_count': 0,
+            'styles_count': {},
+            'breweries': set(),
+            'radar_beers': [],
+            'matched_beers': []
+        })
+
         vc = dict(v)
-        vc['available_count'] = avail_by_venue.get(v['id'], 0)
-        vc['radar_beers'] = radar_by_venue.get(v['id'], [])
-        vc['upcoming_events'] = events_by_venue.get(v['id'], [])
+        draft_c = v_offer['draft_count']
+        bottle_c = v_offer['bottle_count']
+        vc['draft_count'] = draft_c
+        vc['bottle_count'] = bottle_c
+        vc['available_count'] = draft_c + bottle_c
+
+        sorted_styles = sorted(v_offer['styles_count'].items(), key=lambda x: x[1], reverse=True)
+        vc['styles_summary'] = [{'style': s, 'count': c} for s, c in sorted_styles[:5]]
+        vc['styles_list'] = list(v_offer['styles_count'].keys())
+        vc['breweries'] = list(v_offer['breweries'])[:4]
+        vc['radar_beers'] = v_offer['radar_beers']
+        vc['matched_beers'] = v_offer['matched_beers']
+        vc['upcoming_events'] = events_by_venue.get(vid, [])
         vc['has_events'] = len(vc['upcoming_events']) > 0
+
+        # Smart pin badge focused on product offer (NO PRICES!)
+        if v_offer['radar_beers']:
+            vc['pin_label'] = f"🎯 {v_offer['radar_beers'][0][:13]}" if len(v_offer['radar_beers'][0]) <= 13 else "🎯 En tu radar"
+            vc['pin_type'] = 'radar'
+        elif vc['has_events']:
+            vc['pin_label'] = "📅 Cata"
+            vc['pin_type'] = 'event'
+        elif draft_c > 0:
+            vc['pin_label'] = f"🍻 {draft_c} grifos" if draft_c > 1 else "🍻 1 grifo"
+            vc['pin_type'] = 'draft'
+        elif bottle_c > 0:
+            vc['pin_label'] = f"🍾 {bottle_c} botellas"
+            vc['pin_type'] = 'bottle'
+        else:
+            vc['pin_label'] = "📍 Bar"
+            vc['pin_type'] = 'default'
+
         enriched_venues.append(vc)
 
     return render_template('map.html', title='Mapa Cervecero', venues=enriched_venues)
