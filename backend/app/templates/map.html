@@ -115,6 +115,10 @@
     }
 
     /* Speech-Bubble Pins */
+    .custom-speech-marker {
+        background: transparent !important;
+        border: none !important;
+    }
     .map-speech-pill {
         background: #181B24;
         color: #F8FAFC;
@@ -130,8 +134,14 @@
         box-shadow: 0 4px 14px rgba(0,0,0,0.45);
         position: relative;
         cursor: pointer;
+        transform: translate(-50%, -100%);
+        margin-top: -8px;
         transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
         text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+        user-select: none;
+    }
+    .map-speech-pill:hover {
+        transform: translate(-50%, -105%) scale(1.05);
     }
     .map-speech-pill::after {
         content: '';
@@ -171,13 +181,17 @@
         border-color: #64748B transparent transparent transparent;
     }
 
-    /* Controles Inferiores del Mapa (Botón Pinta + GPS) */
+    /* Controles Inferiores del Mapa (Botón Pinta + GPS fijados por encima de la barra inferior) */
     .map-bottom-controls {
-        position: absolute;
+        position: fixed;
         bottom: 84px;
-        left: 14px;
-        right: 14px;
-        z-index: 1000;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        max-width: 480px;
+        padding: 0 16px;
+        box-sizing: border-box;
+        z-index: 1040;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -244,10 +258,11 @@
     /* Venue Offer Bottom Sheet */
     .venue-offer-sheet {
         display: none;
-        position: absolute;
-        bottom: 84px;
-        left: 12px;
-        right: 12px;
+        position: fixed;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 24px);
         max-width: 460px;
         margin: 0 auto;
         z-index: 1060;
@@ -259,6 +274,7 @@
         padding: 0.95rem 1.1rem;
         box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.45);
         animation: slideUpSheet 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        max-height: calc(100dvh - 180px);
         max-height: calc(100vh - 180px);
         overflow-y: auto;
     }
@@ -301,6 +317,12 @@
             </button>
             <button type="button" class="map-filter-chip" data-filter="alcohol-free" onclick="filterMapCategory('alcohol-free', this)">
                 🚫 Sin alcohol
+            </button>
+        </div>
+
+        <div id="map-no-local-bars-chip" style="display:none; pointer-events:auto; margin-top:2px;">
+            <button type="button" class="map-filter-chip" onclick="map.fitBounds(bounds, {padding:[50,50]}); this.parentElement.style.display='none';" style="background:rgba(245,158,11,0.95); color:#0E1015; border-color:#F59E0B; box-shadow:0 4px 14px rgba(0,0,0,0.4); font-size:0.75rem;">
+                📍 Sin bares cerca · Ver bares en el mapa
             </button>
         </div>
     </div>
@@ -387,10 +409,6 @@
     var map = L.map('map', {
         zoomControl: false
     }).setView([40.416775, -3.703790], 13);
-
-    L.control.zoom({
-        position: 'topright'
-    }).addTo(map);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
@@ -532,7 +550,7 @@
     if (targetTriggerFn) {
         setTimeout(targetTriggerFn, 150);
     } else if (bounds.length > 0) {
-        map.fitBounds(bounds, {padding: [50, 50]});
+        map.fitBounds(bounds, {padding: [60, 60], maxZoom: 14});
     }
 
     function closeVenueCard() {
@@ -666,7 +684,6 @@
                 function(pos) {
                     userPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude };
                     var latlng = [pos.coords.latitude, pos.coords.longitude];
-                    map.setView(latlng, 15);
 
                     if (!userMarker) {
                         var userPillHtml = '<div style="width:18px; height:18px; border-radius:50%; background:#3B82F6; border:3px solid #FFFFFF; box-shadow:0 0 16px rgba(59,130,246,0.9);"></div>';
@@ -695,9 +712,35 @@
                             userAccuracyCircle.setRadius(pos.coords.accuracy);
                         }
                     }
+
+                    if (!targetVenueId) {
+                        // Buscar si hay bares a menos de 35 km del usuario
+                        var nearby = [];
+                        venues.forEach(function(v) {
+                            if (v.latitude && v.longitude) {
+                                var distMeters = map.distance(latlng, [v.latitude, v.longitude]);
+                                if (distMeters < 35000) {
+                                    nearby.push([v.latitude, v.longitude]);
+                                }
+                            }
+                        });
+
+                        var noBarsChip = document.getElementById('map-no-local-bars-chip');
+                        if (nearby.length > 0) {
+                            nearby.push(latlng);
+                            map.fitBounds(nearby, { padding: [70, 70], maxZoom: 15 });
+                            if (noBarsChip) noBarsChip.style.display = 'none';
+                        } else {
+                            map.setView(latlng, 14);
+                            if (noBarsChip) noBarsChip.style.display = 'inline-flex';
+                        }
+                    }
                 },
                 function(err) {
                     console.warn("No se pudo obtener la ubicación para el mapa", err);
+                    if (!targetVenueId && bounds.length > 0) {
+                        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
+                    }
                 }
             );
         }

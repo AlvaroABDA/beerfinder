@@ -4,6 +4,7 @@ from sqlalchemy import Boolean, Float, Integer, inspect, text
 
 from . import auth, data_access
 from .models import (
+    Availability,
     Beer,
     BeerFamily,
     BeerStyle,
@@ -278,6 +279,140 @@ def bootstrap_database(app=None):
 
         db.session.commit()
 
+        # Semilla idempotente de bares artesanos de referencia en Madrid (con grifos y catas)
+        madrid_venues_seed = [
+            {
+                'name': 'La Tape',
+                'address': 'Calle de San Bernardo, 88',
+                'city': 'Madrid',
+                'description': 'Restaurante y cervecería artesana de referencia en Malasaña. 7 grifos rotatorios nacionales e internacionales y carta maridada.',
+                'latitude': 40.428520,
+                'longitude': -3.706730,
+                'taps': [
+                    ('Dreadnought IPA', 'DRAFT', 1),
+                    ('Sandblasted IPA', 'DRAFT', 2),
+                    ('Leaf Lover', 'DRAFT', 3),
+                    ('Non Grata', 'BOTTLE', None),
+                ],
+                'event': {
+                    'title': 'Cata Maridada de Cervezas Lupuladas & Quesos',
+                    'description': 'Recorrido guiado por 5 cervezas artesanas lupuladas (IPAs, NEIPAs y Doble IPAs) maridadas con quesos artesanos de pastor.',
+                    'event_type': 'CATA',
+                    'days_ahead': 6,
+                    'time': '20:00',
+                    'price': 22.0,
+                    'capacity': 16,
+                }
+            },
+            {
+                'name': 'Chinaski Lavapiés',
+                'address': 'Calle de la Fe, 19',
+                'city': 'Madrid',
+                'description': 'Mítico bar craft en el corazón de Lavapiés con 18 grifos de pizarra activa en rotación continua.',
+                'latitude': 40.410310,
+                'longitude': -3.699540,
+                'taps': [
+                    ('Rock & Stone', 'DRAFT', 1),
+                    ('Hoxxes Hazy', 'DRAFT', 2),
+                    ('Glyphid Sour', 'DRAFT', 3),
+                    ('Barong', 'DRAFT', 4),
+                    ('Morkite', 'DRAFT', 5),
+                ],
+            },
+            {
+                'name': 'Fábrica Maravillas',
+                'address': 'Calle de Valverde, 29',
+                'city': 'Madrid',
+                'description': 'Microcervecería pionera en el barrio de Malasaña. Elaboran y sirven su propia cerveza fresca in situ.',
+                'latitude': 40.422180,
+                'longitude': -3.702250,
+                'taps': [
+                    ('Mactera Haze', 'DRAFT', 1),
+                    ('Barrel of Fun', 'DRAFT', 2),
+                    ('Karl\'s Revenge', 'DRAFT', 3),
+                ],
+                'event': {
+                    'title': 'Meet the Brewer & Cata de Lúpulos Frescos',
+                    'description': 'Visita explicativa a los fermentadores y cata comentada con el maestro cervecero de la casa.',
+                    'event_type': 'CATA',
+                    'days_ahead': 14,
+                    'time': '19:30',
+                    'price': 15.0,
+                    'capacity': 18,
+                }
+            },
+            {
+                'name': 'El Pedal',
+                'address': 'Calle de Argumosa, 33',
+                'city': 'Madrid',
+                'description': 'Cervecería de barrio y terraza en Argumosa especializada en cervezas artesanas independientes.',
+                'latitude': 40.408730,
+                'longitude': -3.697840,
+                'taps': [
+                    ('RedRock', 'DRAFT', 1),
+                    ('Glyphid Gold', 'DRAFT', 2),
+                    ('Gunner', 'BOTTLE', None),
+                ],
+            },
+            {
+                'name': 'BeeBeer',
+                'address': 'Calle de Fuencarral, 106',
+                'city': 'Madrid',
+                'description': 'Brewpub y quesería artesanal en Fuencarral. Cervezas propias y colaboraciones exclusivas.',
+                'latitude': 40.428020,
+                'longitude': -3.701810,
+                'taps': [
+                    ('Dreadnought', 'DRAFT', 1),
+                    ('Bittermantle', 'DRAFT', 2),
+                    ('Karl\'s Kölsch', 'DRAFT', 3),
+                ],
+            },
+        ]
+
+        now_seed = datetime.now()
+        for vd in madrid_venues_seed:
+            venue = Venue.query.filter_by(name=vd['name']).first()
+            if not venue:
+                venue = Venue(
+                    name=vd['name'],
+                    address=vd['address'],
+                    city=vd['city'],
+                    description=vd['description'],
+                    latitude=vd['latitude'],
+                    longitude=vd['longitude'],
+                    active=True
+                )
+                db.session.add(venue)
+                db.session.flush()
+
+                for b_name, s_type, tap in vd.get('taps', []):
+                    beer = Beer.query.filter(Beer.name.ilike(f'%{b_name}%')).first()
+                    if beer:
+                        db.session.add(Availability(
+                            venue_id=venue.id,
+                            beer_id=beer.id,
+                            status='AVAILABLE',
+                            serving_type=s_type,
+                            tap_number=tap,
+                            community_soldout_reports=0
+                        ))
+
+                ev_data = vd.get('event')
+                if ev_data:
+                    ev_time = ev_data['time']
+                    ev_date = (now_seed + timedelta(days=ev_data['days_ahead'])).strftime(f'%Y-%m-%dT{ev_time}')
+                    db.session.add(Event(
+                        venue_id=venue.id,
+                        title=ev_data['title'],
+                        description=ev_data['description'],
+                        event_type=ev_data['event_type'],
+                        event_date=ev_date,
+                        price=ev_data['price'],
+                        capacity=ev_data['capacity'],
+                        active=True
+                    ))
+
+        db.session.commit()
 
         # Asegurar cuenta ADMIN inicial (local, PythonAnywhere o Cloud Run)
         admin_email = (os.environ.get('ADMIN_EMAIL') or 'admin@example.com').strip().lower()
