@@ -1291,6 +1291,17 @@
             return '<svg class="icon ' + (extraClass || '') + '" viewBox="0 0 24 24" aria-hidden="true">' + p + '</svg>';
         };
 
+        window.escapeHtml = function(str) {
+            if (str == null) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        };
+        var escapeHtml = window.escapeHtml;
+
         window.getAppLocation = function(onSuccess, onError) {
             const GEO_ERROR_MESSAGES = {
                 1: 'Permiso de ubicación denegado. Actívalo en los ajustes del navegador para ver distancias.',
@@ -1541,6 +1552,7 @@
         <a href="{{ url_for('routes.styles_guide') }}">{{ icon('book-open') }} Guía de Estilos (Biblia)</a>
         <a href="{{ url_for('routes.map_view') }}">{{ icon('map-pin') }} Mapa</a>
         <a href="{{ url_for('routes.quick_add') }}" style="color:var(--color-primary); font-weight:600;">{{ icon('plus') }} Añadir...</a>
+        <a href="{{ url_for('routes.claim_hub') }}" style="color:var(--color-secondary); font-weight:600;">{{ icon('shield-check') }} Reclamar Negocio</a>
 
         {% if session.get('user_id') %}
             <a href="{{ url_for('beermatch.swipe_view') }}" style="color: var(--color-primary); font-weight: 700;">{{ icon('heart') }} BeerMatch</a>

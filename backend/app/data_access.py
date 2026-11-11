@@ -1129,6 +1129,68 @@ def list_claims(requesting_user_id=None, status=None):
     return [c.to_dict() for c in query.order_by(Claim.created_at.desc(), Claim.id.desc()).all()]
 
 
+def search_entities_for_claim(q, entity_type='all', limit=20):
+    """Busca bares, fábricas o cervezas para iniciar el flujo de verificación y reclamación de titularidad."""
+    results = []
+    if not q or not q.strip():
+        return results
+
+    like_q = f"%{q.strip()}%"
+
+    if entity_type in ('all', 'venue'):
+        v_rows = Venue.query.filter(
+            Venue.active.is_(True),
+            db.or_(Venue.name.ilike(like_q), Venue.city.ilike(like_q), Venue.address.ilike(like_q))
+        ).limit(limit).all()
+        for v in v_rows:
+            results.append({
+                'entity_type': 'venue',
+                'entity_type_label': 'Bar / Taproom',
+                'id': v.id,
+                'name': v.name,
+                'subtitle': f"{v.address or ''}{', ' + v.city if v.city else ''}".strip(', '),
+                'owner_user_id': v.owner_user_id,
+                'url': f"/venue/{v.id}#claim",
+                'is_claimed': bool(v.owner_user_id),
+            })
+
+    if entity_type in ('all', 'brand'):
+        f_rows = Fabricante.query.filter(
+            Fabricante.active.is_(True),
+            db.or_(Fabricante.name.ilike(like_q), Fabricante.country.ilike(like_q))
+        ).limit(limit).all()
+        for f in f_rows:
+            results.append({
+                'entity_type': 'brand',
+                'entity_type_label': 'Marca / Fábrica',
+                'id': f.id,
+                'name': f.name,
+                'subtitle': f.country or 'Fábrica de cerveza artesana',
+                'owner_user_id': f.owner_user_id,
+                'url': f"/fabricante/{f.id}#claim",
+                'is_claimed': bool(f.owner_user_id),
+            })
+
+    if entity_type in ('all', 'beer'):
+        b_rows = Beer.query.filter(
+            Beer.active.is_(True),
+            db.or_(Beer.name.ilike(like_q), Beer.brewery.ilike(like_q), Beer.style.ilike(like_q))
+        ).limit(limit).all()
+        for b in b_rows:
+            results.append({
+                'entity_type': 'beer',
+                'entity_type_label': 'Cerveza',
+                'id': b.id,
+                'name': b.name,
+                'subtitle': f"{b.brewery or 'Cervecera desconocida'} · {b.style or 'Artesana'}",
+                'owner_user_id': b.owner_user_id,
+                'url': f"/beer/{b.id}#claim",
+                'is_claimed': bool(b.owner_user_id),
+            })
+
+    return results[:limit]
+
+
 def count_competing_pending_claims(entity_type, entity_id, exclude_claim_id=None, exclude_user_id=None):
     query = Claim.query.filter_by(entity_type=entity_type, entity_id=int(entity_id), status='PENDING')
     if exclude_claim_id is not None:

@@ -341,6 +341,36 @@ def verify_claim_web(claim_id):
     return redirect(url_for('routes.my_claims'))
 
 
+@bp.route('/claim', methods=['GET'])
+@bp.route('/claims', methods=['GET'])
+def claim_hub():
+    uid = session.get('user_id')
+    user_claims = []
+    if uid:
+        raw_claims = data_access.list_claims(requesting_user_id=uid)
+        for c in raw_claims:
+            ename, eurl, _ = entity_display_info(c['entity_type'], c['entity_id'])
+            cc = dict(c)
+            cc['entity_name'] = ename
+            cc['entity_url'] = eurl
+            user_claims.append(cc)
+
+    q = (request.args.get('q') or '').strip()
+    entity_type = (request.args.get('type') or 'all').lower()
+    search_results = []
+    if q:
+        search_results = data_access.search_entities_for_claim(q, entity_type=entity_type)
+
+    return render_template(
+        'claim_hub.html',
+        title='Reclamar Propiedad Oficial',
+        user_claims=user_claims,
+        q=q,
+        entity_type=entity_type,
+        search_results=search_results
+    )
+
+
 @bp.route('/my_claims')
 @auth.login_required
 def my_claims():

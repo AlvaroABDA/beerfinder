@@ -696,6 +696,7 @@ def report_venue_beer_soldout(venue_id, beer_id):
 
 
 @bp.route('/add')
+@bp.route('/quick_add')
 def quick_add():
     return render_template(
         'quick_add.html',

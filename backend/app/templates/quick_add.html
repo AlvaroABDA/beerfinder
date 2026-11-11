@@ -46,6 +46,21 @@
             </div>
             <span style="color:var(--text-muted); display:flex; flex-shrink:0;">{{ icon('chevron-right') }}</span>
         </a>
+
+        <!-- Opción 4: Reclamar Negocio o Marca Existente -->
+        <a href="{{ url_for('routes.claim_hub') }}" class="add-hub-option" style="display:flex; align-items:center; gap:1rem; padding:1.05rem 1.15rem; background:var(--bg-panel-raised); border-radius:var(--radius-card); border:1px solid var(--border-color); border-left:4px solid var(--color-primary); text-decoration:none; color:inherit; transition:all 0.18s ease; box-shadow:var(--card-shadow);">
+            <div style="width:52px; height:52px; border-radius:14px; background:rgba(245,158,11,0.18); color:var(--color-primary); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                {{ icon('shield-check') }}
+            </div>
+            <div style="flex:1; min-width:0;">
+                <div style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.2rem;">
+                    <strong style="font-size:1.02rem; color:var(--text-main);">Reclamar Local o Marca</strong>
+                    <span class="pill pill-amber" style="margin:0; font-size:0.68rem; padding:2px 7px;">OFICIAL</span>
+                </div>
+                <span style="font-size:0.81rem; color:var(--text-secondary); line-height:1.35; display:block;">¿Tu bar o cervecera ya están en el mapa? Verifica tu titularidad para gestionar tus grifos, TV y cartelería QR.</span>
+            </div>
+            <span style="color:var(--text-muted); display:flex; flex-shrink:0;">{{ icon('chevron-right') }}</span>
+        </a>
     </div>
 
     <div style="margin-top:1.4rem; text-align:center;">

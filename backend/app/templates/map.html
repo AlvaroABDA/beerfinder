@@ -393,6 +393,15 @@
         <!-- Aviso de Cata o Evento Próximo -->
         <div id="venue-event-note" style="display:none; margin:0.4rem 0 0.65rem; padding:0.45rem 0.7rem; font-size:0.78rem; background:rgba(234,88,12,0.14); border:1px solid rgba(234,88,12,0.35); border-radius:var(--radius-button); color:var(--text-main);"></div>
 
+        <!-- Banner de Reclamación de Titularidad (si el bar no está verificado) -->
+        <div id="venue-claim-box" style="display:none; margin:0.4rem 0 0.65rem; padding:0.48rem 0.75rem; background:rgba(245,158,11,0.08); border:1px dashed var(--color-primary); border-radius:var(--radius-button); align-items:center; justify-content:space-between; gap:0.5rem;">
+            <div style="font-size:0.76rem; color:var(--text-main); display:flex; align-items:center; gap:0.35rem; min-width:0;">
+                <span style="font-size:0.95rem; flex-shrink:0;">🛡️</span>
+                <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">¿Gestionas este bar?</span>
+            </div>
+            <a href="#" id="venue-claim-sheet-link" style="font-size:0.76rem; font-weight:700; color:var(--color-primary); text-decoration:none; white-space:nowrap; flex-shrink:0;">Reclamar propiedad →</a>
+        </div>
+
         <!-- Botones de Acción -->
         <div style="display:flex; gap:0.5rem; margin-top:0.4rem;">
             <a href="#" id="venue-link" class="btn" style="flex:1; padding:0.55rem; font-size:0.84rem; text-align:center;">
@@ -406,6 +415,16 @@
 </div>
 
 <script>
+    function escapeHtml(str) {
+        if (str == null) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
     var map = L.map('map', {
         zoomControl: false
     }).setView([40.416775, -3.703790], 13);
@@ -463,12 +482,19 @@
                 var directionsUrl = 'https://www.google.com/maps/dir/?api=1&destination=' + venue.latitude + ',' + venue.longitude;
                 document.getElementById('venue-directions-link').href = directionsUrl;
 
-                // Sello de verificación
+                // Sello de verificación y llamada a reclamación
                 var verifiedBadge = document.getElementById('venue-verified-badge');
+                var claimBox = document.getElementById('venue-claim-box');
+                var claimLink = document.getElementById('venue-claim-sheet-link');
                 if (venue.owner_user_id) {
                     verifiedBadge.style.display = 'inline-flex';
+                    if (claimBox) claimBox.style.display = 'none';
                 } else {
                     verifiedBadge.style.display = 'none';
+                    if (claimBox && claimLink) {
+                        claimLink.href = '/venue/' + venue.id + '#claim';
+                        claimBox.style.display = 'flex';
+                    }
                 }
 
                 // Cálculo de distancia a pie si tenemos ubicación

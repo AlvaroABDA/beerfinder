@@ -207,16 +207,21 @@
 
     {% if session.get('user_id') %}
         {% if has_pending_claim %}
-        <div style="margin-top:1.1rem; padding-top:0.85rem; border-top:1px solid var(--border-color); font-size:0.82rem; display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap;">
-            {{ icon('clock', 'icon-sm') }}
-            <span>Tienes una solicitud de verificación abierta para esta cerveza ·</span>
-            <a href="{{ url_for('routes.my_claims') }}" style="color:var(--color-primary); font-weight:700;">Ver estado →</a>
+        <div style="margin-top:1.1rem; padding:0.85rem 1rem; background:rgba(245,158,11,0.08); border:1px solid var(--border-color); border-radius:var(--radius-card); font-size:0.82rem; display:flex; align-items:center; justify-content:space-between; gap:0.5rem; flex-wrap:wrap;">
+            <div style="display:flex; align-items:center; gap:0.4rem;">
+                <span style="color:var(--color-primary);">{{ icon('clock', 'icon-sm') }}</span>
+                <span>Tienes una solicitud de verificación abierta para esta cerveza.</span>
+            </div>
+            <a href="{{ url_for('routes.my_claims') }}" class="btn btn-outline" style="width:auto; padding:0.35rem 0.8rem; font-size:0.78rem;">Ver estado →</a>
         </div>
         {% elif not beer.owner_user_id %}
-        <details style="margin-top: 1.1rem; padding-top: 0.85rem; border-top: 1px solid var(--border-color);">
-            <summary style="color: var(--text-secondary); cursor: pointer; font-size: 0.82rem; font-weight:600;">
-                {{ icon('shield-check', 'icon-sm') }} ¿Eres el fabricante oficial de esta cerveza? Verifícala
+        <details id="claim" style="margin-top: 1.1rem; padding: 0.95rem 1.1rem; background:rgba(245,158,11,0.06); border: 1px solid var(--border-color-active); border-radius:var(--radius-card);">
+            <summary style="color: var(--color-primary); cursor: pointer; font-size: 0.88rem; font-weight:700; display:flex; align-items:center; gap:0.45rem;">
+                {{ icon('shield-check', 'icon-sm') }} <span>¿Eres la cervecera oficial de esta cerveza? Verifícala</span>
             </summary>
+            <p style="margin:0.5rem 0 0.75rem 0; font-size:0.81rem; color:var(--text-secondary); line-height:1.4;">
+                Acredita que formas parte de la cervecera o equipo técnico para editar notas de cata oficiales, gestionar alérgenos y recibir estadísticas de demanda.
+            </p>
             <form method="POST" action="{{ url_for('routes.claim_entity', entity_type='beer', entity_id=beer.id) }}" enctype="multipart/form-data" style="margin-top: 0.75rem;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <label style="font-size:0.82rem;">Método de acreditación</label>
@@ -244,11 +249,13 @@
                 <label style="font-size:0.82rem;">Explicación breve</label>
                 <textarea name="justification" rows="2" required placeholder="Indica tu rol en la cervecera..."></textarea>
 
-                <button type="submit" class="btn btn-outline">Iniciar verificación</button>
+                <button type="submit" class="btn" style="width:100%; margin-top:0.6rem; font-weight:700;">
+                    🛡️ Enviar solicitud de verificación
+                </button>
             </form>
         </details>
         {% elif not is_brand_or_beer_owner %}
-        <details style="margin-top: 1.1rem; padding-top: 0.85rem; border-top: 1px solid var(--border-color);">
+        <details id="claim" style="margin-top: 1.1rem; padding: 0.85rem 1rem; border: 1px solid var(--border-color); border-radius:var(--radius-card); background:rgba(255,255,255,0.02);">
             <summary style="color: var(--text-muted); cursor: pointer; font-size: 0.78rem;">
                 {{ icon('scale', 'icon-sm') }} ¿Eres el titular legítimo y deseas disputar la propiedad?
             </summary>
@@ -263,6 +270,22 @@
                 <button type="submit" class="btn btn-outline" style="font-size:0.82rem;">Enviar disputa a revisión</button>
             </form>
         </details>
+        {% endif %}
+    {% else %}
+        {% if not beer.owner_user_id %}
+        <div id="claim" style="margin-top:1.1rem; padding:0.95rem 1.15rem; background:rgba(245,158,11,0.08); border:1px solid var(--color-primary); border-radius:var(--radius-card); display:flex; justify-content:space-between; align-items:center; gap:0.8rem; flex-wrap:wrap;">
+            <div style="min-width:0; flex:1;">
+                <div style="font-weight:800; color:var(--color-primary); font-size:0.92rem; display:flex; align-items:center; gap:0.4rem; margin-bottom:0.2rem;">
+                    {{ icon('shield-check', 'icon-sm') }} ¿Elaboras esta cerveza?
+                </div>
+                <div style="font-size:0.81rem; color:var(--text-secondary); line-height:1.4;">
+                    Inicia sesión o crea una cuenta para acreditar tu cervecera y gestionar la ficha oficial de {{ beer.name }}.
+                </div>
+            </div>
+            <a href="{{ url_for('routes.login') }}?next={{ url_for('routes.beer_view', id=beer.id) }}%23claim" class="btn" style="width:auto; padding:0.48rem 1.05rem; font-size:0.82rem; white-space:nowrap;">
+                Iniciar sesión para verificar →
+            </a>
+        </div>
         {% endif %}
     {% endif %}
 </div>
@@ -412,5 +435,19 @@ function closeImageModal() {
         if (m) m.classList.remove('active');
     }
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.location.hash === '#claim') {
+        var claimEl = document.getElementById('claim');
+        if (claimEl) {
+            if (claimEl.tagName === 'DETAILS') {
+                claimEl.open = true;
+            }
+            setTimeout(function() {
+                claimEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 120);
+        }
+    }
+});
 </script>
 {% endblock %}
