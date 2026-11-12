@@ -870,6 +870,95 @@
             align-items: center;
             gap: 0.45rem;
         }
+
+        /* Tarjeta compacta y minimalista para reclamar entidades (bares, cervezas, marcas) */
+        .claim-card-minimal {
+            margin-top: 0.75rem;
+            padding: 0.55rem 0.8rem;
+            background: rgba(245, 158, 11, 0.03);
+            border: 1px solid rgba(245, 158, 11, 0.22);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        .claim-card-minimal-header {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            line-height: 1.25;
+        }
+        .claim-card-minimal-header .icon {
+            width: 15px;
+            height: 15px;
+            flex-shrink: 0;
+        }
+        .claim-card-minimal-text {
+            margin: 0;
+            font-size: 0.74rem;
+            color: var(--text-secondary);
+            line-height: 1.35;
+        }
+        .claim-card-minimal-btn {
+            align-self: flex-start;
+            margin-top: 0.2rem;
+            padding: 0.28rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border-radius: 999px;
+            background: rgba(245, 158, 11, 0.12);
+            color: var(--color-primary);
+            border: 1px solid rgba(245, 158, 11, 0.32);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            transition: all 0.15s ease;
+            cursor: pointer;
+        }
+        .claim-card-minimal-btn:hover,
+        .claim-card-minimal-btn:active {
+            background: var(--color-primary);
+            color: #0E1015;
+            border-color: var(--color-primary);
+        }
+
+        /* Desplegable minimalista para usuario logueado */
+        details.claim-details-minimal {
+            margin-top: 0.75rem;
+            padding: 0.55rem 0.8rem;
+            background: rgba(245, 158, 11, 0.03);
+            border: 1px solid rgba(245, 158, 11, 0.22);
+            border-radius: 12px;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        details.claim-details-minimal > summary {
+            color: var(--color-primary);
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            line-height: 1.25;
+            user-select: none;
+        }
+        details.claim-details-minimal > summary .icon {
+            width: 15px;
+            height: 15px;
+            flex-shrink: 0;
+        }
+        details.claim-details-minimal[open] > summary {
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.35rem;
+            border-bottom: 1px solid rgba(245, 158, 11, 0.15);
+        }
         .notice-green {
             padding: 0.65rem 0.85rem;
             border-radius: var(--radius-button);
